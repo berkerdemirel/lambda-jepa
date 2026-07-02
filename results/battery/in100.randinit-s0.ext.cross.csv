@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.bottleneck,cka_linear,cross,0.9900297697946594,,,50000,384x256,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.bottleneck,neighbor_jaccard,cross,0.7446898601398603,,,50000,384x256,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.bottleneck,procrustes_distance,cross,0.1999764404322668,,,50000,384x256,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.bottleneck,knn_label_agreement,cross,0.6866,,,50000,384x256,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap1,cka_linear,cross,0.9972115681157889,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap1,neighbor_jaccard,cross,0.8742626706626706,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap1,procrustes_distance,cross,0.13336900187334388,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap1,knn_label_agreement,cross,0.8376,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap2,cka_linear,cross,0.9964724128974831,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap2,neighbor_jaccard,cross,0.8470973026973028,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap2,procrustes_distance,cross,0.15677225115969207,,,50000,384x2048,none
+in100.randinit-s0.ext,in100.train500.v1,student.h.cls~student.z.dino.tap2,knn_label_agreement,cross,0.8102,,,50000,384x2048,none
