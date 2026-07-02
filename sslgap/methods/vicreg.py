@@ -61,18 +61,19 @@ class VICReg(SSLMethod):
 
     def training_step(self, modules, views, device):
         N, V = views.shape[:2]
-        h = modules["backbone"].forward_features(views.flatten(0, 1))[:, 0]
-        z = modules["projector"](h).reshape(N, V, -1)
+        tok = modules["backbone"].forward_features(views.flatten(0, 1))
+        z = modules["projector"](tok[:, 0]).reshape(N, V, -1)              # loss input: CLS (trained)
         za, zb = z[:, 0], z[:, 1]
         inv = F.mse_loss(za, zb)
         var = variance_term(za) + variance_term(zb)
         cov = covariance_term(za) + covariance_term(zb)
         loss = self.cfg.w_inv * inv + self.cfg.w_var * var + self.cfg.w_cov * cov
-        return ({"loss": loss, "inv": inv, "var": var, "cov": cov}, h.detach(), V)
+        probe_feats = tok[:, 1:].mean(1).detach()    # monitor = audited h (trunk-GAP, F1)
+        return ({"loss": loss, "inv": inv, "var": var, "cov": cov}, probe_feats, V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        return modules["backbone"].forward_features(x)[:, 0]
+        return modules["backbone"].forward_features(x)[:, 1:].mean(1)     # audited h (GAP)
 
     def probe_dim(self):
         return 384

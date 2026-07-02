@@ -57,15 +57,15 @@ class SimCLR(SSLMethod):
     def training_step(self, modules, views, device):
         N, V = views.shape[:2]
         h = modules["backbone"].forward_features(views.flatten(0, 1))
-        feats = h[:, 0]                                                   # CLS, view-major [N*2]
-        z = modules["projector"](feats).reshape(N, V, -1)
+        z = modules["projector"](h[:, 0]).reshape(N, V, -1)               # loss input: CLS (trained)
         z = torch.cat([z[:, 0], z[:, 1]])                                 # [2N, d], i <-> i+N
         loss = nt_xent(z, self.cfg.temp)
-        return ({"loss": loss, "nt_xent": loss}, feats.detach(), V)
+        probe_feats = h[:, 1:].mean(1).detach()      # monitor = audited h (trunk-GAP, F1); image-major
+        return ({"loss": loss, "nt_xent": loss}, probe_feats, V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        return modules["backbone"].forward_features(x)[:, 0]
+        return modules["backbone"].forward_features(x)[:, 1:].mean(1)     # audited h (GAP)
 
     def probe_dim(self):
         return 384

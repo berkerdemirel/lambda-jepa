@@ -63,14 +63,15 @@ class BYOL(SSLMethod):
 
     def training_step(self, modules, views, device):
         N, V = views.shape[:2]
-        h = modules["backbone"].forward_features(views.flatten(0, 1))[:, 0]
-        q = modules["predictor"](modules["projector"](h)).reshape(N, V, -1)
+        tok = modules["backbone"].forward_features(views.flatten(0, 1))
+        q = modules["predictor"](modules["projector"](tok[:, 0])).reshape(N, V, -1)  # loss: CLS
         with torch.no_grad():
             ht = modules["teacher_backbone"].forward_features(views.flatten(0, 1))[:, 0]
             zt = modules["teacher_projector"](ht).reshape(N, V, -1)
             self._t_std = zt.reshape(-1, zt.shape[-1]).float().std(0).mean().item()
         loss = self._regress(q[:, 0], zt[:, 1]) + self._regress(q[:, 1], zt[:, 0])
-        return ({"loss": loss}, h.detach(), V)
+        probe_feats = tok[:, 1:].mean(1).detach()    # monitor = audited h (trunk-GAP, F1)
+        return ({"loss": loss}, probe_feats, V)
 
     def post_step(self, modules, step, total_steps):
         m = ema_momentum(step, total_steps, self.cfg.ema_base)
@@ -80,7 +81,7 @@ class BYOL(SSLMethod):
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        return modules["backbone"].forward_features(x)[:, 0]
+        return modules["backbone"].forward_features(x)[:, 1:].mean(1)     # audited h (GAP)
 
     def probe_dim(self):
         return 384
