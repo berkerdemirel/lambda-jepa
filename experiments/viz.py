@@ -553,6 +553,7 @@ def main(cfg: DictConfig):
     if cfg.wandb:
         import wandb
         wb = wandb.init(entity="causal-learning-ai-ista", project="sslgap", name=cfg.wandb_name,
+                        id="m1-viz-gallery", resume="allow",   # ONE stable gallery run
                         config={"panels": list(cfg.panels), "run_ids": run_ids})
     made = []
     P = set(cfg.panels)
