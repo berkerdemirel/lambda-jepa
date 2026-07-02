@@ -54,9 +54,10 @@ baselines may be tuning artifacts rather than properties of a method. Therefore:
 
 SLURM's native OR (`--partition=gpu100,gpu`) is DISABLED on this cluster ("Multiple partition job
 request not supported when a partition is set in the association" — verified 2026-07-02). Working
-pattern instead: **parallel single-partition lanes**, each serialized by its own singleton job name
-— `h100-slotA`/`h100-slotB` on gpu100 (the ≤2-H100 cap) + `gpu-laneA`… on `--partition=gpu
---constraint="A40|L40S"` (48 GB cards for training; 24 GB 3090Ti/A10 OOM at bs 256 ViT-S/8 and are
-reserved for extraction/probes, which run without lane names). Feature spellings per
+pattern instead: singleton lanes ONLY where a budget exists — `h100-slotA`/`h100-slotB` on gpu100
+(the ≤2-H100 cap). The `gpu` partition is UNCAPPED by policy: submit independent per-method chains
+(afterok within a chain, NO shared job name) on `--partition=gpu --constraint="A40|L40S"` and let
+fair-share parallelize them (48 GB cards for training; 24 GB 3090Ti/A10 OOM at bs 256 ViT-S/8 and
+are reserved for extraction/probes). Feature spellings per
 `sinfo -o "%P %f"`. A submit-twice-cancel-loser race wrapper is possible for independent jobs if a
 true first-available OR is ever needed; chains break its afterok wiring, so lanes are preferred.
