@@ -27,3 +27,5 @@ HANDOVER.md
 third_party/dino/
 third_party/ijepa/
 third_party/mae/
+results/figures/*.png
+results/figures/*/*.png

@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.ijepa.s0.ext,imagenette.train.v1,teacher.h.gap~student.z.pred.out,cka_linear,cross,0.8230279267203343,,,9469,384x384,none
+toy.ijepa.s0.ext,imagenette.train.v1,teacher.h.gap~student.z.pred.out,neighbor_jaccard,cross,0.1460613735421785,,,9469,384x384,none
+toy.ijepa.s0.ext,imagenette.train.v1,teacher.h.gap~student.z.pred.out,procrustes_distance,cross,0.4836105738948056,,,9469,384x384,none
+toy.ijepa.s0.ext,imagenette.train.v1,teacher.h.gap~student.z.pred.out,knn_label_agreement,cross,0.6212,,,9469,384x384,none

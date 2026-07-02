@@ -1,0 +1,9 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,cka_linear,cross,0.8816320091863135,,,9469,384x512,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,neighbor_jaccard,cross,0.44471118736784376,,,9469,384x512,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,procrustes_distance,cross,0.5691908133760742,,,9469,384x512,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,knn_label_agreement,cross,0.6248,,,9469,384x512,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,cka_linear,cross,0.8874504485009173,,,9469,384x4096,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,neighbor_jaccard,cross,0.45442123502572423,,,9469,384x4096,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,procrustes_distance,cross,0.567717399068704,,,9469,384x4096,none
+toy.simclr.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,knn_label_agreement,cross,0.626,,,9469,384x4096,none
