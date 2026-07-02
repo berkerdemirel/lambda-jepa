@@ -7,11 +7,12 @@ are created. Rule (PROTOCOL §6.8): **never mix provenance within a comparison.*
 
 | run_id | method | frame | source | heads present | probed branch | validation status |
 |---|---|---|---|---|---|---|
-| `toy.lejepa-lamb002.ext` | LeJEPA (λ=0.02) | toy ViT-S/8@128 Imagenette | `../lejepa/ckpt_lamb002.pt` | `proj` (16-d) + `z.embed` Linear(384→512) | student | user's own run of official minimal recipe |
-| `toy.lejepa-lamb0.ext` | LeJEPA (λ=0) ablation | same | `../lejepa/ckpt_lamb0.pt` | same | student | ablation arm |
-| `toy.infonce.ext` | InfoNCE variant | same | `../lejepa/ckpt_infonce.pt` | same | student | comparison arm |
-| `in100.dino-ctrl.ep25/50/100.ext` | DINO (classic) | IN-100 ViT-S/16@224 | `../ssl_explore/outputs/inv_dino-in100_ep{25,50,100}.pt` | student+teacher backbones & DINO heads, centers | teacher | trained as lightly-recipe control; CAMPAIGN_LOG linear/kNN = parity target |
-| `*.randinit` | random-init null | per frame | generated | n/a | — | null anchor (PROTOCOL §6.6) |
+| `toy.lejepa-lamb002.ext` | LeJEPA (λ=0.02) | toy ViT-S/8@128 Imagenette | `../lejepa/ckpt_lamb002.pt` | `proj` (16-d) + `z.embed` Linear(384→512) | student | **extracted+probed 2026-07-02** — h.cls linear 91.2% ≈ official minimal ballpark |
+| `toy.lejepa-lamb0.ext` | LeJEPA (λ=0) ablation | same | `../lejepa/ckpt_lamb0.pt` | same | student | extracted+probed 2026-07-02 |
+| `toy.infonce.ext` | InfoNCE variant | same | `../lejepa/ckpt_infonce.pt` | same | student | extracted+probed 2026-07-02 |
+| `in100.dino-ctrl.ep25/50/100.ext` | DINO (classic) | IN-100 ViT-S/16@224 | `../ssl_explore/outputs/inv_dino-in100_ep{25,50,100}.pt` | student+teacher backbones & DINO heads, centers | teacher | extracted+probed 2026-07-02; parity ref = diag_dino teacher/30k-linspace protocol (see docs/HISTORY.md — NOT the "@4k" table label) |
+| `in100.dino-ctrl.ep100.parity30k` | DINO parity instance | same | same ep100 ckpt | same | teacher | dedicated parity run: linspace-30000 probe manifest, battery on val (N-matched RankMe) |
+| `toy.randinit-s0.ext` / `in100.randinit-s0.ext` | random-init nulls | per frame | generated (adapter random_init, seed 0) | same arch as parent | student | extracted+probed 2026-07-02 (PROTOCOL §6.6 anchors) |
 
 ## Track B — controlled retrains (core-7; M1 toy → M2 IN-100)
 
