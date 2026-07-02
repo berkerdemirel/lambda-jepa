@@ -477,6 +477,11 @@ def panel_crossmodel(cfg, run_ids, store, man_tr, man_val, out, wb):
         anc = Xtr[idx] / (np.linalg.norm(Xtr[idx], axis=1, keepdims=True) + 1e-12)
         Rtr[m] = (Xtr / (np.linalg.norm(Xtr, axis=1, keepdims=True) + 1e-12)) @ anc.T
         Rva[m] = (Xva / (np.linalg.norm(Xva, axis=1, keepdims=True) + 1e-12)) @ anc.T
+        # abs_transform=center (latentis option, NON-default — part of the reported protocol):
+        # raw cosine relreps are dominated by each model's mean anchor-similarity profile, which
+        # saturates direct agreement at ~1.0 and hides all per-image structure.
+        mu = Rtr[m].mean(0)
+        Rtr[m], Rva[m] = Rtr[m] - mu, Rva[m] - mu
         ys["tr"], ys["va"] = store.labels(run_ids[m], man_tr), store.labels(run_ids[m], man_val)
     n = len(METHODS)
     agree, retr, xfer = np.eye(n), np.eye(n), np.zeros((n, n))
@@ -499,7 +504,7 @@ def panel_crossmodel(cfg, run_ids, store, man_tr, man_val, out, wb):
     for ax, M, title in ((axes[0], agree, "per-image agreement\nmean cos(relrep_A(x), relrep_B(x))"),
                          (axes[1], retr, "cross-model self-retrieval@1\nquery A -> gallery B (val)"),
                          (axes[2], xfer, "probe transfer acc\nlinear probe fit on A, eval on B")):
-        im = ax.imshow(M, cmap=ramp, vmin=max(0.0, M.min() - 0.05), vmax=1.0)
+        im = ax.imshow(M, cmap=ramp)          # auto range per matrix; cells carry the numbers
         for i in range(n):
             for j in range(n):
                 ax.annotate(f"{M[i, j]:.2f}", (j, i), ha="center", va="center", fontsize=7,
@@ -509,8 +514,8 @@ def panel_crossmodel(cfg, run_ids, store, man_tr, man_val, out, wb):
         ax.set_yticklabels(METHODS, fontsize=7)
         ax.set_title(title, color=INK, fontsize=9)
     fig.suptitle(f"Direct cross-model comparison in shared relrep coordinates "
-                 f"(A={A} anchor images, cosine, latentis-default no centering; rows = source A, "
-                 "cols = target B)", color=INK, fontsize=11)
+                 f"(A={A} anchor images, cosine, abs_transform=center — non-default, see code note; "
+                 "rows = source A, cols = target B)", color=INK, fontsize=11)
     return _save(fig, out, "crossmodel/relrep_direct_7x7.png", wb)
 
 

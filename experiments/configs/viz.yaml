@@ -12,7 +12,7 @@ train_manifest: imagenette.train.v1
 val_manifest: imagenette.val.v1
 
 pca_points: 3000          # scatter subsample per panel
-relrep_anchors: 256       # shared anchor images (D-009 dataset anchors, seed 0)
+relrep_anchors: 384       # D-009 convention A = feat dim; min over the 7 h-spaces (384; lejepa 512)
 gallery_queries: 6
 
 wandb: true
