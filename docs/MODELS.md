@@ -21,7 +21,7 @@ ckpt paths, wandb id, git sha, validation-vs-donor status)*
 
 | run_id | method | frame | seed | recipe donor | deviations | pixels/ep ratio | validation | status |
 |---|---|---|---|---|---|---|---|---|
-| `toy.lejepa.s0` | LeJEPA | toy | 0 | official minimal (`../lejepa`, exact) | none intended | 4 views | 150ep best=0.7819 (wandb mi6apyp8); **portval 800ep in flight** (61924263, wandb o1cqzmbg) vs 0.90217±1pt — interim: acc trajectory on reference, sigreg shape corr 0.9997 | **done 2026-07-02** (ckpt `outputs/toy.lejepa.s0_ep150.pt`, git 69f6050) |
+| `toy.lejepa.s0` | LeJEPA | toy | 0 | official minimal (`../lejepa`, exact) | none intended | 4 views | **portval PASS 2026-07-03**: ep800 0.9037 vs 0.90217 (Δ+0.15pt), best 0.9113; sigreg shape corr 0.9997 (wandb o1cqzmbg; PORT_NOTES verdict) | **done 2026-07-02** 150ep best=0.7819 (wandb mi6apyp8, git 69f6050) |
 | `toy.simclr.s0` | SimCLR | toy | 0 | solo-learn @9187ea3 (reviewed port) | ViT trunk (paper is RN50) | 2 views | M1.5 RN18-IN-100 vs published 66.2ish | **done 2026-07-02** best=0.7006 (wandb srerm3u5, git 69f6050) |
 | `toy.vicreg.s0` | VICReg | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk | 2 views | M1.5 | **done 2026-07-02** best=0.7753 (wandb s3wameng, git 69f6050) |
 | `toy.byol.s0` | BYOL | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk; EMA base scaled to steps/ep | 2 views | M1.5; collapse canary green: teacher_proj_std min 0.33 → 9.0 (never ~0) | **done 2026-07-02** best=0.6189 (wandb o2dntmv1, git 69f6050) |
