@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.embed,cka_linear,cross,0.990188724546251,,,9469,384x512,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.embed,neighbor_jaccard,cross,0.7612278887778888,,,9469,384x512,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.embed,procrustes_distance,cross,0.1642517754685725,,,9469,384x512,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.embed,knn_label_agreement,cross,0.9238,,,9469,384x512,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,cka_linear,cross,0.7577965633602982,,,9469,384x16,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.4023203357014502,,,9469,384x16,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.4554859004436234,,,9469,384x16,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.8468,,,9469,384x16,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.9643163239165695,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.6509413635384224,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.416501266179329,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,knn_label_agreement,cross,0.9028,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,cka_linear,cross,0.918637003348525,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,neighbor_jaccard,cross,0.52376702121408,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,procrustes_distance,cross,0.5089682442658755,,,9469,384x2048,none
+toy.infonce.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,knn_label_agreement,cross,0.8768,,,9469,384x2048,none
