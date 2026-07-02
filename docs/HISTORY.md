@@ -63,3 +63,10 @@ now EVAL for DINO/I-JEPA (drop_path in targets), MAE decoder rewritten canonical
 sincos + cls through decoder), I-JEPA predictor pos -> fixed sincos + min_keep=10. Remaining
 documented deviations in per-dossier PORT_NOTES (house optimizer per D-012; I-JEPA cls-in-context;
 predictor depth 6). All six re-validated on CPU after fixes.
+
+## 2026-07-02 — incident: stale pre-review checkpoints crashed post-review resumes
+simclr full-150 died loading a _last.pt written by the cancelled pre-review attempt (old 2048→256
+projector vs new 4096→512). Fixed: stale tag-less grid ckpts purged for all six methods (vicreg had
+one waiting too); trainer now refuses resume when the saved arch block differs from the current
+method arch, with an actionable message. Lesson: architecture changes invalidate tag-less run_ids —
+purge or retag.
