@@ -24,11 +24,13 @@ FORMAT = "sslgap/ckpt/v1"
 class Branch:
     """One weight branch (student, or an EMA teacher). `trunk` must expose forward_features()
     (timm ViT convention, num_classes=0 semantics — the classifier head is never part of h).
-    `heads` maps the branch's trunk features to named z-taps: a module whose forward(cls_or_gap)
-    returns {tap_name: tensor}; `head_input` says which trunk feature it consumes."""
+    `heads` maps the branch's trunk features to named z-taps: a module whose forward(feature)
+    returns {tap_name: tensor}; `head_input` says which trunk feature it consumes: "cls" | "gap" |
+    "seq" (full normed token sequence, MAE decoder) | "image" (raw batch — heads running their own
+    trunk pass, I-JEPA context-only)."""
     trunk: nn.Module
     heads: nn.Module | None = None
-    head_input: str = "cls"          # "cls" | "gap"
+    head_input: str = "cls"          # "cls" | "gap" | "seq" | "image"
 
 
 @dataclass

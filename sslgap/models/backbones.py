@@ -17,11 +17,14 @@ def build_vit_trunk(model_name, img_size, dynamic_img_size=False, drop_path_rate
 
 @torch.inference_mode()
 def trunk_features(trunk, x, h_layers=()):
-    """One frozen pass -> {"cls": [B,D], "gap": [B,D], "tokens": [B,N,D],
-    and per l in h_layers: "cls.L<l>", "gap.L<l>"} (1-indexed block layers, norm=True)."""
+    """One frozen pass -> {"cls": [B,D], "gap": [B,D], "tokens": [B,N,D], "seq": [B,npre+N,D],
+    and per l in h_layers: "cls.L<l>", "gap.L<l>"} (1-indexed block layers, norm=True).
+    "seq" is the full normed sequence incl. prefix — the mask-ratio-0 decoder input for MAE
+    (vit_tokens(keep=all) == forward_features, asserted by vitops_self_test)."""
     npre = getattr(trunk, "num_prefix_tokens", 1)
     feats = trunk.forward_features(x)                      # [B, npre+N, D], final norm applied
-    out = {"cls": feats[:, 0], "gap": feats[:, npre:].mean(1), "tokens": feats[:, npre:]}
+    out = {"cls": feats[:, 0], "gap": feats[:, npre:].mean(1), "tokens": feats[:, npre:],
+           "seq": feats}
     if h_layers:
         inter = trunk.get_intermediate_layers(x, n=[l - 1 for l in h_layers],
                                               return_prefix_tokens=True, norm=True)

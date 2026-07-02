@@ -47,8 +47,12 @@ def main(cfg: DictConfig):
 
     branch = meta["probed_branch"]
     spaces = store.spaces(cfg.run_id, man)
-    h_ref = f"{branch}.h.cls" if f"{branch}.h.cls" in spaces else f"{branch}.h.gap"
-    z_taps = [s for s in spaces if s.startswith(f"{branch}.z.")]
+    # PROTOCOL §3 h per method (D-003v2), recorded by the adapter; older M0 extractions
+    # (lejepa_minimal / sslx_dino) predate h_space and keep the cls-first fallback.
+    h_ref = (meta.get("ckpt_provenance") or {}).get("h_space")
+    if not h_ref:
+        h_ref = f"{branch}.h.cls" if f"{branch}.h.cls" in spaces else f"{branch}.h.gap"
+    z_taps = [s for s in spaces if s.startswith(f"{branch}.z.") and s != h_ref]
     cross_frames = [run_cross_battery(store, cfg.run_id, man, h_ref, z, seed=cfg.seed)
                     for z in z_taps]
     if cross_frames:

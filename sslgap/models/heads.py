@@ -63,6 +63,20 @@ class TVMLPTaps(nn.Module):
         return out
 
 
+class ByolHeads(nn.Module):
+    """BYOL student head stack: projector taps, then predictor taps chained on proj.out
+    (z.proj.tap1, z.proj.out, z.pred.tap1, z.pred.out — PROTOCOL §3; loss space = pred.out)."""
+
+    def __init__(self, proj: nn.Sequential, pred: nn.Sequential):
+        super().__init__()
+        self.proj = TVMLPTaps(proj, prefix="proj")
+        self.pred = TVMLPTaps(pred, prefix="pred")
+
+    def forward(self, cls):
+        p = self.proj(cls)
+        return {**p, **self.pred(p["proj.out"])}
+
+
 class LejepaHeads(nn.Module):
     """The lejepa-minimal head stack: trunk CLS (384) -> timm classifier Linear 384->512
     (= the recipe's "emb"; our tap z.embed, D-003) -> torchvision MLP projector (z.proj.*)."""

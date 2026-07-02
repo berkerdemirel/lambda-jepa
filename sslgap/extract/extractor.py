@@ -21,6 +21,7 @@ def _batch_spaces(loaded, x, h_layers):
     out = {}
     for bname, br in loaded.branches.items():
         feats = trunk_features(br.trunk, x, h_layers=h_layers)
+        feats["image"] = x               # heads needing their own trunk pass (I-JEPA context-only)
         for kind in ("cls", "gap"):
             out[f"{bname}.h.{kind}"] = feats[kind].float().cpu()
         for l in h_layers:
