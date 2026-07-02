@@ -1,0 +1,12 @@
+name: lejepa
+# EXACT official minimal recipe (../lejepa, D-011): single hyperparameter lambda; no heuristics.
+lamb: 0.02
+V: 4
+proj_dim: 16
+emb_dim: 512
+drop_path: 0.1
+lr: 2e-3
+wd: 5e-2
+warmup_ep: 1
+eta_min: 1e-3              # official (= lr/2; deliberately violates the house eta_min<=lr/20 — D-011)
+grad_clip: null            # official: NO gradient clipping (D-011 port-exact override of the frame default)

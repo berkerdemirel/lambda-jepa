@@ -105,7 +105,50 @@ def from_sslx_dino(path, run_id, random_init=False, seed=0):
                       provenance=prov)
 
 
-ADAPTERS = {"lejepa_minimal": from_lejepa_minimal, "sslx_dino": from_sslx_dino}
+def _resolve(dotted):
+    mod, _, attr = dotted.rpartition(".")
+    import importlib
+    return getattr(importlib.import_module(mod), attr)
+
+
+def from_native(path, run_id, random_init=False, seed=0):
+    """sslgap/ckpt/v1 payloads (our M1+ trainers): rebuild every module from its arch block, then
+    assemble branches per method. random_init rebuilds the same arch freshly seeded."""
+    ck = torch.load(path, map_location="cpu", weights_only=False)
+    assert ck.get("format") == "sslgap/ckpt/v1", f"not a native ckpt: {ck.get('format')}"
+    if random_init:
+        torch.manual_seed(seed)
+    mods = {}
+    for role, spec in ck["arch"].items():
+        m = _resolve(spec["class"])(**spec["kwargs"])
+        if not random_init:
+            m.load_state_dict(ck["modules"][role])
+        mods[role] = m
+
+    method = ck["method"]
+    if method == "lejepa":
+        # encoder = timm ViT WITH the emb Linear (exact port); split into trunk + embed for the
+        # two-space layout — z.embed is LeJEPA's h (D-003v2 F4).
+        enc_sd = mods["encoder"].state_dict()
+        fr = ck["frame"]
+        trunk, embed = _trunk_from_vit_sd(enc_sd, fr["model_name"], fr["img_size"],
+                                          fr.get("dynamic_img_size", False))
+        branches = {"student": Branch(trunk, LejepaHeads(embed, mods["projector"]), "cls")}
+        probed, h_space = "student", "student.z.embed"
+    else:
+        raise NotImplementedError(f"native branch assembly for method {method!r}")
+
+    prov = {"source": str(path), "epoch": ck.get("epoch"), "adapter": "native",
+            "random_init": random_init, "seed": seed if random_init else None,
+            "h_space": h_space, "train_provenance": ck.get("provenance")}
+    return LoadedCkpt(run_id=run_id, method=method,
+                      frame={**ck["frame"], "dynamic_img_size": ck["frame"].get("dynamic_img_size",
+                                                                                False)},
+                      cfg=ck["cfg"], branches=branches, probed_branch=probed, provenance=prov)
+
+
+ADAPTERS = {"lejepa_minimal": from_lejepa_minimal, "sslx_dino": from_sslx_dino,
+            "native": from_native}
 
 
 def load(adapter, path, run_id, **kw):

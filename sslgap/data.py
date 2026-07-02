@@ -174,3 +174,39 @@ def make_source(frame):
         return lambda split: _Source("hf-imagenette", split=split)
     root = os.path.expanduser(frame["data_root"])
     return lambda split: _Source("imagefolder", root=os.path.join(root, split))
+
+
+class ViewsDataset(torch.utils.data.Dataset):
+    """Training views over a FULL split (no manifest — matches the official lejepa recipe and the
+    sslx HFDataset): V>1 -> V draws of the orbit stack; V==1 -> the deterministic eval transform.
+    Returns (views [V,C,H,W], label)."""
+
+    def __init__(self, dataset, split, V, img_size, data_root=None):
+        self.V = V
+        if dataset == "imagenette":
+            self.source = _Source("hf-imagenette", split=split)
+            self.n = len(self.source.ds)
+        else:
+            sub = {"train": "train", "validation": "val"}[split]
+            root = os.path.join(os.path.expanduser(data_root), sub)
+            from torchvision.datasets import ImageFolder
+            self._folder = ImageFolder(root)
+            self.source = None
+            self.n = len(self._folder)
+        self.aug = orbit_stack(img_size)
+        self.test = eval_transform(img_size)
+
+    def _item(self, i):
+        if self.source is not None:
+            row = self.source.ds[int(i)]
+            return row["image"].convert("RGB"), int(row["label"])
+        path, y = self._folder.samples[i]
+        return self._folder.loader(path).convert("RGB"), y
+
+    def __getitem__(self, i):
+        img, y = self._item(i)
+        tfm = self.aug if self.V > 1 else self.test
+        return torch.stack([tfm(img) for _ in range(self.V)]), y
+
+    def __len__(self):
+        return self.n

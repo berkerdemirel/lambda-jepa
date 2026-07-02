@@ -83,7 +83,8 @@ REQUIRED_ROLES = {  # minimal module set per method for the native format (M1 tr
     "dino": {"backbone", "projector", "teacher_backbone", "teacher_projector"},
     "mae": {"backbone", "decoder"},
     "ijepa": {"backbone", "predictor", "teacher_backbone"},
-    "lejepa": {"backbone", "projector"},
+    "lejepa": {"encoder", "projector"},   # encoder = timm ViT WITH the emb Linear (exact port);
+                                          # the extraction adapter splits trunk/embed (D-003v2 F4)
 }
 
 

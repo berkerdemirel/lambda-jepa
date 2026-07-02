@@ -1,0 +1,21 @@
+defaults:
+  - frame: toy_vits8
+  - method: lejepa
+  - _self_
+
+seed: 0
+tag: ""                      # run_id suffix (e.g. portval)
+bs: 256
+num_classes: 10              # online-probe head width (imagenette 10; in100 100)
+probe_lr: 1e-3
+probe_wd: 1e-7
+num_workers: 8
+device: cuda
+resume: true
+out_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs
+wandb_project: sslgap
+wandb_mode: online
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

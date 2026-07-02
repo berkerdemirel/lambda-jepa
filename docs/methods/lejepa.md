@@ -95,6 +95,18 @@ dissociation of view-based methods?
   to mis-set; single λ). House caveat: sliced-Gaussianity (Epps–Pulley) is foolable — isotropy
   monitoring pairs it with kurt_topeig/worst-direction stats (WORKFLOW.md).
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+- Donor: `../lejepa/scripts/minimal_imagenette.py` (== MINIMAL.md listing; working tree). Ground
+  truth: user's run `ckpt_lamb002.pt` = {lamb .02, V 4, proj_dim 16, lr 2e-3, bs 256, epochs 800},
+  final online test/acc **0.90217** (wandb `lejepa-reproduce/z2zqw1bs`).
+- Port: `sslgap/methods/lejepa.py` + the frame loop `experiments/train.py`. Reviewed line-by-line
+  against the donor: SIGReg verbatim (knots 17, t∈[0,3], 256 unseeded slices/step); encoder built as
+  timm ViT(num_classes=512) exactly (the emb Linear stays inside the encoder; split into trunk+embed
+  only by the extraction adapter); torchvision-MLP projector; inv = (proj.mean(0)−proj)²; loss =
+  λ·sigreg + (1−λ)·inv; joint AdamW with probe param group (LN+Linear on emb.detach()); LinearLR
+  0.01→1 over 1 epoch then cosine eta_min=1e-3; GradScaler+bf16; manual_seed(0);
+  persistent_workers=False. Deviations from frame defaults recorded in D-011.
+- Known non-exactness: module init RNG cannot be bit-identical across the refactor (creation order
+  mirrored, but timm/init internals differ at the margin); validation criterion is curve shape +
+  final probe within ~1 pt, not bit equality.

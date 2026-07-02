@@ -1,0 +1,7 @@
+name: toy
+model_name: vit_small_patch8_224
+img_size: 128
+dataset: imagenette
+data_root: null
+epochs: 150                # frame-standard toy budget (PROTOCOL §2); portval overrides to 800
+grad_clip: 1.0             # frame default; a method may override only with a DECISIONS row
