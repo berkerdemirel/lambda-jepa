@@ -53,6 +53,8 @@ def main(cfg: DictConfig):
     if not h_ref:
         h_ref = f"{branch}.h.cls" if f"{branch}.h.cls" in spaces else f"{branch}.h.gap"
     z_taps = [s for s in spaces if s.startswith(f"{branch}.z.") and s != h_ref]
+    if not z_taps:      # I-JEPA: probed branch is the teacher, z lives on the student+predictor
+        z_taps = [s for s in spaces if ".z." in s and s != h_ref]
     cross_frames = [run_cross_battery(store, cfg.run_id, man, h_ref, z, seed=cfg.seed)
                     for z in z_taps]
     if cross_frames:

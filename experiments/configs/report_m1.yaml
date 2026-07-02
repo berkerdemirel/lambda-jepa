@@ -1,0 +1,8 @@
+methods: [simclr, byol, vicreg, dino, mae, ijepa, lejepa]
+run_id_pattern: "toy.{method}.s0.ext"
+null_pattern: "toy.{method}.s0.null.ext"
+results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}
