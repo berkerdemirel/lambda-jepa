@@ -4,7 +4,7 @@ orbits_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/orbits
 tsne_perplexities: [30, 100]
 tsne_points: 3000
 run_id_overrides:
-  dino: toy.dino.s0.ext          # switch to toy.dino.s0.probefix.ext when the rerun lands
+  dino: toy.dino.s0.probefix.ext   # probefix rerun (2026-07-03, best=0.7758)
 store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
 manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
 results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results

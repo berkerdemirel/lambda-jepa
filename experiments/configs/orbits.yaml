@@ -1,7 +1,7 @@
 methods: [simclr, byol, vicreg, dino, mae, ijepa, lejepa]
 ckpt_pattern: "outputs/toy.{method}.s0_ep150.pt"
 run_id_overrides:
-  dino: outputs/toy.dino.s0_ep150.pt   # -> outputs/toy.dino.s0.probefix_ep150.pt when rerun lands
+  dino: outputs/toy.dino.s0.probefix_ep150.pt   # probefix rerun (2026-07-03)
 manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
 train_manifest: imagenette.train.v1
 out_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/orbits
