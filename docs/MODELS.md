@@ -21,13 +21,13 @@ ckpt paths, wandb id, git sha, validation-vs-donor status)*
 
 | run_id | method | frame | seed | recipe donor | deviations | pixels/ep ratio | validation | status |
 |---|---|---|---|---|---|---|---|---|
-| — | LeJEPA | toy | 0 | official minimal (`../lejepa`, exact) | none intended | 4 views | must reproduce official curve (loss within amp noise, probe ~1 pt) | planned M1 (ported first) |
-| — | SimCLR | toy | 0 | solo-learn @9187ea3 (reviewed port) | ViT trunk (paper is RN50) | 2 views | M1.5 RN18-IN-100 vs published 66.2ish | planned M1 |
-| — | VICReg | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk | 2 views | M1.5 | planned M1 |
-| — | BYOL | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk; EMA base scaled to steps/ep | 2 views | M1.5; collapse canary = 0.3% signature | planned M1 |
-| — | DINO | toy | 0 | sslx `train_dinov2.py` (restructured) | documented in dossier | 2g+Vl crops (~1.7×) | vs existing IN-100 control at M2 | planned M1 |
-| — | MAE | toy | 0 | solo-learn/MMSelfSup donor (no paper ViT-S recipe) | ViT-S decoder scaled | 1 view, 25% visible | weak linear probe is EXPECTED — validate via kNN + finetune-lite | planned M1 |
-| — | I-JEPA | toy | 0 | official repo + sslx `ijepa.py` modules | ViT-S scale-down from ViT-H paper | 1 view, multi-block masks | target-variance collapse monitor from step 0 | planned M1 |
+| `toy.lejepa.s0` | LeJEPA | toy | 0 | official minimal (`../lejepa`, exact) | none intended | 4 views | 150ep best=0.7819 (wandb mi6apyp8); **portval 800ep in flight** (61924263, wandb o1cqzmbg) vs 0.90217±1pt — interim: acc trajectory on reference, sigreg shape corr 0.9997 | **done 2026-07-02** (ckpt `outputs/toy.lejepa.s0_ep150.pt`, git 69f6050) |
+| `toy.simclr.s0` | SimCLR | toy | 0 | solo-learn @9187ea3 (reviewed port) | ViT trunk (paper is RN50) | 2 views | M1.5 RN18-IN-100 vs published 66.2ish | training in flight (61925377; ep~100 probe 0.66) |
+| `toy.vicreg.s0` | VICReg | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk | 2 views | M1.5 | **done 2026-07-02** best=0.7753 (wandb s3wameng, git 69f6050) |
+| `toy.byol.s0` | BYOL | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk; EMA base scaled to steps/ep | 2 views | M1.5; collapse canary = 0.3% signature — teacher_proj_std healthy all run | training in flight (61925376; ep~130 probe 0.60) |
+| `toy.dino.s0` | DINO | toy | 0 | sslx `train_dinov2.py` (restructured) | documented in dossier | 2g+Vl crops (~1.7×) | vs existing IN-100 control at M2 | training in flight (61925163, wandb sjbj72tt); **WATCH: probe ~chance @ ep64 while entropy/proto monitors healthy** |
+| `toy.mae.s0` | MAE | toy | 0 | canonical models_mae.py@efb2a80 (reviewed port) | ViT-S decoder 512×8×16 | 1 view, 25% visible | weak linear probe is EXPECTED — validate via kNN + finetune-lite | queued (smoke2 61925164 → full 61925165, h100-slotB chain) |
+| `toy.ijepa.s0` | I-JEPA | toy | 0 | official repo + sslx `ijepa.py` modules | ViT-S scale-down from ViT-H paper | 1 view, multi-block masks | target-variance collapse monitor from step 0 | queued (smoke2 61925166 → full 61925169) |
 | — | supervised DeiT-lite | in100 | 0 | timm recipe | anchor | 1 view | — | planned M2 |
 
 ## Track C — public IN-1k checkpoints (M3 validation rung; head inventory TO VERIFY at M3 entry)
