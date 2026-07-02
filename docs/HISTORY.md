@@ -46,3 +46,5 @@ No concat/best-of readouts anywhere: h = last-layer feature of the paper's type 
 I-JEPA teacher last GAP); probe protocol fixed as ours (paper quirks → E11); linear maps add no
 capacity → LeJEPA h = emb-512. Headline probes locked: linear_raw_v1 + knn_v1 (house = secondary,
 l2/attentive → E11). M0 probe CSVs predate linear_raw_v1 → re-running probe jobs to add it.
+
+## 2026-07-02 — G-M0 PASSED; AUDIT_MATRIX v1 LOCKED (Berker sign-off). M1 begins: LeJEPA port.

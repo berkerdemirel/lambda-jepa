@@ -33,7 +33,7 @@ Status ∈ { PROPOSED, USER-APPROVED, SUPERSEDED }.
 
 | ID | date | gate | evidence required | status |
 |---|---|---|---|---|
-| G-M0 | — | M0 exit → start M1 (toy trainers) | M0 exit criteria met (see docs/ROADMAP.md) + PROTOCOL v1 and E1 predictions signed off + D-001…D-008 ratified | pending |
+| G-M0 | 2026-07-02 | M0 exit → start M1 (toy trainers, LeJEPA port first) | **PASSED**: pipeline end-to-end on 6 ckpts + 2 nulls; parity vs prior stack exact (16/16 within ±0.06 pt; RankMe/PR to the printed decimal); kNN self-test green; collapse detectors verified on the λ=0 arm; D-001…D-010 ratified (D-003v2 F1–F4 resolved; D-006v2 approved); PROTOCOL v1-draft.2 in force; AUDIT_MATRIX v1 LOCKED | USER-APPROVED (Berker, 2026-07-02) |
 | G-M2 | — | rung 2→3 (public IN-1k ckpts) | "consistent conclusions at toy+IN-100" — E1/E2/E11 resolved with agreed takeaways | pending |
 | G-M4 | — | rung 3→4 (IN-1k retrains) | scoped only after M3/M4 review | pending |
 

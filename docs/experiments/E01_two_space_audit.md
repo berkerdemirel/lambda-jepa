@@ -3,9 +3,9 @@
 > Derived from docs/report/ssl-projector-gap-report.html (compiled 2026-07-01, quote-verified there)
 > §5.1 E1. Tags: [E] established · [P] plausible · [O] open.
 
-**Status:** draft (M0 mini-version on existing ckpts → full at M2)
-**Pre-registered:** ❏ pending user sign-off (target: M0 exit) — predictions live in
-[AUDIT_MATRIX.md](AUDIT_MATRIX.md) and must be locked *before* the first full-grid number is computed.
+**Status:** PRE-REGISTERED (M0 mini-version done on existing ckpts → full at M2)
+**Pre-registered:** ✅ 2026-07-02 (Berker) — predictions locked in [AUDIT_MATRIX.md](AUDIT_MATRIX.md)
+before any controlled-grid number exists.
 **Phase:** M0 (2 methods, existing ckpts) → M2 (core-7 + anchors, IN-100 grid) → M3 (public echo).
 
 ## Hypothesis (directional, from the report)
