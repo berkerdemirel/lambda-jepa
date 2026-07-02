@@ -40,9 +40,9 @@ class MAEDecoder(nn.Module):
         z = self.embed(cls_vis_tokens)
         B, d = z.shape[0], z.shape[-1]
         cls_tok, vis = z[:, :1], z[:, 1:]
-        full = self.mask_token.expand(B, n_patches, -1).clone()
+        full = self.mask_token.to(z.dtype).expand(B, n_patches, d).clone()   # dtype-match under autocast
         full.scatter_(1, keep_idx[..., None].expand(-1, -1, d), vis)
-        x = torch.cat([cls_tok, full], 1) + self.pos
+        x = torch.cat([cls_tok, full], 1) + self.pos.to(z.dtype)
         x = self.norm(self.blocks(x))[:, 1:]
         return self.out(x)
 
