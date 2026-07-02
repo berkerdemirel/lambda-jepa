@@ -18,16 +18,19 @@ spaces matrix with transfer ratios τ. Founding study design: `docs/report/ssl-p
 - Code complete for M0: adapters (lejepa_minimal, sslx_dino + random_init nulls), extractor +
   fp16 feature store, 18-metric battery (variants/bootstrap/Gaussian nulls), probes
   (linear_house_v1/linear_l2_v1/knn_v1), audit tables, Hydra drivers, sbatch templates.
-- M0 runs: extraction + probes done for all 6 ckpts (3 lejepa toy, 3 DINO IN-100) + 2 random-init
-  nulls; audits + the corrected 30k parity chain in flight. First numbers sane (lejepa toy h.cls
-  91.2% linear ≈ official ballpark; clean layerwise guillotine).
-- **Parity lesson (docs/HISTORY.md)**: CAMPAIGN_LOG's "DINO @4k" label was wrong — actual reference
-  protocol = diag_dino.py, teacher branch, 30k linspace probe-train, RankMe/effrank on val.
+- **M0 pipeline COMPLETE (2026-07-02)**: batteries + probes for all 6 ckpts (3 lejepa toy, 3 DINO
+  IN-100 ep25/50/100) + 2 random-init nulls + 3 parity instances. Full numbers:
+  `results/M0/FINDINGS.md` (+ per-run CSVs in results/battery, results/probes). Feature store 9.2 GB.
+- **Parity: PASSED, exact** — 16/16 reference numbers within ±0.06 pt once the true protocol was
+  identified (docs/HISTORY.md: diag_dino.py teacher/linspace-30k, NOT the "@4k" table label);
+  RankMe/participation-ratio match to the printed decimal. kNN self-test green.
+- Sanity signals: LeJEPA λ=0 arm shows textbook collapse (11.5% probe, RankMe 1.2 — collapse
+  monitors work); random-init nulls near chance; layerwise guillotine curves monotone.
 
-## Next action
-When audits + parity30k land: `python experiments/report_m0.py 'run_ids=[…]'` → results/M0/FINDINGS.md;
-check parity vs the HISTORY reference numbers; then user ratifies D-001…D-008 + signs off PROTOCOL v1
-+ E1 predictions (AUDIT_MATRIX) → G-M0 gate row → start M1 (LeJEPA port first).
+## Next action (BLOCKED ON USER — by design)
+Discussion with Berker: (1) ratify D-001…D-008 + PROTOCOL v1 + lock AUDIT_MATRIX (E1
+pre-registration); (2) walk through results/M0/FINDINGS.md headline cells — NO takeaways are
+recorded yet (CLAUDE.md contract); (3) G-M0 gate row → start M1 (LeJEPA port first).
 
 ## Constraints reminder
 ≤2 concurrent H100 jobs (singleton names `h100-slotA/B`); everything via SLURM; canonical IN-100 =
