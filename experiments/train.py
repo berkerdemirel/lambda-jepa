@@ -58,6 +58,11 @@ def main(cfg: DictConfig):
     start_ep, best_acc, wandb_id = 0, 0.0, None
     if cfg.resume and os.path.exists(last_path):
         pay = torch.load(last_path, map_location=frame.device, weights_only=False)
+        saved_arch = {k: v for k, v in pay["arch"].items() if k != "probe"}
+        assert saved_arch == method.arch(), (
+            f"resume refused: {last_path} was trained with a different architecture "
+            f"(saved arch != current method.arch()). Delete the stale run_id checkpoints "
+            f"or change tag= to start a fresh run.")
         for role, sd in pay["modules"].items():
             (probe if role == "probe" else modules[role]).load_state_dict(sd)
         opt.load_state_dict(pay["optim"]["opt"])
