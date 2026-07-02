@@ -47,4 +47,4 @@ measurable per-size-decile curve, informing method choice for detection pipeline
 
 ## AGREED TAKEAWAY
 
-*(empty — never filled unilaterally; see CLAUDE.md)*
+*(empty — never filled unilaterally; see WORKFLOW.md)*

@@ -51,4 +51,4 @@ susceptible to spurious correlations" (Shi et al.) — probe choice is part of t
 
 ## AGREED TAKEAWAY
 
-*(empty — never filled unilaterally; see CLAUDE.md)*
+*(empty — never filled unilaterally; see WORKFLOW.md)*

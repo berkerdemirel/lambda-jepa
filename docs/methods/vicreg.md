@@ -75,7 +75,7 @@ and alignment (the invariance term).
 
 - **Donor:** `third_party/solo-learn` @ 9187ea39 + the paper (arXiv:2105.04906).
 - **Known recipe risks (kickstart plan):** none singled out — general training-hygiene rules
-  (CLAUDE.md) apply.
+  (WORKFLOW.md) apply.
 
 ### PORT_NOTES
 

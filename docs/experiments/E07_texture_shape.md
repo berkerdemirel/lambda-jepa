@@ -47,4 +47,4 @@ guidance. First two-space bias measurement (h vs z shape bias). Fills OPEN_PROBL
 
 ## AGREED TAKEAWAY
 
-*(empty — never filled unilaterally; see CLAUDE.md)*
+*(empty — never filled unilaterally; see WORKFLOW.md)*

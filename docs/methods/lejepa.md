@@ -93,7 +93,7 @@ dissociation of view-based methods?
   truth: port must reproduce the official loss curve within amp noise, probe within ~1 pt).
 - **Known recipe risks (kickstart plan):** lowest risk of the core-7 (no schedulers/EMA/stop-grad
   to mis-set; single λ). House caveat: sliced-Gaussianity (Epps–Pulley) is foolable — isotropy
-  monitoring pairs it with kurt_topeig/worst-direction stats (CLAUDE.md).
+  monitoring pairs it with kurt_topeig/worst-direction stats (WORKFLOW.md).
 
 ### PORT_NOTES
 

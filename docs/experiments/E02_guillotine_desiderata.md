@@ -38,4 +38,4 @@ Loose fit → desiderata decay and usefulness decay are different axes; report p
 
 ## AGREED TAKEAWAY
 
-*(empty — see CLAUDE.md)*
+*(empty — see WORKFLOW.md)*

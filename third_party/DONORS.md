@@ -7,6 +7,7 @@ dossier (donor file, commit, review findings, deviations), and land in `sslgap/`
 | donor | path | pinned commit | date | role |
 |---|---|---|---|---|
 | solo-learn (vturrisi) | `third_party/solo-learn/` | `9187ea39c2c3f43c455ab06664d2b019a9802954` | 2026-04-22 | tuned IN-100 recipes + method impls for SimCLR/BYOL/VICReg/MAE ports; published RN18-IN-100 numbers = port-validation ground truth (M1.5) |
+| latentis (Flegyas) | `third_party/latentis/` | `800699f9fd5a98880adac40590e075aaffb87ab9` | 2026 | relative-representations reference implementation (D-009): cosine relrep semantics verified (no centering by default; optional Centering/StandardScaling abs_transforms) |
 | lejepa (official minimal) | `../lejepa` (sibling repo, not vendored) | working tree | — | LeJEPA recipe ground truth; user's trained Imagenette ckpts = M0 inputs |
 | ssl_explore (in-house) | `../ssl_explore` (sibling repo) | working tree | — | harvested: geometry/knn/meters/sigreg (ported into sslgap/metrics, sslgap/probes), DINO IN-100 control recipe + ckpts, SLURM conventions |
 

@@ -12,7 +12,7 @@ import torch
 from omegaconf import DictConfig
 
 from sslgap.extract import FeatureStore
-from sslgap.probes import knn_self_test, knn_topk_acc, linear_house_v1, linear_l2_v1
+from sslgap.probes import knn_self_test, knn_topk_acc, linear_house_v1, linear_l2_v1, linear_raw_v1
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="probe")
@@ -33,6 +33,9 @@ def main(cfg: DictConfig):
         Xtr = np.asarray(store.get(cfg.run_id, man_tr, space), dtype=np.float32)
         Xva = np.asarray(store.get(cfg.run_id, man_va, space), dtype=np.float32)
         res = {}
+        if "raw" in cfg.probes:
+            res["linear_raw_v1"] = linear_raw_v1(Xtr, ytr, Xva, yva, num_classes,
+                                                 device=device, seed=cfg.seed)["val_acc"]
         if "house" in cfg.probes:
             res["linear_house_v1"] = linear_house_v1(Xtr, ytr, Xva, yva, num_classes,
                                                      device=device, seed=cfg.seed)["val_acc"]

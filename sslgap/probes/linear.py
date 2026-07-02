@@ -4,8 +4,10 @@ linear_house_v1 — VERBATIM port of ssl_explore/sslx/meters.offline_probe (Laye
 AdamW 1e-3/1e-7, 30 ep, bs 256, all four meters at the best-val-acc epoch). Kept for parity with
 prior CAMPAIGN_LOG numbers (D-006); the M0 exit criterion checks THIS probe against those tables.
 
-linear_l2_v1 — the study's primary probe: L2-normalize features, plain Linear (no LayerNorm),
-same optimizer/schedule/selection."""
+linear_raw_v1 — plain Linear on RAW (unnormalized) features, same optimizer/schedule/selection —
+linear separability in its purest form; the D-006v2 headline linear probe.
+
+linear_l2_v1 — L2-normalize features, plain Linear — kept for the E11 probe-sensitivity study."""
 import numpy as np
 import torch
 import torch.nn as nn
@@ -62,5 +64,12 @@ def linear_house_v1(train_feats, train_y, val_feats, val_y, num_classes,
 def linear_l2_v1(train_feats, train_y, val_feats, val_y, num_classes,
                  epochs=30, lr=1e-3, wd=1e-7, bs=256, device="cuda", seed=0):
     Xtr, ytr, Xva, yva = _tensors(train_feats, train_y, val_feats, val_y, device, l2=True)
+    probe = nn.Linear(Xtr.shape[1], num_classes)
+    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device, seed)
+
+
+def linear_raw_v1(train_feats, train_y, val_feats, val_y, num_classes,
+                  epochs=30, lr=1e-3, wd=1e-7, bs=256, device="cuda", seed=0):
+    Xtr, ytr, Xva, yva = _tensors(train_feats, train_y, val_feats, val_y, device)
     probe = nn.Linear(Xtr.shape[1], num_classes)
     return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device, seed)

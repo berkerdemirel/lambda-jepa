@@ -31,3 +31,12 @@ Full-curve confirmation (teacher, linspace-30k): ep25 GAP lin 0.4912/ref 0.4912,
 0.4190/0.4188, CLS lin 0.6548/0.6550, CLS kNN 0.5692/0.5696 — 12/12 within ±0.05 pt.
 Spectral parity (val features, N=5000): RankMe 217.0/236.9 and participation-ratio 39.5/72.2
 (GAP/CLS) — exact to the reference decimals. M0 parity criterion fully met (16/16 numbers).
+
+## 2026-07-02 — decision ratifications + space-definition revision (Berker)
+- USER-APPROVED: D-001 (amended: clean repo — session files untracked, governance under docs/),
+  D-002, D-004, D-005, D-007, D-008. D-003 → **D-003v2**: h = the paper-probed representation;
+  z = the loss space; loss-after-only-a-linear counts as loss-on-representation (no core-7 case).
+  Consistency flags F1–F4 recorded in PROTOCOL §3 (ViT analog for ResNet-native h; DINO cat4-CLS →
+  h_layers [3,6,9,10,11,12] from M1; MAE probe-BN as E11 arm; LeJEPA minimal-recipe h = emb-512).
+- D-006v2 probe proposal staged (headline = linear_raw_v1 + knn_v1) — awaiting OK.
+- D-009 relative representations (user-directed) + D-010 METRICS.md reference added.

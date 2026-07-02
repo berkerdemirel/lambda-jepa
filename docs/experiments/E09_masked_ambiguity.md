@@ -57,4 +57,4 @@ estimate.
 
 ## AGREED TAKEAWAY
 
-*(empty — never filled unilaterally; see CLAUDE.md)*
+*(empty — never filled unilaterally; see WORKFLOW.md)*

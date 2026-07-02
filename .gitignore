@@ -15,7 +15,12 @@ __pycache__/
 
 # donors are reference clones, not vendored code
 third_party/solo-learn/
+third_party/latentis/
 
 # hydra run dirs
 multirun/
 .hydra/
+
+# assistant/session files — local only, not part of the public project (D-001 amendment)
+CLAUDE.md
+HANDOVER.md

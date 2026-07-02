@@ -11,19 +11,20 @@ The ambition: a unifying critique + evaluation + explanation of what current SSL
 and how they differ — then synthesize criteria that close the gap, or an in-depth account of the
 loss-space↔representation-space relationship.
 
-**Start here:** [HANDOVER.md](HANDOVER.md) (thin current state) → then the layer you need:
+**Start here:** [docs/ROADMAP.md](docs/ROADMAP.md) → then the layer you need:
 
 | file | role |
 |---|---|
 | [docs/ROADMAP.md](docs/ROADMAP.md) | hierarchical roadmap: phases → milestones → experiments, with decision gates |
-| [PROTOCOL.md](PROTOCOL.md) | the fixed experimental frame (versioned; changes need a DECISIONS row) |
-| [DECISIONS.md](DECISIONS.md) | the ledger — every locked/proposed decision and every agreed takeaway |
-| [MODELS.md](MODELS.md) | model-instance matrix: every checkpoint with provenance and validation status |
+| [docs/PROTOCOL.md](docs/PROTOCOL.md) | the fixed experimental frame (versioned; changes need a DECISIONS row) |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | the ledger — every locked/proposed decision and every agreed takeaway |
+| [docs/MODELS.md](docs/MODELS.md) | model-instance matrix: every checkpoint with provenance and validation status |
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | how results become conclusions; operational constraints |
+| [docs/METRICS.md](docs/METRICS.md) | what each battery metric measures, bounds, and caveats |
 | [docs/experiments/](docs/experiments/) | E01–E11 pre-registration cards |
 | [docs/methods/](docs/methods/) | per-method dossiers (desideratum, loss space, recipe, port notes) |
 | [docs/theory/THEORY_MAP.md](docs/theory/THEORY_MAP.md) | which theorems bind which space |
-| [docs/literature/BIBLIOGRAPHY.md](docs/literature/BIBLIOGRAPHY.md) | ~76 tagged references |
-| [CLAUDE.md](CLAUDE.md) | working conventions + hard-won constraints |
+| [docs/literature/BIBLIOGRAPHY.md](docs/literature/BIBLIOGRAPHY.md) | 102 tagged references |
 
 ## The two spaces
 

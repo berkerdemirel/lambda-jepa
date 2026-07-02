@@ -37,7 +37,7 @@ predictions **pre-registered with user sign-off**; D-001…D-008 ratified. → g
 ### M1 — uniform trainers, toy rung · ~2–3 wk · `gpu`, 7 × ~2–4 h runs
 Imagenette ViT-S/8@128, 150 ep. Port order: **LeJEPA first** (official minimal in-house = exact
 ground truth), then SimCLR, VICReg, BYOL (solo-learn donors), DINO (restructure sslx trainer), MAE,
-I-JEPA. 3-epoch smoke before each full run (CLAUDE.md rule).
+I-JEPA. 3-epoch smoke before each full run (WORKFLOW.md rule).
 **Exit:** 7 uniform `sslgap/ckpt/v1` checkpoints with heads+taps; collapse monitors green; LeJEPA
 port reproduces the official curve (loss within amp noise; probe within ~1 pt); toy E1 matrix →
 dress-rehearsal discussion with user.

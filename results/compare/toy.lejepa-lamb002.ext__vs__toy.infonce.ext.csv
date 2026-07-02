@@ -1,0 +1,17 @@
+run_a,run_b,manifest,space,frame,A,metric,value
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,relrep,384,cka_linear,0.47305288210387186
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,relrep,384,neighbor_jaccard,0.09508069060282681
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,relrep,384,procrustes_distance,0.7677336527364103
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,relrep,384,knn_label_agreement,0.7378
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,direct,384,cka_linear,0.6583476527924454
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,direct,384,neighbor_jaccard,0.16851099212105405
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,direct,384,procrustes_distance,0.7214143997536625
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.h.cls,direct,384,knn_label_agreement,0.775
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,relrep,512,cka_linear,0.5170551626537442
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,relrep,512,neighbor_jaccard,0.1096769285581979
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,relrep,512,procrustes_distance,0.7385641859794569
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,relrep,512,knn_label_agreement,0.7618
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,direct,512,cka_linear,0.7030072913340647
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,direct,512,neighbor_jaccard,0.16674470074129516
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,direct,512,procrustes_distance,0.7098325519265665
+toy.lejepa-lamb002.ext,toy.infonce.ext,imagenette.train.v1,student.z.embed,direct,512,knn_label_agreement,0.783
