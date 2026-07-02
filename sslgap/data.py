@@ -69,8 +69,16 @@ def build_manifest_imagenette(split, out_csv):
     return _write_manifest(out_csv, rows, source={"kind": "hf-imagenette", "split": split})
 
 
-def build_manifest_imagefolder(root, out_csv, per_class=None, seed=0):
+def build_manifest_imagefolder(root, out_csv, per_class=None, seed=0, linspace_n=None):
+    """per_class: stratified random subset. linspace_n: evenly-spaced indices over the class-sorted
+    ImageFolder order — the ssl_explore meters.make_eval_loaders selection rule, kept for parity
+    checks against prior CAMPAIGN_LOG numbers."""
     ds = ImageFolder(root)
+    if linspace_n is not None:
+        idx = np.linspace(0, len(ds.samples) - 1, min(linspace_n, len(ds.samples))).astype(int)
+        rows = [(os.path.relpath(ds.samples[i][0], root), ds.samples[i][1]) for i in idx]
+        return _write_manifest(out_csv, rows, source={"kind": "imagefolder", "root": root,
+                                                      "rule": f"linspace{linspace_n}"})
     by_cls = {}
     for path, y in ds.samples:
         by_cls.setdefault(y, []).append(os.path.relpath(path, root))

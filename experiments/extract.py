@@ -29,14 +29,19 @@ def _manifests(cfg, frame, manifest_dir):
         source = lambda kw: _Source("hf-imagenette", split=kw["split"])
     else:
         root = os.path.expanduser(frame["data_root"])
-        specs = {"train": (f"in100.train{cfg.train_per_class}.v1",
-                           dict(sub="train", per_class=cfg.train_per_class)),
-                 "val": ("in100.val.v1", dict(sub="val", per_class=None)),
+        if cfg.get("linspace_n"):                       # parity manifests (CAMPAIGN_LOG rule)
+            train_spec = (f"in100.linspace{cfg.linspace_n}.v1",
+                          dict(sub="train", per_class=None, linspace_n=cfg.linspace_n))
+        else:
+            train_spec = (f"in100.train{cfg.train_per_class}.v1",
+                          dict(sub="train", per_class=cfg.train_per_class, linspace_n=None))
+        specs = {"train": train_spec,
+                 "val": ("in100.val.v1", dict(sub="val", per_class=None, linspace_n=None)),
                  "pairs": (f"in100.pairs{cfg.pairs_per_class}.v1",
-                           dict(sub="train", per_class=cfg.pairs_per_class))}
+                           dict(sub="train", per_class=cfg.pairs_per_class, linspace_n=None))}
         build = lambda name, kw: build_manifest_imagefolder(
             os.path.join(root, kw["sub"]), os.path.join(manifest_dir, name + ".csv"),
-            per_class=kw["per_class"], seed=cfg.manifest_seed)
+            per_class=kw["per_class"], seed=cfg.manifest_seed, linspace_n=kw["linspace_n"])
         source = lambda kw: _Source("imagefolder", root=os.path.join(root, kw["sub"]))
     out = {}
     for key, (name, kw) in specs.items():

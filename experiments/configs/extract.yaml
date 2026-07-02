@@ -18,6 +18,7 @@ do_eval: true
 do_pairs: true
 train_per_class: 500         # IN-100 m50k (ignored for imagenette = full split)
 pairs_per_class: 100         # IN-100 pairs10k (ignored for imagenette = full train)
+linspace_n: null             # parity mode: evenly-spaced train subset (CAMPAIGN_LOG used 4000)
 
 hydra:
   run:
