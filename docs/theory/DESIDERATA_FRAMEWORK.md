@@ -12,7 +12,17 @@ LDM_HEAD_COMPOSITION.md (OP-17) · the E1/E2/E4/E10/E11 cards this note retro-gr
 
 Much of SSL (BYOL, DINO especially) is benchmark-tuned engineering: given the methods'
 descriptions ex ante, there is no principled way to predict their ordering — they do not follow
-from an interpretable account of what a good representation *is*. VICReg/LeJEPA at least argue
+from an interpretable account of what a good representation *is*. **And the claim holds ex post
+(Berker, 2026-07-03): even reading the validation losses of the very quantities each method
+optimizes, you cannot predict the downstream ordering.** Two independent reasons: (i) *wrong
+functional* — the achieved value of a constraint says nothing about usable structure (Tschannen:
+tighter MI bounds can yield worse representations; collapse: BYOL-minus-predictor satisfies its
+loss at 0.3% accuracy; our SIGReg cells: trained-low loss, non-Gaussian space; the label-free
+selection literature — RankMe/α-ReQ — exists precisely because loss values don't rank);
+(ii) *wrong space* — the loss is measured a head away from what gets probed. Caveat kept honest:
+within one method's hyperparameter sweep (functional and space fixed) loss↔downstream correlation
+can hold — LeJEPA claims exactly this — the failure is cross-method. E3 is the constructive
+response: which statistic, measured in which space, recovers the ordering the loss values cannot. VICReg/LeJEPA at least argue
 from shape/regularization — but impose it after an MLP. MI maximization is not sufficient
 (zip/identity counterexample: the image is its own informationally-complete representation with
 zero utility). What we want: **sufficiency + invariances that relate to minimality**, delivered as
