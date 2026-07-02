@@ -1,0 +1,9 @@
+run_a,run_b,manifest,space,frame,A,metric,value
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,relrep,384,cka_linear,0.0878118505995334
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,relrep,384,neighbor_jaccard,0.00750032679738562
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,relrep,384,procrustes_distance,1.2024724864719627
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,relrep,384,knn_label_agreement,0.2754
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,direct,384,cka_linear,0.1954754512602627
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,direct,384,neighbor_jaccard,0.013377846577227383
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,direct,384,procrustes_distance,1.1567601676554522
+toy.lejepa-lamb002.ext,toy.randinit-s0.ext,imagenette.train.v1,student.h.cls,direct,384,knn_label_agreement,0.3158

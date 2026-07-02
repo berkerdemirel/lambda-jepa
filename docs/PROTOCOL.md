@@ -50,29 +50,23 @@ paper/donor recipe is listed under "Deviations" in the dossier.
 | SimCLR | student trunk-GAP (paper: ResNet avgpool → ViT analog, flag F1) | proj.out (128-d) | proj.tap1 (2048) | |
 | BYOL | student trunk-GAP (paper: "we only keep the encoder"; F1) | pred.out (256-d) | proj.tap1, proj.out (256), pred.tap1 | teacher proj.out = target space, stored |
 | VICReg | student trunk-GAP (F1) | proj.out (8192-d expander) | proj.tap1, proj.tap2 (8192) | largest stored dim |
-| DINO | **teacher concat-CLS of last 4 blocks** for linear (ViT-S paper protocol; flag F2); teacher CLS for kNN | 256-d ℓ2-bottleneck (pre-prototypes) | proj.tap1, proj.tap2 (2048) | prototype logits (65k) never stored — recomputed `l2norm(bottleneck) @ W_proto^T` when needed |
+| DINO | teacher **last-layer CLS** (F2 ruling: no concat readouts) | 256-d ℓ2-bottleneck (pre-prototypes) | proj.tap1, proj.tap2 (2048) | prototype logits (65k) never stored — recomputed `l2norm(bottleneck) @ W_proto^T` when needed |
 | MAE | student trunk-GAP on uncorrupted images (paper adds a BN inside its linear probe — probe-side, flag F3) | dec.tapK = decoder tokens mean-pooled per block {2,5,8} (512-d) | — | pixel loss space handled metric-by-metric; "z = —" cells = `space missing` |
-| I-JEPA | **teacher** avgpooled patches; paper takes best of {last, concat-last-4} (F2) | pred.out tokens, pooled (384-d) | — | "we use the target-encoder for evaluation" |
-| LeJEPA | minimal-recipe instances: **`z.embed` alias `h`** — the recipe's probed "embedding" = trunk-CLS→Linear(384→512), part of what it calls the backbone (flag F4); paper protocol alt: concat-CLS of last 2 layers | proj.out (proj_dim; 16 in toy ckpts) | proj.tap1, proj.tap2 (2048) | both losses on proj.out; single branch |
+| I-JEPA | **teacher** last-layer avgpooled patches (F2 ruling: no concat/best-of) | pred.out tokens, pooled (384-d) | — | "we use the target-encoder for evaluation" |
+| LeJEPA | **`z.embed` alias `h`** = trunk-CLS→Linear(384→512), the recipe's probed embedding (F4 ruling: linear maps add no capacity — CLS+linear is a valid h; no concat alternative) | proj.out (proj_dim; 16 in toy ckpts) | proj.tap1, proj.tap2 (2048) | both losses on proj.out; single branch |
 
-**Consistency flags (D-003v2 audit — awaiting Berker confirmation):**
-- **F1** — ResNet-native papers (SimCLR/BYOL/VICReg) define h as ResNet avgpool; on the ViT frame we
-  adopt trunk-GAP as the avgpool analog (the papers have no ViT protocol to inherit).
-- **F2** — DINO's linear h is **concat-CLS of the last 4 blocks** and I-JEPA allows concat-last-4
-  pooling: requires per-layer CLS for layers 9–12. M0 extractions stored layers {3,6,9,12} → cat4
-  not yet computable; default `h_layers` becomes **[3,6,9,10,11,12]** from M1 on (M0 DINO rows are
-  labeled `h.cls (last)` meanwhile).
-- **F3** — MAE's paper linear probe inserts a (non-affine) BN before the linear layer: that is a
-  probe-side choice, not a feature; our headline probes don't add it. MAE probe-BN becomes an E11
-  sensitivity arm.
-- **F4** — LeJEPA sources conflict: the arXiv protocol probes concat-CLS-of-last-2; the official
-  minimal recipe (our donor + toy ckpts) probes `emb` = trunk-CLS→Linear(384→512) (timm
-  `num_classes=512` — the Linear is inside what the recipe calls the backbone). Under D-003v2 we set
-  h = the instance's own probed feature: `z.embed` for minimal-recipe instances, with concat-CLS-2
-  also reported. NOTE: the Linear is trained ONLY through the projector's loss path — it is head-like
-  by our old D-003 reading; keeping it inside h is exactly D-003v2's "respect the paper" choice.
+**Consistency flags — RESOLVED (Berker, 2026-07-02):**
+- **F1 (resolved)** — ResNet-native methods (SimCLR/BYOL/VICReg): h = trunk-GAP on the ViT frame.
+- **F2 (resolved)** — **No concatenated readouts, no best-of.** h uses the LAST layer's feature of
+  the paper's feature type: DINO → last CLS; I-JEPA → last avgpooled patches (teacher). Paper-exact
+  concat variants may appear only as E11 sensitivity arms. (h_layers stays [3,6,9,12] — guillotine
+  grid only.)
+- **F3 (resolved)** — Probe protocol is OURS and fixed; paper probe quirks (MAE's BN) are E11 arms.
+- **F4 (resolved)** — Linear maps cannot add information/capacity, so a CLS→Linear "embedding"
+  counts as h when that is what the method probes: LeJEPA h = `z.embed` (512-d). No dual/special-case
+  reporting; single h per method.
 
-## 4 · Probes (D-006v2 — PROPOSED, awaiting user OK)
+## 4 · Probes (D-006v2 — USER-APPROVED 2026-07-02)
 
 All probes run on frozen features from the store; fixed hyperparameters; identical across methods
 and spaces. Feature-side preprocessing is part of the probe id.

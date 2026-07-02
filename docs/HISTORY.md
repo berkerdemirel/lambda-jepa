@@ -40,3 +40,9 @@ Spectral parity (val features, N=5000): RankMe 217.0/236.9 and participation-rat
   h_layers [3,6,9,10,11,12] from M1; MAE probe-BN as E11 arm; LeJEPA minimal-recipe h = emb-512).
 - D-006v2 probe proposal staged (headline = linear_raw_v1 + knn_v1) — awaiting OK.
 - D-009 relative representations (user-directed) + D-010 METRICS.md reference added.
+
+## 2026-07-02 — F1–F4 resolved, D-006v2 approved (Berker)
+No concat/best-of readouts anywhere: h = last-layer feature of the paper's type (DINO last CLS,
+I-JEPA teacher last GAP); probe protocol fixed as ours (paper quirks → E11); linear maps add no
+capacity → LeJEPA h = emb-512. Headline probes locked: linear_raw_v1 + knn_v1 (house = secondary,
+l2/attentive → E11). M0 probe CSVs predate linear_raw_v1 → re-running probe jobs to add it.

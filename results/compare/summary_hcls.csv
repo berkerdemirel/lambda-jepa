@@ -1,0 +1,9 @@
+pair,frame,cka_linear,neighbor_jaccard,procrustes_distance,knn_label_agreement
+lejepa-lamb002 vs infonce,direct,0.658,0.169,0.721,0.775
+lejepa-lamb002 vs infonce,relrep,0.473,0.095,0.768,0.738
+lejepa-lamb002 vs lejepa-lamb0,direct,0.032,0.003,1.306,0.164
+lejepa-lamb002 vs lejepa-lamb0,relrep,0.025,0.002,1.325,0.148
+lejepa-lamb002 vs lejepa-lamb002,direct,1.0,1.0,0.0,1.0
+lejepa-lamb002 vs lejepa-lamb002,relrep,1.0,1.0,0.0,1.0
+lejepa-lamb002 vs randinit-s0,direct,0.195,0.013,1.157,0.316
+lejepa-lamb002 vs randinit-s0,relrep,0.088,0.008,1.202,0.275
