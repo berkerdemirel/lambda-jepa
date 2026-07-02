@@ -43,15 +43,18 @@ def ema_update(teacher, student, m):
 def vitops_self_test(bb, device="cpu", img_size=128, local_size=64):
     was_training = bb.training
     bb.eval()
-    assert isinstance(bb.patch_embed.norm, torch.nn.Identity)
-    assert bb.num_prefix_tokens == 1 and not bb.no_embed_class and bb.reg_token is None
+    if not isinstance(bb.patch_embed.norm, torch.nn.Identity):
+        raise RuntimeError("vitops assumes no patch-embed norm — timm config changed?")
+    if not (bb.num_prefix_tokens == 1 and not bb.no_embed_class and bb.reg_token is None):
+        raise RuntimeError("vitops assumes 1 cls prefix token, no reg tokens, embedded cls")
     p = bb.patch_embed.patch_size[0]
     n_tok = (img_size // p) ** 2
     x = torch.randn(2, 3, img_size, img_size, device=device)
     keep = torch.arange(n_tok, device=device).expand(2, -1)
-    assert torch.equal(vit_tokens(bb, x, keep=keep), bb.forward_features(x)), \
-        "vit_tokens diverged from forward_features — timm changed?"
+    if not torch.equal(vit_tokens(bb, x, keep=keep), bb.forward_features(x)):
+        raise RuntimeError("vit_tokens diverged from forward_features — timm changed?")
     lo_tok = (local_size // p) ** 2
     lo = vit_tokens_lowres(bb, torch.randn(2, 3, local_size, local_size, device=device))
-    assert lo.shape[1] == 1 + lo_tok and torch.isfinite(lo).all()
+    if not (lo.shape[1] == 1 + lo_tok and torch.isfinite(lo).all()):
+        raise RuntimeError("vit_tokens_lowres shape/finite check failed")
     bb.train(was_training)

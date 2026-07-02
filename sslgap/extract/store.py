@@ -33,9 +33,11 @@ class FeatureStore:
 
     def put(self, run_id, manifest_key, space, X):
         X = np.ascontiguousarray(X, dtype=np.float16)
-        assert X.shape[1] <= 8192, f"{space}: d={X.shape[1]} > 8192 — recompute, don't store (D-005)"
-        assert self._used_bytes() + X.nbytes <= self.cap, \
-            f"feature store cap exceeded ({self.cap >> 30} GB) — purge or raise cap (D-005)"
+        if X.shape[1] > 8192:
+            raise ValueError(f"{space}: d={X.shape[1]} > 8192 — recompute, don't store (D-005)")
+        if self._used_bytes() + X.nbytes > self.cap:
+            raise RuntimeError(
+                f"feature store cap exceeded ({self.cap >> 30} GB) — purge or raise cap (D-005)")
         path = os.path.join(self.dir(run_id, manifest_key), f"{space}.npy")
         np.save(path, X)
         return path

@@ -17,7 +17,7 @@ from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 
 from sslgap.ckpt.schema import provenance_stamp, save_checkpoint
-from sslgap.data import ViewsDataset
+from sslgap.data import ViewsDataset, seed_everything, seed_worker
 from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
 
@@ -35,7 +35,7 @@ def main(cfg: DictConfig):
     ckpt_base = os.path.join(out_dir, run_id)
     last_path = f"{ckpt_base}_last.pt"
 
-    torch.manual_seed(cfg.seed)
+    seed_everything(cfg.seed)                  # python random (I-JEPA masks) + numpy + torch(+cuda)
     method = METHODS[cfg.method.name](cfg.method, frame)
     modules = method.build_modules().to(frame.device)
     probe = nn.Sequential(nn.LayerNorm(method.probe_dim()),
@@ -44,9 +44,12 @@ def main(cfg: DictConfig):
     train_ds = method.build_train_dataset()
     val_ds = ViewsDataset(frame.dataset, "validation", V=1, img_size=frame.img_size,
                           data_root=frame.data_root)
+    g = torch.Generator().manual_seed(cfg.seed)
     train = DataLoader(train_ds, batch_size=cfg.bs, shuffle=True, drop_last=True,
-                       num_workers=frame.num_workers)          # persistent_workers=False: official
-    val = DataLoader(val_ds, batch_size=256, num_workers=frame.num_workers)
+                       num_workers=frame.num_workers,          # persistent_workers=False: official
+                       generator=g, worker_init_fn=seed_worker)
+    val = DataLoader(val_ds, batch_size=256, num_workers=frame.num_workers,
+                     worker_init_fn=seed_worker)
 
     opt = torch.optim.AdamW(method.param_groups(modules)
                             + [{"params": probe.parameters(),

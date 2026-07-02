@@ -13,6 +13,7 @@ probes consume only manifests, never raw splits (PROTOCOL §5)."""
 import csv
 import hashlib
 import os
+import random
 
 import numpy as np
 import torch
@@ -21,6 +22,22 @@ from torchvision.transforms import v2
 
 _NORM = dict(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 _TAIL = [v2.ToImage(), v2.ToDtype(torch.float32, scale=True), v2.Normalize(**_NORM)]
+
+
+def seed_everything(seed):
+    """All RNG streams a job touches: python random (I-JEPA MaskSampler), numpy, torch (+cuda)."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
+def seed_worker(worker_id):
+    """DataLoader worker_init_fn: derive python/numpy streams from the torch worker seed, so
+    transform randomness in workers is reproducible given the loader's generator."""
+    s = torch.initial_seed() % 2 ** 32
+    random.seed(s)
+    np.random.seed(s)
 
 
 def eval_transform(img_size):

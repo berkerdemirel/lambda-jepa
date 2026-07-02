@@ -59,7 +59,8 @@ def cross_model_relrep(Xa, Xb, A=None, seed=0, abs_transform="none"):
     anchor ids (A defaults to min of the two dims, matching 'anchors = feature dimensionality' as
     closely as a two-model comparison allows). Returns (Ra, Rb) ready for the cross battery
     (cka/neighbor-jaccard/procrustes now operate in one frame)."""
-    assert Xa.shape[0] == Xb.shape[0], "relrep comparison needs the same manifest/order"
+    if Xa.shape[0] != Xb.shape[0]:
+        raise ValueError("relrep comparison needs the same manifest/order")
     A = A or min(Xa.shape[1], Xb.shape[1])
     idx = anchor_indices(Xa.shape[0], A, seed=seed)
     return (relrep_dataset(Xa, idx, abs_transform=abs_transform),

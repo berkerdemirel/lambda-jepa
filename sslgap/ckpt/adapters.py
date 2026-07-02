@@ -36,8 +36,10 @@ def _trunk_from_vit_sd(vit_sd, model_name, img_size, dynamic_img_size, drop_path
     head_w, head_b = vit_sd.get("head.weight"), vit_sd.get("head.bias")
     trunk_sd = {k: v for k, v in vit_sd.items() if not k.startswith("head.")}
     missing, unexpected = trunk.load_state_dict(trunk_sd, strict=False)
-    assert not unexpected, f"unexpected trunk keys: {unexpected[:5]}"
-    assert not [m for m in missing if "head" not in m], f"missing trunk keys: {missing[:5]}"
+    if unexpected:
+        raise ValueError(f"unexpected trunk keys: {unexpected[:5]}")
+    if [m for m in missing if "head" not in m]:
+        raise ValueError(f"missing trunk keys: {missing[:5]}")
     embed = None
     if head_w is not None:
         embed = nn.Linear(head_w.shape[1], head_w.shape[0], bias=head_b is not None)
@@ -220,7 +222,8 @@ def from_native(path, run_id, random_init=False, seed=0):
     same arch freshly seeded; teachers then copy their student counterparts — every trainer
     initializes EMA branches by deepcopy, so the epoch-0 null has teacher == student."""
     ck = torch.load(path, map_location="cpu", weights_only=False)
-    assert ck.get("format") == "sslgap/ckpt/v1", f"not a native ckpt: {ck.get('format')}"
+    if ck.get("format") != "sslgap/ckpt/v1":
+        raise ValueError(f"not a native ckpt: {ck.get('format')!r} ({path})")
     if random_init:
         torch.manual_seed(seed)
     mods = {}

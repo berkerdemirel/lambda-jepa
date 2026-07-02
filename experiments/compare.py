@@ -25,7 +25,8 @@ def main(cfg: DictConfig):
         Xa = np.asarray(store.get(cfg.run_a, cfg.manifest, space), dtype=np.float64)
         Xb = np.asarray(store.get(cfg.run_b, cfg.manifest, space), dtype=np.float64)
         lab = store.labels(cfg.run_a, cfg.manifest)
-        assert (lab == store.labels(cfg.run_b, cfg.manifest)).all(), "manifest order mismatch"
+        if not (lab == store.labels(cfg.run_b, cfg.manifest)).all():
+            raise ValueError("manifest order mismatch between run_a and run_b")
         Ra, Rb = cross_model_relrep(Xa, Xb, A=cfg.anchors or None, seed=cfg.seed, abs_transform=cfg.abs_transform)
         pairs = [("relrep", Ra, Rb)] + ([("direct", Xa, Xb)] if Xa.shape[1] == Xb.shape[1] else [])
         for frame, A, B in pairs:

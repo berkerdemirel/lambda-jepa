@@ -57,7 +57,8 @@ class MaskSampler:
             blk = self._block(ch, cw)
             ctx.append(blk[keep[blk]])
         kc = min(len(c) for c in ctx)
-        assert kc >= 10, f"context {kc} < official min_keep=10 — scales misconfigured"
+        if kc < 10:
+            raise RuntimeError(f"context {kc} < official min_keep=10 — scales misconfigured")
         ctx = torch.stack([c[torch.randperm(len(c))[:kc]] for c in ctx])
         return ctx, tgt
 
@@ -142,8 +143,8 @@ class IJEPA(SSLMethod):
             self._t_std = tt.float().std(-1).mean().item()
         pred = modules["predictor"](ctx, ctx_keep, tgt_idx)
         loss = F.smooth_l1_loss(pred.float(), tgt.float())
-        probe_feats = ctx.mean(1).detach()                     # context-token mean (cheap monitor)
-        return ({"loss": loss, "jepa": loss}, probe_feats, 1)
+        probe_feats = tt.mean(1).detach()      # teacher GAP = the audited branch (PROTOCOL §3),
+        return ({"loss": loss, "jepa": loss}, probe_feats, 1)  # free: tt already computed
 
     def train_mode(self, modules):
         modules["backbone"].train()
@@ -157,8 +158,8 @@ class IJEPA(SSLMethod):
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        feats = modules["backbone"].forward_features(x)
-        return feats[:, 1:].mean(1)                            # student GAP (monitor; paper probes teacher)
+        feats = modules["teacher_backbone"].forward_features(x)
+        return feats[:, 1:].mean(1)                            # audited branch (teacher GAP)
 
     def probe_dim(self):
         return 384

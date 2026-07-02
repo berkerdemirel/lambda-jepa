@@ -14,7 +14,7 @@ from omegaconf import DictConfig
 from torch.amp import autocast
 
 from sslgap.ckpt import adapters
-from sslgap.data import _Source, orbit_stack, read_manifest
+from sslgap.data import _Source, orbit_stack, read_manifest, seed_everything
 from sslgap.extract.extractor import _batch_spaces
 
 H = {"simclr": "student.h.gap", "byol": "student.h.gap", "vicreg": "student.h.gap",
@@ -33,7 +33,7 @@ def main(cfg: DictConfig):
     rng = np.random.default_rng(cfg.seed)
     q_idx = rng.choice(len(items), cfg.n_images, replace=False)
     tfm = orbit_stack(cfg.img_size)
-    torch.manual_seed(cfg.seed)                                   # aug draws: same for all methods
+    seed_everything(cfg.seed)                                     # aug draws: same for all methods
     views, img_ids, ys = [], [], []
     for qi in q_idx:
         ref, y = items[qi]

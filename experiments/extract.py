@@ -12,7 +12,7 @@ import hydra
 from omegaconf import DictConfig
 
 from sslgap.ckpt import adapters
-from sslgap.data import (EvalDataset, PairDataset, STACKS, _Source, build_manifest_imagefolder,
+from sslgap.data import (EvalDataset, PairDataset, STACKS, _Source, build_manifest_imagefolder, seed_everything,
                          build_manifest_imagenette)
 from sslgap.extract import FeatureStore, extract_eval, extract_pairs
 
@@ -53,6 +53,7 @@ def _manifests(cfg, frame, manifest_dir):
 
 @hydra.main(version_base=None, config_path="configs", config_name="extract")
 def main(cfg: DictConfig):
+    seed_everything(cfg.seed)
     loaded = adapters.load(cfg.adapter, os.path.expanduser(cfg.ckpt), cfg.run_id,
                            random_init=cfg.random_init, seed=cfg.seed)
     store = FeatureStore(cfg.store_root, cap_gb=cfg.cap_gb)
@@ -65,7 +66,7 @@ def main(cfg: DictConfig):
             spaces = extract_eval(loaded, EvalDataset(csv_path, source, img), store,
                                   manifest_key=name, manifest_info=info, bs=cfg.bs,
                                   num_workers=cfg.num_workers, device=cfg.device,
-                                  h_layers=tuple(cfg.h_layers))
+                                  h_layers=tuple(cfg.h_layers), seed=cfg.seed)
             print(f"[extract] {cfg.run_id} {name}: {len(spaces)} spaces")
 
     if cfg.do_pairs:
@@ -76,7 +77,7 @@ def main(cfg: DictConfig):
             key = f"{name}@{stack}"
             spaces = extract_pairs(loaded, PairDataset(csv_path, source, img, stack=stack), store,
                                    manifest_key=key, manifest_info=info, stack=stack, bs=cfg.bs,
-                                   num_workers=cfg.num_workers, device=cfg.device)
+                                   num_workers=cfg.num_workers, device=cfg.device, seed=cfg.seed)
             print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
     print(f"[extract] done: {cfg.run_id}")
 

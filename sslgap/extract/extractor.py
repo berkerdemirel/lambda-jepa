@@ -8,12 +8,15 @@ import torch
 from torch.amp import autocast
 from torch.utils.data import DataLoader
 
+from sslgap.data import seed_worker
 from sslgap.models.backbones import trunk_features
 
 
-def _loader(ds, bs, num_workers):
+def _loader(ds, bs, num_workers, seed=0):
     return DataLoader(ds, batch_size=bs, num_workers=num_workers, shuffle=False,
-                      persistent_workers=num_workers > 0, pin_memory=True)
+                      persistent_workers=num_workers > 0, pin_memory=True,
+                      generator=torch.Generator().manual_seed(seed),
+                      worker_init_fn=seed_worker)   # pair-extraction transforms are stochastic
 
 
 def _batch_spaces(loaded, x, h_layers):
@@ -36,10 +39,10 @@ def _batch_spaces(loaded, x, h_layers):
 
 @torch.inference_mode()
 def extract_eval(loaded, dataset, store, manifest_key, manifest_info, bs=256, num_workers=8,
-                 device="cuda", h_layers=()):
+                 device="cuda", h_layers=(), seed=0):
     loaded.eval_(device)
     acc, ys = {}, []
-    for x, y in _loader(dataset, bs, num_workers):
+    for x, y in _loader(dataset, bs, num_workers, seed=seed):
         x = x.to(device, non_blocking=True)
         with autocast(device, dtype=torch.bfloat16):
             batch = _batch_spaces(loaded, x, h_layers)
@@ -59,11 +62,11 @@ def extract_eval(loaded, dataset, store, manifest_key, manifest_info, bs=256, nu
 
 @torch.inference_mode()
 def extract_pairs(loaded, pair_dataset, store, manifest_key, manifest_info, stack, bs=256,
-                  num_workers=8, device="cuda"):
+                  num_workers=8, device="cuda", seed=0):
     """Two views per image -> "<space>.viewA"/"<space>.viewB" (final-layer spaces only)."""
     loaded.eval_(device)
     acc, ys = {}, []
-    for xa, xb, y in _loader(pair_dataset, bs, num_workers):
+    for xa, xb, y in _loader(pair_dataset, bs, num_workers, seed=seed):
         with autocast(device, dtype=torch.bfloat16):
             a = _batch_spaces(loaded, xa.to(device, non_blocking=True), h_layers=())
             b = _batch_spaces(loaded, xb.to(device, non_blocking=True), h_layers=())

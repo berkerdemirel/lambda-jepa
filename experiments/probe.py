@@ -17,7 +17,8 @@ from sslgap.probes import knn_self_test, knn_topk_acc, linear_house_v1, linear_l
 
 @hydra.main(version_base=None, config_path="configs", config_name="probe")
 def main(cfg: DictConfig):
-    assert knn_self_test()
+    if not knn_self_test():
+        raise RuntimeError("knn_self_test failed — kNN parity broken, refusing to probe")
     store = FeatureStore(cfg.store_root)
     run_dir = os.path.join(os.path.expanduser(cfg.store_root), cfg.run_id)
     manifests = [m for m in sorted(os.listdir(run_dir)) if "@" not in m]

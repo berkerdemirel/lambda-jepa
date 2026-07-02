@@ -14,8 +14,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device, seed):
-    torch.manual_seed(seed)
+def _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device):
+    # seeding happens in the wrappers BEFORE probe construction (weights + shuffling share it)
     probe = probe.to(device)
     opt = torch.optim.AdamW(probe.parameters(), lr=lr, weight_decay=wd)
 
@@ -57,19 +57,22 @@ def _tensors(train_feats, train_y, val_feats, val_y, device, l2=False):
 def linear_house_v1(train_feats, train_y, val_feats, val_y, num_classes,
                     epochs=30, lr=1e-3, wd=1e-7, bs=256, device="cuda", seed=0):
     Xtr, ytr, Xva, yva = _tensors(train_feats, train_y, val_feats, val_y, device)
+    torch.manual_seed(seed)
     probe = nn.Sequential(nn.LayerNorm(Xtr.shape[1]), nn.Linear(Xtr.shape[1], num_classes))
-    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device, seed)
+    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device)
 
 
 def linear_l2_v1(train_feats, train_y, val_feats, val_y, num_classes,
                  epochs=30, lr=1e-3, wd=1e-7, bs=256, device="cuda", seed=0):
     Xtr, ytr, Xva, yva = _tensors(train_feats, train_y, val_feats, val_y, device, l2=True)
+    torch.manual_seed(seed)
     probe = nn.Linear(Xtr.shape[1], num_classes)
-    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device, seed)
+    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device)
 
 
 def linear_raw_v1(train_feats, train_y, val_feats, val_y, num_classes,
                   epochs=30, lr=1e-3, wd=1e-7, bs=256, device="cuda", seed=0):
     Xtr, ytr, Xva, yva = _tensors(train_feats, train_y, val_feats, val_y, device)
+    torch.manual_seed(seed)
     probe = nn.Linear(Xtr.shape[1], num_classes)
-    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device, seed)
+    return _probe_loop(probe, Xtr, ytr, Xva, yva, epochs, lr, wd, bs, device)

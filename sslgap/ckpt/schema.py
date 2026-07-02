@@ -74,7 +74,8 @@ def save_checkpoint(path, *, method, epoch, step, frame, cfg, arch, modules, ext
                "extras": extras or {}, "optim": optim or {}, "meters": meters or {},
                "best_acc": best_acc, "provenance": provenance or provenance_stamp()}
     errs = validate(payload)
-    assert not errs, f"refusing to save invalid ckpt: {errs}"
+    if errs:
+        raise ValueError(f"refusing to save invalid ckpt: {errs}")
     torch.save(payload, path)
 
 
