@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.embed,cka_linear,cross,0.9751840891504022,,,9469,384x512,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.embed,neighbor_jaccard,cross,0.7588093573093574,,,9469,384x512,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.embed,procrustes_distance,cross,0.15482932713263187,,,9469,384x512,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.embed,knn_label_agreement,cross,0.9826,,,9469,384x512,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,cka_linear,cross,0.6740397699214222,,,9469,384x16,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.3427123939356137,,,9469,384x16,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.5812449702071866,,,9469,384x16,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.9598,,,9469,384x16,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.8647342400124582,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.5940182872682872,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.5212407702504057,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap1,knn_label_agreement,cross,0.9748,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,cka_linear,cross,0.7925060714174377,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,neighbor_jaccard,cross,0.4316791594198715,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,procrustes_distance,cross,0.6269479344577384,,,9469,384x2048,none
+toy.lejepa-lamb002.ext,imagenette.train.v1,student.h.cls~student.z.proj.tap2,knn_label_agreement,cross,0.9666,,,9469,384x2048,none

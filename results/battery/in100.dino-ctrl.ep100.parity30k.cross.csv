@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.bottleneck,cka_linear,cross,0.4413327114592956,,,5000,384x256,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.bottleneck,neighbor_jaccard,cross,0.2091331660083982,,,5000,384x256,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.bottleneck,procrustes_distance,cross,0.9278602504841383,,,5000,384x256,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.bottleneck,knn_label_agreement,cross,0.5592,,,5000,384x256,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap1,cka_linear,cross,0.9171931736148996,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap1,neighbor_jaccard,cross,0.557805019473131,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap1,procrustes_distance,cross,0.36110980581005364,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap1,knn_label_agreement,cross,0.7374,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap2,cka_linear,cross,0.5776220534781455,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap2,neighbor_jaccard,cross,0.2811675415915354,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap2,procrustes_distance,cross,0.874012104748469,,,5000,384x2048,none
+in100.dino-ctrl.ep100.parity30k,in100.val.v1,teacher.h.cls~teacher.z.dino.tap2,knn_label_agreement,cross,0.5836,,,5000,384x2048,none

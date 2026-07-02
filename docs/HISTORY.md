@@ -29,3 +29,5 @@ end-to-end against the prior stack.
 Full-curve confirmation (teacher, linspace-30k): ep25 GAP lin 0.4912/ref 0.4912, GAP kNN
 0.3532/0.3532, CLS lin 0.5232/0.5234, CLS kNN 0.4380/0.4386; ep50 GAP lin 0.6010/0.6014, GAP kNN
 0.4190/0.4188, CLS lin 0.6548/0.6550, CLS kNN 0.5692/0.5696 — 12/12 within ±0.05 pt.
+Spectral parity (val features, N=5000): RankMe 217.0/236.9 and participation-ratio 39.5/72.2
+(GAP/CLS) — exact to the reference decimals. M0 parity criterion fully met (16/16 numbers).
