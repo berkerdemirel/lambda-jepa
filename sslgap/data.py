@@ -57,6 +57,13 @@ STACKS = {
     "own_lejepa": lambda s: (orbit_stack(s), orbit_stack(s)),          # lejepa trains on the orbit
     "own_dino": lambda s: (_dino_view(s, (0.4, 1.0), 1.0, 0.0),        # global-0 / global-1 pair
                            _dino_view(s, (0.4, 1.0), 0.1, 0.2)),
+    "own_simclr": lambda s: (simclr_stack(s), simclr_stack(s)),
+    "own_byol": lambda s: tuple(byol_pair(s)),                         # asymmetric blur/solarize
+    "own_vicreg": lambda s: tuple(byol_pair(s)),                       # VICReg follows BYOL augs
+    "own_mae": lambda s: (minaug_stack(s, (0.2, 1.0)),                 # masking is the method's z
+                          minaug_stack(s, (0.2, 1.0))),                # machinery, not its stack
+    "own_ijepa": lambda s: (minaug_stack(s, (0.3, 1.0)),
+                            minaug_stack(s, (0.3, 1.0))),
 }
 
 
