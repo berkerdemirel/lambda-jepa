@@ -81,6 +81,12 @@ non-collapse (eff.-rank / collapse-margin cells — a head-dynamics fact, not an
   defined against the training-step count); collapse canary = the 0.3% failure mode — collapse
   monitors on from step 0.
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02, faithfulness review vs donors)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+Verified vs solo-learn @9187ea3 (`solo/losses/byol.py`, `solo/methods/byol.py`, IN-100 yaml):
+- Loss: 2−2·cos per direction, symmetrized sum — IDENTICAL (their simplified path).
+- Proj/pred: Linear→BN→ReLU→Linear both — IDENTICAL structure. **Fixed during review:** pred hidden
+  8192 per their IN-100 config (ours had shared 4096); proj 4096→256 confirmed.
+- Teacher BN in train mode (batch stats), matching donor/paper. Stop-grad via no_grad ✓.
+- Deliberate deviations: EMA base 0.99 vs paper 0.996 (37 steps/ep — house incident ledger,
+  documented in the yaml); house AdamW (donor: LARS). Collapse canary: per-step teacher-proj std.

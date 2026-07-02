@@ -82,6 +82,20 @@ many `?` cells — DINO's z is the least-characterized of the core-7 because it 
 - **Known recipe risks (kickstart plan):** teacher-temperature ramp + EMA-rate incidents known
   in-house — watch both from the first smoke run.
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02, faithfulness review vs OFFICIAL repo)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+Verified vs facebookresearch/dino @7c446df (`main_dino.py:363-417`, `utils.py:144-149`):
+- Loss: teacher softmax((t−center)/temp) × student log-softmax over all teacher-global×student-view
+  pairs EXCLUDING same-view, divided by n_terms — our pair set and mean are IDENTICAL (14 terms for
+  2g+6l).
+- Center update: center·m + batch_mean(teacher logits over both globals)·(1−m), applied after the
+  loss uses the OLD center — identical formula and sequencing (ours in post_step).
+- Constant teacher temp 0.04 is the OFFICIAL DEFAULT (main_dino arg), not a deviation.
+- Prototype freeze: official zeroes last_layer grads for epoch<1; ours toggles requires_grad —
+  equivalent. norm_last_layer=True g-freeze == official ViT-S setting.
+- Teachers kept in EVAL mode (drop_path off in targets) — **fixed during review** (the frame loop
+  had blanket .train(); sslx control also kept teachers eval).
+- Multi-crop views: global (0.4,1)@128 blur 1.0/0.1 solarize 0/0.2, local (0.05,0.4)@64 blur 0.5 —
+  Lightly/DINO-faithful (port of the control's `_dino_view`).
+- Toy deviations (D-012 + sslx incident ledger): K=4096, EMA base 0.99, house AdamW (official: lr
+  scaled, wd cosine 0.04→0.4, no-decay-on-norm/bias — enters at M2 with the control recipe).

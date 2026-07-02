@@ -1,12 +1,15 @@
 """MAE (He et al. 2022) — toy-rung instance per D-012: canonical pipeline (75% random masking,
 encoder sees visible patches only, lightweight decoder, MSE on per-patch-normalized pixels of
 masked patches), minimal aug (RRC 0.2-1.0 + flip), house AdamW. Toy adaptations (documented):
-decoder dim 256 / depth 4 / heads 8 with a LEARNED decoder pos table (paper: 512x8, fixed sincos);
+decoder canonical 512x8x16 with FIXED sincos pos incl. zero cls row and cls kept through the
+decoder (verified vs models_mae.py@efb2a80 forward_decoder — scatter == the ids_restore unshuffle);
 drop_path 0 (paper pretrain). Expected phenotype: WEAK linear probe (paper's own finding) — the
 monitor floor for MAE is 'well above chance', not parity with the contrastive family."""
 import torch
 import torch.nn as nn
 from timm.layers import trunc_normal_
+
+from sslgap.models.posembed import get_2d_sincos_pos_embed
 from timm.models.vision_transformer import Block
 
 from sslgap.data import ViewsDataset, minaug_stack
@@ -17,28 +20,34 @@ from sslgap.models.vitops import vit_tokens
 
 
 class MAEDecoder(nn.Module):
-    def __init__(self, patch=8, in_dim=384, dim=256, depth=4, heads=8, n_patches=256):
+    """Canonical MAE decoder (models_mae.py@efb2a80 forward_decoder): decoder_embed(cls+visible) ->
+    mask tokens at masked positions (scatter == the official ids_restore unshuffle) -> cls kept in
+    the sequence -> + FIXED sincos pos (zero cls row) -> blocks -> norm -> pred -> cls stripped."""
+
+    def __init__(self, patch=8, in_dim=384, dim=512, depth=8, heads=16, n_patches=256):
         super().__init__()
         self.embed = nn.Linear(in_dim, dim)
         self.mask_token = nn.Parameter(torch.zeros(1, 1, dim))
-        self.pos = nn.Parameter(torch.zeros(1, n_patches, dim))
+        grid = int(n_patches ** 0.5)
+        self.register_buffer("pos", get_2d_sincos_pos_embed(dim, grid, cls_token=True)[None])
         self.blocks = nn.Sequential(*[Block(dim, heads, qkv_bias=True) for _ in range(depth)])
         self.norm = nn.LayerNorm(dim)
         self.out = nn.Linear(dim, patch * patch * 3)
-        trunc_normal_(self.pos, std=0.02)
         trunc_normal_(self.mask_token, std=0.02)
 
-    def forward(self, vis_tokens, keep_idx, n_patches):
-        """vis_tokens [B,Kv,in_dim] (no cls), keep_idx [B,Kv] -> pixel preds [B,N,p*p*3]."""
-        B, Kv, _ = vis_tokens.shape
-        z = self.embed(vis_tokens)
+    def forward(self, cls_vis_tokens, keep_idx, n_patches):
+        """cls_vis_tokens [B,1+Kv,in_dim] (cls first), keep_idx [B,Kv] -> preds [B,N,p*p*3]."""
+        z = self.embed(cls_vis_tokens)
+        B, d = z.shape[0], z.shape[-1]
+        cls_tok, vis = z[:, :1], z[:, 1:]
         full = self.mask_token.expand(B, n_patches, -1).clone()
-        full.scatter_(1, keep_idx[..., None].expand(-1, -1, z.shape[-1]), z)
-        full = full + self.pos
-        return self.out(self.norm(self.blocks(full)))
+        full.scatter_(1, keep_idx[..., None].expand(-1, -1, d), vis)
+        x = torch.cat([cls_tok, full], 1) + self.pos
+        x = self.norm(self.blocks(x))[:, 1:]
+        return self.out(x)
 
 
-def mae_decoder(patch=8, in_dim=384, dim=256, depth=4, heads=8, n_patches=256):
+def mae_decoder(patch=8, in_dim=384, dim=512, depth=8, heads=16, n_patches=256):
     return MAEDecoder(patch, in_dim, dim, depth, heads, n_patches)
 
 
@@ -89,8 +98,8 @@ class MAE(SSLMethod):
         noise = torch.rand(B, self.n_patches, device=device)
         shuffle = noise.argsort(1)
         keep_idx, mask_idx = shuffle[:, :n_keep], shuffle[:, n_keep:]
-        vis = vit_tokens(modules["backbone"], x, keep=keep_idx)[:, 1:]   # visible tokens, no cls
-        pred = modules["decoder"](vis, keep_idx, self.n_patches)
+        cls_vis = vit_tokens(modules["backbone"], x, keep=keep_idx)      # [B,1+Kv,384] cls first
+        pred = modules["decoder"](cls_vis, keep_idx, self.n_patches)
         target = patchify(x, self.cfg.patch)
         if self.cfg.norm_pix_loss:
             mu, var = target.mean(-1, keepdim=True), target.var(-1, keepdim=True)

@@ -67,6 +67,12 @@ class DINO(SSLMethod):
         return house_scheduler(optimizer, steps_per_epoch, total_steps,
                                self.cfg.warmup_ep, self.cfg.eta_min)
 
+    def train_mode(self, modules):
+        modules["backbone"].train()
+        modules["projector"].train()
+        modules["teacher_backbone"].eval()      # sslx control: teachers eval (kills drop_path
+        modules["teacher_projector"].eval()     # stochasticity in targets; official DINO equiv.)
+
     def on_epoch_start(self, modules, epoch):
         # paper: prototype layer frozen during epoch 0; the weight-norm gain (original0) stays
         # frozen FOREVER when norm_last_layer=True (DINOHead init semantics).

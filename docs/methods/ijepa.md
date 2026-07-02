@@ -89,6 +89,19 @@ result).
 - **Known recipe risks (kickstart plan):** fragile EMA anti-collapse → target-variance monitor
   from step 0 (do not wait for probe numbers to detect collapse).
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02, faithfulness review vs OFFICIAL repo)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+Verified vs facebookresearch/ijepa @52c1ae9 (`src/train.py:295-313`, `src/masks/multiblock.py`,
+`src/models/vision_transformer.py`):
+- Loss: F.smooth_l1_loss — official (train.py:311). Target: teacher full-image forward →
+  F.layer_norm over feature dim → gather target blocks — IDENTICAL ORDER (LN before gather).
+- Masks: 4 targets scale (.15,.2) aspect (.75,1.5); context scale (.85,1) minus target union;
+  shapes per batch / locations per image; batch-min truncation — matches MaskCollator; **added
+  during review**: official min_keep=10 floor assert.
+- Predictor: embed→ctx-pos→mask tokens at target pos→blocks→norm→proj-out; one pass per target via
+  batch repeat (== apply_masks + repeat_interleave_batch). **Fixed during review:** positions are
+  FIXED 2D sincos (official), was a learned table (sslx deviation).
+- EMA: 0.996→1.0 linear — official momentum scheduler shape. Teacher eval mode (fixed in review).
+- Documented deviations: predictor depth 6 (official ViT-H recipe: 12; sslx 'proportionate'
+  choice); trunk keeps a CLS token participating in context attention (official I-JEPA ViT is
+  cls-free; frame keeps one trunk arch — revisit at M2); house AdamW + no wd schedule (D-012).

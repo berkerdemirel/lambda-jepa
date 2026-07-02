@@ -53,3 +53,13 @@ l2/attentive → E11). M0 probe CSVs predate linear_raw_v1 → re-running probe 
 SimCLR, VICReg, BYOL, DINO (control port), MAE, I-JEPA implemented on the frame; CPU dry-run:
 step+backward+post_step+arch-rebuild pass for all six, init losses at theory values (ln3, 4.0,
 ln4096, ...). Toy recipe policy = D-012. Queueing smoke→150ep chains on h100-slotB.
+
+## 2026-07-02 — faithfulness review vs donors/officials (Berker directive; full-150 runs held)
+Cloned facebookresearch/{dino@7c446df, ijepa@52c1ae9, mae@efb2a80} as donors; line-cited review of
+all six methods. VERIFIED IDENTICAL: SimCLR loss math, VICReg all terms/weights, BYOL loss+MLPs,
+DINO loss/center/freeze (const t_temp 0.04 = official default), I-JEPA loss/LN-order/masks, MAE
+masking/loss/patchify. FIXED: SimCLR proj 4096->512 (donor IN-100), BYOL pred_hidden 8192, teachers
+now EVAL for DINO/I-JEPA (drop_path in targets), MAE decoder rewritten canonical (512x8x16, fixed
+sincos + cls through decoder), I-JEPA predictor pos -> fixed sincos + min_keep=10. Remaining
+documented deviations in per-dossier PORT_NOTES (house optimizer per D-012; I-JEPA cls-in-context;
+predictor depth 6). All six re-validated on CPU after fixes.

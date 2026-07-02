@@ -97,8 +97,7 @@ def main(cfg: DictConfig):
     cadence = set(frame.cadence())
     gnorm_med, step = None, start_ep * steps_per_epoch
     for epoch in range(start_ep, frame.epochs):
-        for m in modules.values():
-            m.train()
+        method.train_mode(modules)
         probe.train()
         method.on_epoch_start(modules, epoch)
         for batch_x, y in train:

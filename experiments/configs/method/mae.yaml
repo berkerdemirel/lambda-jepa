@@ -3,9 +3,9 @@ name: mae
 patch: 8
 mask_ratio: 0.75
 norm_pix_loss: true
-dec_dim: 256
-dec_depth: 4
-dec_heads: 8
+dec_dim: 512
+dec_depth: 8
+dec_heads: 16
 lr: 1e-3
 wd: 5e-2
 warmup_ep: 10

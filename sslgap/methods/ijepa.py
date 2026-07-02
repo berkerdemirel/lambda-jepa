@@ -1,8 +1,8 @@
 """I-JEPA (Assran et al. 2023) — port of the ssl_explore/sslx/ijepa.py building blocks (verbatim
 MaskSampler and Predictor; the sslx trainer was deleted) on the frame. Faithful pieces: multi-block
 target sampling (shapes per batch, locations per image; official MaskCollator behaviour), context =
-block minus target-union truncated to batch-min, narrow ViT predictor (dim 384 depth 6, LEARNED pos
-— paper uses fixed sincos), smooth-L1 on layer-normed EMA-teacher tokens (official code; paper text
+block minus target-union truncated to batch-min, narrow ViT predictor (dim 384 depth 6; FIXED
+sincos pos, verified vs official), smooth-L1 on layer-normed EMA-teacher tokens (official code; paper text
 says L2), EMA momentum 0.996->1 LINEAR (paper). Minimal aug (RRC 0.3-1.0 + flip). Toy adaptations
 per D-012: house AdamW schedule; drop_path 0. Known fragility (C-JEPA): teacher-token std is
 monitored per step from birth."""
@@ -15,6 +15,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from timm.layers import trunc_normal_
 from timm.models.vision_transformer import Block
+
+from sslgap.models.posembed import get_2d_sincos_pos_embed
 
 from sslgap.data import ViewsDataset, minaug_stack
 from sslgap.methods._common import house_scheduler, trunk_arch
@@ -55,7 +57,7 @@ class MaskSampler:
             blk = self._block(ch, cw)
             ctx.append(blk[keep[blk]])
         kc = min(len(c) for c in ctx)
-        assert kc >= 1, "context emptied by targets — scales misconfigured"
+        assert kc >= 10, f"context {kc} < official min_keep=10 — scales misconfigured"
         ctx = torch.stack([c[torch.randperm(len(c))[:kc]] for c in ctx])
         return ctx, tgt
 
@@ -67,11 +69,11 @@ class Predictor(nn.Module):
         super().__init__()
         self.embed = nn.Linear(dim, dim)
         self.mask_token = nn.Parameter(torch.zeros(1, 1, dim))
-        self.pos = nn.Parameter(torch.zeros(1, n_patches, dim))
+        grid = int(n_patches ** 0.5)                      # FIXED sincos (official predictor pos,
+        self.register_buffer("pos", get_2d_sincos_pos_embed(dim, grid)[None])  # ijepa@52c1ae9)
         self.blocks = nn.Sequential(*[Block(dim, heads, qkv_bias=True) for _ in range(depth)])
         self.norm = nn.LayerNorm(dim)
         self.out = nn.Linear(dim, dim)
-        trunc_normal_(self.pos, std=0.02)
         trunc_normal_(self.mask_token, std=0.02)
 
     def _pos_at(self, idx):
@@ -142,6 +144,11 @@ class IJEPA(SSLMethod):
         loss = F.smooth_l1_loss(pred.float(), tgt.float())
         probe_feats = ctx.mean(1).detach()                     # context-token mean (cheap monitor)
         return ({"loss": loss, "jepa": loss}, probe_feats, 1)
+
+    def train_mode(self, modules):
+        modules["backbone"].train()
+        modules["predictor"].train()
+        modules["teacher_backbone"].eval()      # EMA target encoder stays eval (sslx convention)
 
     def post_step(self, modules, step, total_steps):
         m = self.cfg.ema_base + (1.0 - self.cfg.ema_base) * step / total_steps   # linear (paper)

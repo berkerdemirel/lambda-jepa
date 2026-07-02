@@ -1,8 +1,8 @@
 name: simclr
 # canonical NT-Xent/head/augs; house AdamW (D-012). Donor: solo-learn @9187ea3 (temp 0.2).
 temp: 0.2
-proj_hidden: 2048
-proj_dim: 256
+proj_hidden: 4096
+proj_dim: 512
 drop_path: 0.1
 lr: 1e-3
 wd: 5e-2

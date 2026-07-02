@@ -86,6 +86,14 @@ class SSLMethod(ABC):
     def on_epoch_start(self, modules, epoch):
         """Per-epoch recipe hooks (e.g. DINO freezes prototypes in epoch 0). Default: nothing."""
 
+    def train_mode(self, modules):
+        """Set train/eval per module at epoch start. Default: everything train. EMA-teacher
+        methods with stochastic-depth students override to keep teachers eval (DINO/I-JEPA —
+        the sslx control kept teachers eval; BYOL keeps its teacher in train mode: the target
+        projector's BN uses batch statistics per the paper)."""
+        for m in modules.values():
+            m.train()
+
     def extras(self) -> dict:
         """Non-module checkpoint state (centers, queues). Default: none."""
         return {}

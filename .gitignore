@@ -24,3 +24,6 @@ multirun/
 # assistant/session files — local only, not part of the public project (D-001 amendment)
 CLAUDE.md
 HANDOVER.md
+third_party/dino/
+third_party/ijepa/
+third_party/mae/

@@ -77,6 +77,11 @@ and alignment (the invariance term).
 - **Known recipe risks (kickstart plan):** none singled out — general training-hygiene rules
   (WORKFLOW.md) apply.
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02, faithfulness review vs donors)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+Verified vs solo-learn @9187ea3 (`solo/losses/vicreg.py` + IN-100 yaml) and paper App. C:
+- var: relu(1−sqrt(var+1e-4)) mean-over-dims, summed over branches — IDENTICAL. inv: mse — same.
+  cov: off-diag² sum / d per branch — same. Weights 25/25/1 — donor defaults.
+- Expander 2048/2048 == donor IN-100 config (they scale 4x from RN18-512; ours 384→2048 ≈ 5.3x).
+- Augs: BYOL asymmetric pair (blur 1.0/0.1, solarize 0/0.2) == official vicreg augmentations.py.
+- Toy deviations (D-012): house AdamW (donor: LARS).

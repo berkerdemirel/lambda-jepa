@@ -88,6 +88,18 @@ are decoder-block taps; guillotine curves run through the decoder.
 - **Known recipe risks (kickstart plan):** weak linear probe is EXPECTED (not a failed-port
   signal) — validate the port via kNN and fine-tune-style signals instead.
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02, faithfulness review vs OFFICIAL repo)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+Verified vs facebookresearch/mae @efb2a80 (`models_mae.py`):
+- Masking: per-sample argsort(rand), keep first (1−ratio)·N — the official shuffle trick, identical.
+- Encoder: cls + visible patches only, pos added before drop (vit_tokens keep= replicates
+  forward_encoder; exact-equality self-test vs forward_features at keep=all).
+- Decoder — **rewritten during review to canonical**: decoder_embed(cls+vis) → mask tokens at
+  masked positions (our scatter == their ids_restore unshuffle) → cls kept in sequence → FIXED 2D
+  sincos pos incl. zero cls row (`util/pos_embed.py` port) → blocks → norm → pred → cls stripped.
+  Dims 512×8×16 (official scale; ours had been a 256×4 toy cut).
+- Loss: per-patch norm-pix (mean/var, eps 1e-6), MSE over MASKED patches only — identical
+  (patchify layout checked element-order-identical vs solo-learn `solo/losses/mae.py`).
+- Aug: RRC (0.2,1) + flip — official pretrain transform.
+- Deviations: house AdamW (official: AdamW blr 1.5e-4·bs/256, wd .05, 40ep warmup); no ViT-S
+  official config exists (B/L/H only) — decoder kept at official scale instead.

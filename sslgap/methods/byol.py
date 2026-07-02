@@ -1,7 +1,6 @@
 """BYOL (Grill et al. 2020) — toy-rung instance per D-012: canonical machinery (projector +
 predictor + EMA teacher + stop-grad, normalized-MSE symmetrized), canonical asymmetric view pair,
-house AdamW (LARS at M1.5). Donor cross-check: solo-learn methods/byol.py (proj/pred hidden 4096,
-out 256). EMA base 0.99 (NOT the paper's 0.996): at 37 steps/epoch on Imagenette the 0.996 teacher
+house AdamW (LARS at M1.5). Donor cross-check: solo-learn methods/byol.py (proj hidden 4096, pred hidden 8192, out 256 — their IN-100 config). EMA base 0.99 (NOT the paper's 0.996): at 37 steps/epoch on Imagenette the 0.996 teacher
 is near-frozen — the ssl_explore DINO-control incident, avoided by design here (documented).
 Collapse canary (paper Tab.5: no-predictor -> 0.3%): teacher-projection std is monitored per step."""
 import copy
@@ -28,21 +27,21 @@ class BYOL(SSLMethod):
     def build_modules(self):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 drop_path_rate=self.cfg.drop_path)
-        proj = byol_mlp(384, self.cfg.hidden, self.cfg.out_dim)
-        pred = byol_mlp(self.cfg.out_dim, self.cfg.hidden, self.cfg.out_dim)
+        proj = byol_mlp(384, self.cfg.proj_hidden, self.cfg.out_dim)
+        pred = byol_mlp(self.cfg.out_dim, self.cfg.pred_hidden, self.cfg.out_dim)
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
         t_proj = copy.deepcopy(proj).requires_grad_(False)
         return nn.ModuleDict({"backbone": trunk, "projector": proj, "predictor": pred,
                               "teacher_backbone": t_trunk, "teacher_projector": t_proj})
 
     def arch(self):
-        mlp = lambda i: {"class": "sslgap.methods.byol.byol_mlp",
-                         "kwargs": {"in_dim": i, "hidden": self.cfg.hidden,
-                                    "out_dim": self.cfg.out_dim}}
-        return {"backbone": trunk_arch(self.frame, self.cfg.drop_path), "projector": mlp(384),
-                "predictor": mlp(self.cfg.out_dim),
+        mlp = lambda i, h: {"class": "sslgap.methods.byol.byol_mlp",
+                            "kwargs": {"in_dim": i, "hidden": h, "out_dim": self.cfg.out_dim}}
+        return {"backbone": trunk_arch(self.frame, self.cfg.drop_path),
+                "projector": mlp(384, self.cfg.proj_hidden),
+                "predictor": mlp(self.cfg.out_dim, self.cfg.pred_hidden),
                 "teacher_backbone": trunk_arch(self.frame, self.cfg.drop_path),
-                "teacher_projector": mlp(384)}
+                "teacher_projector": mlp(384, self.cfg.proj_hidden)}
 
     def build_train_dataset(self):
         return ViewsDataset(self.frame.dataset, "train", V=2, img_size=self.frame.img_size,

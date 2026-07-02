@@ -95,6 +95,15 @@ the audit tests (E1).
 - **Known recipe risks (kickstart plan):** SimCLR-on-ViT stability — if unstable, consider the
   MoCo-v3 frozen patch-embed trick.
 
-### PORT_NOTES
+### PORT_NOTES (2026-07-02, faithfulness review vs donors)
 
-*(empty — filled at port review time: donor commit, review findings, deviations)*
+Verified vs solo-learn @9187ea3 (`solo/losses/simclr.py`, `solo/methods/simclr.py`,
+`scripts/pretrain/imagenet-100/simclr.yaml`) and paper:
+- Loss: their exp/pos-mask/neg-mask formulation == our CE-with-masked-diagonal for V=2 (self
+  excluded from both; denominator = pos+neg) — IDENTICAL math. temp 0.2 = their IN-100 config.
+- Projector: Linear→ReLU→Linear, NO BatchNorm == donor exactly. **Fixed during review:** dims
+  4096→512 per their IN-100 config (ours had been 2048→256). Note: the original TF SimCLR applies
+  BN inside the head; we follow our declared donor (solo-learn), recorded here.
+- Augs: paper stack (RRC .08-1, flip, jitter(.8,.8,.8,.2)@.8, gray .2, blur .5) — verbatim.
+- Toy deviations (D-012): house AdamW (donor: LARS lr .4 sqrt-scaled); ViT-S trunk CLS feature
+  (donor RN18 avgpool — F1).
