@@ -115,4 +115,4 @@ doesn't." [O]
   dispensable for it. Either answer is a finding.
 - **LDM identifiability × the head** = open theory problem [O]: our sufficiency-vs-minimality
   measurements (E1 geometry battery + E4 information ledger) are the data an affine-identifiability-
-  through-heads argument would need.
+  through-heads argument would need. Problem note: [LDM_HEAD_COMPOSITION.md](LDM_HEAD_COMPOSITION.md).

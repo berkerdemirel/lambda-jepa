@@ -156,7 +156,8 @@ found as of the report's compile date.
   minimality doesn't" — turning the audit's empirical pattern into a theorem shape.
 - **Ours:** our E1 (geometry) + E4 (information ledger) data are exactly what such an argument
   needs; the theory work itself is unassigned. See THEORY_MAP.md §"What our measurements would
-  inform".
+  inform" and the problem note [LDM_HEAD_COMPOSITION.md](LDM_HEAD_COMPOSITION.md) (drafted
+  2026-07-02: class-gap statement, linear-head special case, head-linearity index PROPOSAL).
 
 ## Minor [O] flags also recorded in the report (for completeness)
 
