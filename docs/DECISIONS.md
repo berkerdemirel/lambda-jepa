@@ -31,6 +31,8 @@ Status ∈ { PROPOSED, USER-APPROVED, SUPERSEDED }.
 
 | **D-011** | 2026-07-02 | LeJEPA toy PORT-EXACT recipe overrides of frame defaults (M1 ground-truth reproduction): NO grad clipping; cosine eta_min=1e-3 (= lr/2, violates house eta_min≤lr/20 by design); unseeded per-step SIGReg slices; DataLoader persistent_workers=False; module creation order mirrors the official script; GradScaler+bf16 as shipped | frame defaults | the M1 gate criterion is reproducing the official curve/probe (0.90217 @ ep800, wandb lejepa-reproduce/z2zqw1bs) — fidelity beats hygiene for the validation instance; grid instances may revisit | USER-APPROVED (implied by the M1 port order; flag if disagreed) |
 
+| **D-012** | 2026-07-02 | Toy-rung recipe adaptation policy: canonical LOSSES/HEADS/AUGS per method (donor-cross-checked), but a UNIFORM house optimizer (AdamW lr 1e-3, wd 5e-2, warmup 10 ep, cosine eta_min 1e-5) — canonical optimizers (LARS etc.) and verbatim donor recipes enter at M1.5 (RN18-IN-100 port validation) and M2. Method-specific stability settings kept where the house incident-ledger demands (BYOL/DINO EMA base 0.99 at 37 steps/ep; DINO grad_clip 3.0, const t_temp, prototypes frozen ep0). Toy validation = collapse monitors green + probe well above chance; number-matching is NOT a toy-rung claim (except LeJEPA, D-011) | verbatim per-method optimizers at toy | toy rung is a dress rehearsal (ROADMAP M1); mis-tuned exotic optimizers at 9.5k images would produce noise, not evidence | PROPOSED (flag if disagreed) |
+
 ## Gate decisions (data-ladder / milestone advancement)
 
 | ID | date | gate | evidence required | status |

@@ -176,13 +176,10 @@ def make_source(frame):
     return lambda split: _Source("imagefolder", root=os.path.join(root, split))
 
 
-class ViewsDataset(torch.utils.data.Dataset):
-    """Training views over a FULL split (no manifest — matches the official lejepa recipe and the
-    sslx HFDataset): V>1 -> V draws of the orbit stack; V==1 -> the deterministic eval transform.
-    Returns (views [V,C,H,W], label)."""
+class _FullSplit:
+    """Raw PIL access to a full split (no manifest): imagenette via HF, else ImageFolder."""
 
-    def __init__(self, dataset, split, V, img_size, data_root=None):
-        self.V = V
+    def __init__(self, dataset, split, data_root=None):
         if dataset == "imagenette":
             self.source = _Source("hf-imagenette", split=split)
             self.n = len(self.source.ds)
@@ -193,20 +190,86 @@ class ViewsDataset(torch.utils.data.Dataset):
             self._folder = ImageFolder(root)
             self.source = None
             self.n = len(self._folder)
-        self.aug = orbit_stack(img_size)
-        self.test = eval_transform(img_size)
 
-    def _item(self, i):
+    def __call__(self, i):
         if self.source is not None:
             row = self.source.ds[int(i)]
             return row["image"].convert("RGB"), int(row["label"])
         path, y = self._folder.samples[i]
         return self._folder.loader(path).convert("RGB"), y
 
+
+class ViewsDataset(torch.utils.data.Dataset):
+    """Training views over a FULL split: V>1 -> V draws of `aug` (default = the orbit stack, the
+    lejepa recipe); V==1 -> the deterministic eval transform. Returns (views [V,C,H,W], label).
+    `transforms`: optional per-view transform list (len V) for asymmetric-view methods (BYOL)."""
+
+    def __init__(self, dataset, split, V, img_size, data_root=None, aug=None, transforms=None):
+        self.V = V
+        self.split_src = _FullSplit(dataset, split, data_root)
+        if transforms is not None:
+            assert len(transforms) == V
+            self.tfms = transforms
+        elif V > 1:
+            self.tfms = [aug or orbit_stack(img_size)] * V
+        else:
+            self.tfms = [eval_transform(img_size)]
+
     def __getitem__(self, i):
-        img, y = self._item(i)
-        tfm = self.aug if self.V > 1 else self.test
-        return torch.stack([tfm(img) for _ in range(self.V)]), y
+        img, y = self.split_src(i)
+        return torch.stack([t(img) for t in self.tfms]), y
 
     def __len__(self):
-        return self.n
+        return self.split_src.n
+
+
+class MultiCropDataset(torch.utils.data.Dataset):
+    """DINO multi-crop over a full split: 2 globals + n_local locals (Lightly/DINO-faithful views;
+    port of sslx/dinov2.MultiCropDataset aug='dino'). Returns ((g [2,C,G,G], l [nl,C,L,L]), y)."""
+
+    def __init__(self, dataset, split, img_size, local_size, n_local, data_root=None):
+        self.split_src = _FullSplit(dataset, split, data_root)
+        self.globs = [_dino_view(img_size, (0.4, 1.0), blur_p=1.0, solar_p=0.0),
+                      _dino_view(img_size, (0.4, 1.0), blur_p=0.1, solar_p=0.2)]
+        self.loc = _dino_view(local_size, (0.05, 0.4), blur_p=0.5, solar_p=0.0)
+        self.n_local = n_local
+
+    def __getitem__(self, i):
+        img, y = self.split_src(i)
+        g = torch.stack([t(img) for t in self.globs])
+        l = torch.stack([self.loc(img) for _ in range(self.n_local)])
+        return (g, l), y
+
+    def __len__(self):
+        return self.split_src.n
+
+
+def simclr_stack(img_size):
+    """SimCLR aug (paper Fig. 4 defaults): RRC + flip + jitter(0.8,.8,.8,.2)@0.8 + gray 0.2 + blur 0.5."""
+    return v2.Compose([
+        v2.RandomResizedCrop(img_size, scale=(0.08, 1.0)),
+        v2.RandomHorizontalFlip(),
+        v2.RandomApply([v2.ColorJitter(0.8, 0.8, 0.8, 0.2)], p=0.8),
+        v2.RandomGrayscale(p=0.2),
+        v2.RandomApply([v2.GaussianBlur(kernel_size=7, sigma=(0.1, 2.0))], p=0.5), *_TAIL,
+    ])
+
+
+def byol_pair(img_size):
+    """BYOL/VICReg asymmetric view pair: view1 blur p=1.0/no solarize; view2 blur p=0.1/solarize 0.2."""
+    def view(blur_p, solar_p):
+        return v2.Compose([
+            v2.RandomResizedCrop(img_size, scale=(0.08, 1.0)),
+            v2.RandomHorizontalFlip(),
+            v2.RandomApply([v2.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+            v2.RandomGrayscale(p=0.2),
+            v2.RandomApply([v2.GaussianBlur(kernel_size=7, sigma=(0.1, 2.0))], p=blur_p),
+            v2.RandomApply([v2.RandomSolarize(threshold=128)], p=solar_p), *_TAIL,
+        ])
+    return [view(1.0, 0.0), view(0.1, 0.2)]
+
+
+def minaug_stack(img_size, scale=(0.3, 1.0)):
+    """I-JEPA/MAE-style minimal aug: RRC + flip only (nothing photometric)."""
+    return v2.Compose([v2.RandomResizedCrop(img_size, scale=scale),
+                       v2.RandomHorizontalFlip(), *_TAIL])

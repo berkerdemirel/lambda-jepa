@@ -101,7 +101,7 @@ class LeJEPA(SSLMethod):
         inv_loss = (proj.mean(0) - proj).square().mean()
         sigreg_loss = self.sigreg.to(device)(proj)
         loss = sigreg_loss * self.cfg.lamb + inv_loss * (1 - self.cfg.lamb)
-        return ({"loss": loss, "sigreg": sigreg_loss, "inv": inv_loss}, emb.detach())
+        return ({"loss": loss, "sigreg": sigreg_loss, "inv": inv_loss}, emb.detach(), V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):

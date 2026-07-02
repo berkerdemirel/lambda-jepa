@@ -1,0 +1,12 @@
+name: mae
+# canonical 75% masking / norm-pix MSE / visible-only encoder; toy decoder 256x4 (paper 512x8).
+patch: 8
+mask_ratio: 0.75
+norm_pix_loss: true
+dec_dim: 256
+dec_depth: 4
+dec_heads: 8
+lr: 1e-3
+wd: 5e-2
+warmup_ep: 10
+eta_min: 1e-5

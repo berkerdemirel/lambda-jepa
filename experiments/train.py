@@ -63,6 +63,7 @@ def main(cfg: DictConfig):
         opt.load_state_dict(pay["optim"]["opt"])
         scheduler.load_state_dict(pay["optim"]["scheduler"])
         scaler.load_state_dict(pay["optim"]["scaler"])
+        method.load_extras(pay.get("extras", {}))
         start_ep, best_acc = pay["epoch"] + 1, pay.get("best_acc") or 0.0
         wandb_id = pay["provenance"].get("wandb_id")
         print(f"[train] resumed {run_id} at epoch {start_ep}")
@@ -87,18 +88,25 @@ def main(cfg: DictConfig):
                         provenance=provenance_stamp(wandb_id=run.id, run_id=run_id,
                                                     seed=cfg.seed))
 
+    def to_device(x):
+        if torch.is_tensor(x):
+            return x.to(frame.device, non_blocking=True)
+        return type(x)(to_device(t) for t in x)
+
+    total_steps = steps_per_epoch * frame.epochs
     cadence = set(frame.cadence())
     gnorm_med, step = None, start_ep * steps_per_epoch
     for epoch in range(start_ep, frame.epochs):
         for m in modules.values():
             m.train()
         probe.train()
-        for views, y in train:
-            views = views.to(frame.device, non_blocking=True)
+        method.on_epoch_start(modules, epoch)
+        for batch_x, y in train:
+            batch_x = to_device(batch_x)
             y = y.to(frame.device, non_blocking=True)
             with autocast(frame.device, dtype=torch.bfloat16):
-                terms, probe_feats = method.training_step(modules, views, frame.device)
-                y_rep = y.repeat_interleave(views.shape[1])
+                terms, probe_feats, k = method.training_step(modules, batch_x, frame.device)
+                y_rep = y.repeat_interleave(k) if k > 1 else y
                 probe_loss = F.cross_entropy(probe(probe_feats), y_rep)
                 loss = terms["loss"] + probe_loss
             opt.zero_grad()
@@ -112,11 +120,11 @@ def main(cfg: DictConfig):
             scaler.update()
             scheduler.step()
             step += 1
-            monitors = method.post_step(modules)
-            wandb.log({**{f"train/{k}": v.item() for k, v in terms.items()},
+            monitors = method.post_step(modules, step, total_steps)
+            wandb.log({**{f"train/{k_}": v.item() for k_, v in terms.items()},
                        "train/probe": probe_loss.item(), "train/grad_norm": gn,
                        "lr": scheduler.get_last_lr()[0],
-                       **{f"monitor/{k}": v for k, v in monitors.items()}}, step=step)
+                       **{f"monitor/{k_}": v for k_, v in monitors.items()}}, step=step)
             if gnorm_med and gn > 100 * gnorm_med:
                 print(f"[train] INCIDENT: grad_norm {gn:.1f} > 100x running median "
                       f"{gnorm_med:.3f} at step {step} (WORKFLOW.md kill-trigger)", flush=True)

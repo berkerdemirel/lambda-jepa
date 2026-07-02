@@ -48,3 +48,8 @@ capacity → LeJEPA h = emb-512. Headline probes locked: linear_raw_v1 + knn_v1 
 l2/attentive → E11). M0 probe CSVs predate linear_raw_v1 → re-running probe jobs to add it.
 
 ## 2026-07-02 — G-M0 PASSED; AUDIT_MATRIX v1 LOCKED (Berker sign-off). M1 begins: LeJEPA port.
+
+## 2026-07-02 — M1 full-roster implementation (parallel to LeJEPA portval, per Berker)
+SimCLR, VICReg, BYOL, DINO (control port), MAE, I-JEPA implemented on the frame; CPU dry-run:
+step+backward+post_step+arch-rebuild pass for all six, init losses at theory values (ln3, 4.0,
+ln4096, ...). Toy recipe policy = D-012. Queueing smoke→150ep chains on h100-slotB.

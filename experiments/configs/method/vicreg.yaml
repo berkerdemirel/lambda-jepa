@@ -1,0 +1,12 @@
+name: vicreg
+# canonical var/inv/cov 25/25/1 at the expander output; BYOL aug pair; house AdamW (D-012).
+w_inv: 25.0
+w_var: 25.0
+w_cov: 1.0
+expander_hidden: 2048
+expander_dim: 2048
+drop_path: 0.1
+lr: 1e-3
+wd: 5e-2
+warmup_ep: 10
+eta_min: 1e-5

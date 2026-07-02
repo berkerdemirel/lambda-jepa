@@ -67,8 +67,9 @@ class SSLMethod(ABC):
 
     # --- the step -----------------------------------------------------------------------------
     @abstractmethod
-    def training_step(self, modules, views, device) -> tuple[dict, "torch.Tensor"]:
-        """views [N,V,C,H,W] -> ({term: tensor incl. "loss"}, probe_feats [N*V, D] DETACHED)."""
+    def training_step(self, modules, batch_x, device) -> tuple[dict, "torch.Tensor", int]:
+        """batch_x = the dataset item's x part (tensor or nested tuple of tensors, on device) ->
+        ({term: tensor incl. "loss"}, probe_feats [N*k, D] DETACHED, k = label repeats)."""
 
     @abstractmethod
     def eval_features(self, modules, x, device):
@@ -78,14 +79,16 @@ class SSLMethod(ABC):
     def probe_dim(self) -> int:
         ...
 
-    def post_step(self, modules) -> dict:
+    def post_step(self, modules, step, total_steps) -> dict:
         """EMA updates / centering; returns monitor scalars. Default: nothing."""
         return {}
 
-    def collapse_monitors(self, terms) -> dict:
-        """Cheap per-step collapse signals. Default: none beyond the loss terms."""
-        return {}
+    def on_epoch_start(self, modules, epoch):
+        """Per-epoch recipe hooks (e.g. DINO freezes prototypes in epoch 0). Default: nothing."""
 
     def extras(self) -> dict:
         """Non-module checkpoint state (centers, queues). Default: none."""
         return {}
+
+    def load_extras(self, extras):
+        """Restore extras() state on resume. Default: nothing."""
