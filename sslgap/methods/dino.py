@@ -101,7 +101,10 @@ class DINO(SSLMethod):
                       for s in range(nl)]
         loss = torch.stack(pairs).mean()
         self._t_cls = t_cls.detach()
-        probe_feats = s_tok[:, 0].detach()                        # trunk CLS of the 2 globals
+        # trunk CLS of the 2 globals; s_tok is VIEW-major [2N] — reorder to image-major, the
+        # probe contract (base.py: labels are y.repeat_interleave(k)). The M1 toy.dino.s0 run
+        # trained with this misaligned (probe at chance, model unaffected) — HISTORY 2026-07-02.
+        probe_feats = s_tok[:, 0].reshape(2, N, -1).transpose(0, 1).flatten(0, 1).detach()
         return ({"loss": loss, "dino": loss}, probe_feats, 2)
 
     def post_step(self, modules, step, total_steps):

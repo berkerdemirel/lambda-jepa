@@ -70,3 +70,22 @@ projector vs new 4096→512). Fixed: stale tag-less grid ckpts purged for all si
 one waiting too); trainer now refuses resume when the saved arch block differs from the current
 method arch, with an actionable message. Lesson: architecture changes invalidate tag-less run_ids —
 purge or retag.
+
+## 2026-07-02 — incident: DINO online probe trained on misaligned labels (view-major features)
+
+toy.dino.s0 finished with online probe ~chance all run (best=0.2046, final 0.162) while every
+objective monitor was healthy (teacher entropy_sample 0.87→0.185, proto_used 74→257, loss falling).
+Offline probes on the extracted ep150 features then came back HEALTHY: student.h.cls linear_raw
+0.785 / kNN@200 0.718, teacher.h.cls 0.778 — squarely in the family range. Root cause: the trainer
+aligns probe labels image-major (`y.repeat_interleave(k)`, train.py); DINO's training_step alone
+emitted probe features VIEW-major (`g.transpose(0,1).flatten` for the 2 globals), so the online
+probe trained on wrong labels for ~all pairs; the model itself was unaffected (probe features are
+detached; loss path untouched). All other methods flatten image-major (verified: simclr/byol/vicreg
+`views.flatten(0,1)`, lejepa likewise, mae/ijepa k=1). Fixed in dino.py (reorder to image-major) +
+probe contract clarified in base.py. Residual effects on the finished run: (1) `_best` selection
+keyed on a meaningless monitor — use cadence/`_last` ckpts for toy.dino.s0, never `_best`;
+(2) probe grads on garbage labels shared the global grad_clip(3.0) budget with method grads all
+run — features look fine offline, but the run is not bit-identical to a clean one; rerun decision
+deferred to discussion. Lessons: online-probe-at-chance + healthy-objective ⇒ check the MONITOR
+before the model (offline probe on stored features is the arbiter); label-alignment bugs are
+smoke-invisible (probe at chance at ep2 is normal, criterion can't catch it).
