@@ -110,3 +110,16 @@ dissociation of view-based methods?
 - Known non-exactness: module init RNG cannot be bit-identical across the refactor (creation order
   mirrored, but timm/init internals differ at the margin); validation criterion is curve shape +
   final probe within ~1 pt, not bit equality.
+
+### PORT VALIDATION VERDICT (2026-07-03) — **PASS**
+
+`toy.lejepa.s0.portval` (job 61924263, wandb `sslgap/o1cqzmbg`, 800 ep, D-011 exact recipe) vs the
+donor ground truth `lejepa-reproduce/z2zqw1bs` (0.90217 final):
+
+| criterion | measured | verdict |
+|---|---|---|
+| final online probe within ±1 pt of 0.90217 | **ep800 = 0.9037** (Δ **+0.15 pt**); best = 0.9113 (Δ +0.91 pt) | ✅ |
+| loss-curve shape | sigreg shape corr **0.9997**, inv corr 0.987 (aligned overlap through ep370); per-epoch acc mean\|Δ\| = 1.4 pt, last-30-ep Δ = +0.2 pt | ✅ |
+
+The trainer stack (frame loop + LeJEPA recipe + native ckpt format) reproduces the official
+minimal run within amp/seed noise — the M1 exit criterion for the port (ROADMAP M1) is met.

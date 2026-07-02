@@ -89,3 +89,12 @@ run — features look fine offline, but the run is not bit-identical to a clean 
 deferred to discussion. Lessons: online-probe-at-chance + healthy-objective ⇒ check the MONITOR
 before the model (offline probe on stored features is the arbiter); label-alignment bugs are
 smoke-invisible (probe at chance at ep2 is normal, criterion can't catch it).
+
+## 2026-07-03 — LeJEPA-800 portval PASSES: the trainer stack is certified
+
+`toy.lejepa.s0.portval` (D-011 port-exact recipe, 800 ep, H100) vs Berker's official-minimal run
+(`lejepa-reproduce/z2zqw1bs`, final 0.90217): final ep800 online probe **0.9037 (Δ +0.15 pt)**,
+best 0.9113; sigreg loss-curve shape correlation 0.9997, inv 0.987; per-epoch acc mean|Δ| 1.4 pt
+with the last 30 epochs at +0.2 pt. Within the pre-registered ±1 pt + shape criterion → the frame
+loop, recipe hooks, and sslgap/ckpt/v1 format reproduce the official implementation. Every other
+M1 grid instance rides this certificate (they share the loop; only recipes differ).
