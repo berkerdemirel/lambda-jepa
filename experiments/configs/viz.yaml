@@ -1,0 +1,19 @@
+panels: [guillotine, pca, relrep, spectra, bars, confusion, jaccard, invariance, gallery, tau]
+run_id_overrides:
+  dino: toy.dino.s0.ext          # switch to toy.dino.s0.probefix.ext when the rerun lands
+store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
+manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
+results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results
+train_manifest: imagenette.train.v1
+val_manifest: imagenette.val.v1
+
+pca_points: 3000          # scatter subsample per panel
+relrep_anchors: 256       # shared anchor images (D-009 dataset anchors, seed 0)
+gallery_queries: 6
+
+wandb: true
+wandb_name: m1-viz
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}
