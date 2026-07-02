@@ -95,6 +95,41 @@ def _feats(store, rid, man, space, n=None, seed=0):
     return X, np.arange(len(X))
 
 
+def _lda2(X, y, reg=1e-4):
+    """Two-component Fisher LDA (numpy; supervised — for class-geometry viz only)."""
+    mu = X.mean(0)
+    Sw = np.zeros((X.shape[1], X.shape[1]))
+    Sb = np.zeros_like(Sw)
+    for k in np.unique(y):
+        Xk = X[y == k]
+        d = Xk - Xk.mean(0)
+        Sw += d.T @ d
+        m = (Xk.mean(0) - mu)[:, None]
+        Sb += len(Xk) * (m @ m.T)
+    Sw += reg * np.trace(Sw) / len(Sw) * np.eye(len(Sw))
+    evals, evecs = np.linalg.eig(np.linalg.solve(Sw, Sb))
+    order = np.argsort(-evals.real)[:2]
+    return evecs[:, order].real                                    # [d, 2] projection basis
+
+
+def _class_scatter(ax, P, yy, label_classes=True):
+    for k in range(10):
+        sel = yy == k
+        ax.scatter(P[sel, 0], P[sel, 1], s=4, c=C10[k], alpha=0.6, linewidths=0)
+    if label_classes:
+        for k in range(10):
+            mu = P[yy == k].mean(0)
+            ax.annotate(CLASSES[k], mu, fontsize=6, color=INK, ha="center", va="center",
+                        bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.75))
+    ax.set_xticks([]), ax.set_yticks([])
+
+
+def _class_legend(fig):
+    fig.legend(handles=[plt.Line2D([], [], marker="o", ls="", color=C10[k], label=CLASSES[k])
+                        for k in range(10)],
+               loc="lower center", ncol=10, frameon=False, fontsize=7)
+
+
 def _knn_idx(Xg, Xq, k=20, bs=512):
     """cosine top-k gallery indices per query (numpy, blocked)."""
     Gn = Xg / (np.linalg.norm(Xg, axis=1, keepdims=True) + 1e-12)
@@ -109,7 +144,7 @@ def _knn_idx(Xg, Xq, k=20, bs=512):
 # ---- panels ------------------------------------------------------------------------------------
 
 def panel_guillotine(cfg, run_ids, res, out, wb):
-    fig, axes = plt.subplots(2, 4, figsize=(15, 6), sharey=True)
+    fig, axes = plt.subplots(2, 4, figsize=(15, 6.5), sharey=True, layout="constrained")
     for ax, m in zip(axes.flat, METHODS):
         pb = pd.read_csv(os.path.join(res, "probes", f"{run_ids[m]}.csv"))
         pv = pb.pivot_table(index="space", columns="probe", values="val_acc")
@@ -134,29 +169,31 @@ def panel_guillotine(cfg, run_ids, res, out, wb):
 
 
 def panel_pca(cfg, run_ids, store, man_val, out, wb):
-    fig, axes = plt.subplots(7, 2, figsize=(8, 24))
-    for r, m in enumerate(METHODS):
-        y = store.labels(run_ids[m], man_val)
-        for c, (space, tag) in enumerate([(H[m], "h"), (Z[m], "z.final" if m != "mae" else "z proxy (dec.tap8)")]):
-            ax = axes[r, c]
-            X, idx = _feats(store, run_ids[m], man_val, space, n=cfg.pca_points)
-            Xc = X - X.mean(0)
-            _, _, Vt = np.linalg.svd(Xc[:2000], full_matrices=False)
-            P = Xc @ Vt[:2].T
-            yy = y[idx]
-            for k in range(10):
-                sel = yy == k
-                ax.scatter(P[sel, 0], P[sel, 1], s=2.5, c=C10[k], alpha=0.55, linewidths=0)
-            for k in range(10):                                     # relief rule: direct labels
-                mu = P[yy == k].mean(0)
-                ax.annotate(CLASSES[k], mu, fontsize=6, color=INK,
-                            ha="center", va="center",
-                            bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.75))
-            ax.set_xticks([]), ax.set_yticks([])
-            _style(ax, f"{m} · {tag} ({space}, d={X.shape[1]})")
-    fig.suptitle("PCA(2) of val features, colored by class — paper-h vs loss space", color=INK, fontsize=11, y=1.001)
-    fig.tight_layout()
-    return _save(fig, out, "pca_h_vs_z.png", wb)
+    names = []
+    for kind in ("pca", "lda"):
+        fig, axes = plt.subplots(7, 2, figsize=(8, 24))
+        for r, m in enumerate(METHODS):
+            y = store.labels(run_ids[m], man_val)
+            for c, (space, tag) in enumerate([(H[m], "h"),
+                                              (Z[m], "z.final" if m != "mae" else "z proxy (dec.tap8)")]):
+                ax = axes[r, c]
+                X, idx = _feats(store, run_ids[m], man_val, space, n=cfg.pca_points)
+                yy = y[idx]
+                Xc = X - X.mean(0)
+                if kind == "pca":
+                    _, _, Vt = np.linalg.svd(Xc[:2000], full_matrices=False)
+                    P = Xc @ Vt[:2].T
+                else:
+                    P = Xc @ _lda2(Xc, yy)
+                _class_scatter(ax, P, yy)
+                _style(ax, f"{m} · {tag} ({space}, d={X.shape[1]})")
+        title = ("PCA(2) of val features, colored by class — paper-h vs loss space (unsupervised)"
+                 if kind == "pca" else
+                 "LDA(2) of val features — CLASS-SUPERVISED projection: class geometry, not intrinsic structure")
+        fig.suptitle(title, color=INK, fontsize=11, y=1.001)
+        fig.tight_layout()
+        names.append(_save(fig, out, f"{kind}_h_vs_z.png", wb))
+    return names
 
 
 def panel_relrep(cfg, run_ids, store, man_val, out, wb):
@@ -169,31 +206,36 @@ def panel_relrep(cfg, run_ids, store, man_val, out, wb):
         idx = anchor_indices(n_val, cfg.relrep_anchors, seed=0)
         Rs[m] = relrep_dataset(X, idx)
         ys = store.labels(run_ids[m], man_val)
+    # per-method centering removes each model's global anchor-similarity offset (otherwise one
+    # shared "mean similarity" direction dominates PC1 and every panel is the same banana).
+    Rs = {m: R - R.mean(0) for m, R in Rs.items()}
     allR = np.concatenate([Rs[m] for m in METHODS])
-    allR = allR - allR.mean(0)
-    _, _, Vt = np.linalg.svd(allR[np.random.default_rng(0).choice(len(allR), 4000, replace=False)],
-                             full_matrices=False)
-    fig, axes = plt.subplots(2, 4, figsize=(15, 7.5))
-    for ax, m in zip(axes.flat, METHODS):
-        P = (Rs[m] - allR.mean(0)) @ Vt[:2].T
-        for k in range(10):
-            sel = ys == k
-            ax.scatter(P[sel, 0], P[sel, 1], s=2.5, c=C10[k], alpha=0.55, linewidths=0)
-        for k in range(10):
-            mu = P[ys == k].mean(0)
-            ax.annotate(CLASSES[k], mu, fontsize=6, color=INK, ha="center", va="center",
-                        bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.75))
-        ax.set_xticks([]), ax.set_yticks([])
-        _style(ax, f"{m} · relrep(h)")
-    axes[1, 3].axis("off")
-    fig.suptitle(f"Relative representations of h (A={cfg.relrep_anchors} shared anchor images, "
-                 "cosine; D-009) — one common frame, shared PCA(2) axes", color=INK, fontsize=11)
-    fig.tight_layout()
-    return _save(fig, out, "relrep_h_shared.png", wb)
+    names = []
+    for kind in ("pca", "lda"):
+        if kind == "pca":
+            sub = allR[np.random.default_rng(0).choice(len(allR), 4000, replace=False)]
+            _, _, Vt = np.linalg.svd(sub - sub.mean(0), full_matrices=False)
+            W = Vt[:2].T
+        else:
+            W = _lda2(allR, np.tile(ys, len(METHODS)))
+        proj = lambda R: R @ W
+        fig, axes = plt.subplots(2, 4, figsize=(15, 8), layout="constrained")
+        for ax, m in zip(axes.flat, METHODS):
+            _class_scatter(ax, proj(Rs[m]), ys, label_classes=(kind == "lda"))
+            _style(ax, f"{m} · relrep(h)")
+        axes[1, 3].axis("off")
+        _class_legend(fig)
+        fig.suptitle(f"Relative representations of h (A={cfg.relrep_anchors} shared anchors, cosine, "
+                     "per-method centered; D-009) — one common frame, shared "
+                     + ("PCA(2) axes (unsupervised)" if kind == "pca"
+                        else "LDA(2) axes (CLASS-SUPERVISED — class geometry only)"),
+                     color=INK, fontsize=11)
+        names.append(_save(fig, out, f"relrep_h_shared_{kind}.png", wb))
+    return names
 
 
 def panel_spectra(cfg, run_ids, null_ids, store, man_tr, out, wb):
-    fig, axes = plt.subplots(2, 4, figsize=(15, 6), sharey=True)
+    fig, axes = plt.subplots(2, 4, figsize=(15, 6.5), sharey=True, layout="constrained")
     for ax, m in zip(axes.flat, METHODS):
         for space, color, ls, lab in ((H[m], "#2a78d6", "-", "h"), (Z[m], "#e34948", "-", "z")):
             X, _ = _feats(store, run_ids[m], man_tr, space, n=8000)
@@ -294,7 +336,7 @@ def panel_jaccard(cfg, run_ids, store, man_val, out, wb):
 
 
 def panel_invariance(cfg, run_ids, store, out, wb):
-    fig, axes = plt.subplots(2, 4, figsize=(15, 6), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 4, figsize=(15, 6.5), sharex=True, sharey=True, layout="constrained")
     for ax, m in zip(axes.flat, METHODS):
         man = [k for k in os.listdir(os.path.join(os.path.expanduser(cfg.store_root), run_ids[m]))
                if "@audit_v1" in k]
@@ -343,8 +385,8 @@ def panel_nn_gallery(cfg, run_ids, store, man_tr, out, wb):
                     s.set_color("#2a78d6" if 1 <= c <= 5 else "#e34948" if c > 5 else INK)
                     s.set_linewidth(2 if c == 0 else 1)
                 if r == 0:
-                    ax.set_title(["query", "h NN1", "", "", "", "", "z NN1", "", "", "", ""][c],
-                                 fontsize=7, color=INK2)
+                    ax.set_title((["query"] + [f"h NN{i}" for i in range(1, 6)]
+                                  + [f"z NN{i}" for i in range(1, 6)])[c], fontsize=6, color=INK2)
         fig.suptitle(f"{m}: 5 nearest train neighbors at h (blue) vs z (red), cosine", color=INK, fontsize=11)
         fig.tight_layout()
         names.append(_save(fig, out, f"nn_gallery_{m}.png", wb))
@@ -406,9 +448,9 @@ def main(cfg: DictConfig):
     if "guillotine" in P:
         made.append(panel_guillotine(cfg, run_ids, res, out, wb))
     if "pca" in P:
-        made.append(panel_pca(cfg, run_ids, store, man_val, out, wb))
+        made += panel_pca(cfg, run_ids, store, man_val, out, wb)
     if "relrep" in P:
-        made.append(panel_relrep(cfg, run_ids, store, man_val, out, wb))
+        made += panel_relrep(cfg, run_ids, store, man_val, out, wb)
     if "spectra" in P:
         made.append(panel_spectra(cfg, run_ids, null_ids, store, man_tr, out, wb))
     if "bars" in P:
