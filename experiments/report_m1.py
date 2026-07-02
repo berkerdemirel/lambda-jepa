@@ -85,9 +85,11 @@ def main(cfg: DictConfig):
           "> Dim-sensitive metrics: raw|full shown; raw|pca64 in the appendix blocks (§6.2).\n"]
 
     data = {}
+    overrides = cfg.get("run_id_overrides") or {}   # e.g. {dino: toy.dino.s0.probefix.ext}
     for m in cfg.methods:
-        rid = cfg.run_id_pattern.format(method=m)
-        nid = cfg.null_pattern.format(method=m)
+        rid = overrides.get(m) or cfg.run_id_pattern.format(method=m)
+        nid = (rid.removesuffix(".ext") + ".null.ext") if m in overrides \
+            else cfg.null_pattern.format(method=m)
         d = {}
         for tag, r in (("", rid), ("null", nid)):
             base = os.path.join(res, "battery", f"{r}.csv")

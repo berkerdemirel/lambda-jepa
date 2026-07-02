@@ -1,6 +1,8 @@
 methods: [simclr, byol, vicreg, dino, mae, ijepa, lejepa]
 run_id_pattern: "toy.{method}.s0.ext"
 null_pattern: "toy.{method}.s0.null.ext"
+run_id_overrides:
+  dino: toy.dino.s0.probefix.ext   # probe-monitor-fixed rerun (Berker 2026-07-02; HISTORY incident)
 results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results
 
 hydra:
