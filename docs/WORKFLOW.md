@@ -50,10 +50,13 @@ baselines may be tuning artifacts rather than properties of a method. Therefore:
   entry in the method dossier (donor commit, findings, deviations), and land in `sslgap/` in our
   style.
 
-## Cross-partition submission (H100 budget + gpu-partition OR)
+## Cross-partition scheduling (H100 budget + gpu partition)
 
-`sbatch --partition=gpu100,gpu --constraint="H100|A40|L40S" --job-name=h100-slotA|B
---dependency=singleton …` starts on whichever pool frees first while `singleton` keeps the
-≤2-H100 cap (conservatively: ≤2 slot-jobs running anywhere). Training jobs OR in 48 GB cards only
-(A40|L40S — 24 GB 3090Ti/A10 OOM at bs 256 ViT-S/8); extraction/probes may use the full
-`RTX3090Ti|A40|A10|L40S|A100` pool without slot names. Feature spellings per `sinfo -o "%P %f"`.
+SLURM's native OR (`--partition=gpu100,gpu`) is DISABLED on this cluster ("Multiple partition job
+request not supported when a partition is set in the association" — verified 2026-07-02). Working
+pattern instead: **parallel single-partition lanes**, each serialized by its own singleton job name
+— `h100-slotA`/`h100-slotB` on gpu100 (the ≤2-H100 cap) + `gpu-laneA`… on `--partition=gpu
+--constraint="A40|L40S"` (48 GB cards for training; 24 GB 3090Ti/A10 OOM at bs 256 ViT-S/8 and are
+reserved for extraction/probes, which run without lane names). Feature spellings per
+`sinfo -o "%P %f"`. A submit-twice-cancel-loser race wrapper is possible for independent jobs if a
+true first-available OR is ever needed; chains break its afterok wiring, so lanes are preferred.
