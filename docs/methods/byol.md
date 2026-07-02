@@ -90,3 +90,7 @@ Verified vs solo-learn @9187ea3 (`solo/losses/byol.py`, `solo/methods/byol.py`, 
 - Teacher BN in train mode (batch stats), matching donor/paper. Stop-grad via no_grad ✓.
 - Deliberate deviations: EMA base 0.99 vs paper 0.996 (37 steps/ep — house incident ledger,
   documented in the yaml); house AdamW (donor: LARS). Collapse canary: per-step teacher-proj std.
+- Donor-reasoning check (2026-07-02): no stated rationale; notably their IN-100 pred_hidden=8192
+  diverges from BOTH the BYOL paper (4096) AND solo-learn's own IN-1k config (4096) — a pure
+  IN-100 tuning artifact. Kept because our M1.5 validation target is their IN-100 numbers; not
+  treated as canonical beyond that.

@@ -107,3 +107,7 @@ Verified vs solo-learn @9187ea3 (`solo/losses/simclr.py`, `solo/methods/simclr.p
 - Augs: paper stack (RRC .08-1, flip, jitter(.8,.8,.8,.2)@.8, gray .2, blur .5) — verbatim.
 - Toy deviations (D-012): house AdamW (donor: LARS lr .4 sqrt-scaled); ViT-S trunk CLS feature
   (donor RN18 avgpool — F1).
+- Donor-reasoning check (2026-07-02): solo-learn's IN-100 configs are comment-free — no stated
+  rationale for 4096/512 (paper default would be hidden=repr-dim, out 128). Their JMLR paper
+  describes a per-method IN-100 tuning campaign without per-choice justification. Read: an
+  empirically tuned IN-100/RN18 value, not a principled constant.
