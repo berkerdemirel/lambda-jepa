@@ -27,7 +27,7 @@ ckpt paths, wandb id, git sha, validation-vs-donor status)*
 | `toy.byol.s0` | BYOL | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk; EMA base scaled to steps/ep | 2 views | M1.5; collapse canary green: teacher_proj_std min 0.33 → 9.0 (never ~0) | **done 2026-07-02** best=0.6189 (wandb o2dntmv1, git 69f6050) |
 | `toy.dino.s0` | DINO | toy | 0 | sslx `train_dinov2.py` (restructured) | documented in dossier | 2g+Vl crops (~1.7×) | vs existing IN-100 control at M2 | **done 2026-07-02 — RESOLVED (HISTORY): online-probe label misalignment, model itself healthy.** Offline ep150: student.h.cls 0.785 linear / 0.718 kNN, teacher 0.778. `_best` selection meaningless for this run (use ep-cadence/`_last`). Probe-clip interference caveat + rerun decision → discussion (wandb sjbj72tt, git 69f6050) |
 | `toy.mae.s0` | MAE | toy | 0 | canonical models_mae.py@efb2a80 (reviewed port) | ViT-S decoder 512×8×16 | 1 view, 25% visible | "weak linear expected" did NOT bite at toy scale — online probe healthy throughout | **done 2026-07-02** best=0.6744 (wandb j4tizv8n, git 69f6050) |
-| `toy.ijepa.s0` | I-JEPA | toy | 0 | official repo + sslx `ijepa.py` modules | ViT-S scale-down from ViT-H paper | 1 view, multi-block masks | target-variance collapse monitor from step 0 | queued (smoke2 61925166 → full 61925169) |
+| `toy.ijepa.s0` | I-JEPA | toy | 0 | official repo + sslx `ijepa.py` modules | ViT-S scale-down from ViT-H paper | 1 view, multi-block masks | canary green: teacher_tok_std 1.00→0.80, never collapsing | **done 2026-07-02** best=0.6476 (wandb g8t7g3xi, git 69f6050) |
 | — | supervised DeiT-lite | in100 | 0 | timm recipe | anchor | 1 view | — | planned M2 |
 
 ## Track C — public IN-1k checkpoints (M3 validation rung; head inventory TO VERIFY at M3 entry)
