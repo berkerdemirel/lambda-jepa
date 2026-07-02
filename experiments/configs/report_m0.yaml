@@ -1,0 +1,7 @@
+run_ids: ???
+results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results
+parity_note: ""
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

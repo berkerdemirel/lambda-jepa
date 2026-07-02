@@ -1,0 +1,24 @@
+ckpt: ???                    # checkpoint path
+adapter: lejepa_minimal      # lejepa_minimal | sslx_dino  (sslgap/ckpt/adapters.py)
+run_id: ???                  # e.g. toy.lejepa-lamb002.ext (MODELS.md naming)
+random_init: false           # true -> same architecture, fresh seed (the null run)
+seed: 0
+
+store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
+manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
+manifest_seed: 0
+cap_gb: 500                  # D-005 hard budget
+
+bs: 256
+num_workers: 12
+device: cuda
+h_layers: []                 # e.g. [3,6,9,12] for guillotine (E02) extraction
+
+do_eval: true
+do_pairs: true
+train_per_class: 500         # IN-100 m50k (ignored for imagenette = full split)
+pairs_per_class: 100         # IN-100 pairs10k (ignored for imagenette = full train)
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

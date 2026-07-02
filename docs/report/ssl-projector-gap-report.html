@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loss Space ≠ Representation Space — an audit of SSL desiderata</title>
+<style>
+:root{
+  --bg:#15171c; --bg-raised:#1b1e25; --bg-inset:#101217; --bg-hover:#22262f;
+  --ink:#e8e3d9; --ink-dim:#a49d8f; --ink-faint:#7d776c; --rule:#2b2e37; --rule-soft:#23262e;
+  --backbone:#dfa054; --backbone-dim:#8a6a3f; --backbone-wash:rgba(223,160,84,.10);
+  --loss:#93a2e8; --loss-dim:#5c67a0; --loss-wash:rgba(147,162,232,.10);
+  --est:#7fb894; --warn:#cf8b72; --open-c:#b7aec9;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:"Seravek","Avenir Next","Avenir",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+a{color:var(--loss);text-decoration:none;border-bottom:1px solid var(--loss-dim)}
+a:hover{color:#b8c3f5;border-bottom-color:#b8c3f5}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--backbone);outline-offset:2px;border-radius:2px}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.25;text-wrap:balance;color:#f2ede2}
+h1{font-size:2.15rem;margin:.2em 0 .3em}
+h2{font-size:1.5rem;margin:2.2em 0 .6em;padding-top:.4em}
+h3{font-size:1.16rem;margin:1.8em 0 .45em}
+h4{font-size:1rem;margin:1.4em 0 .3em;color:var(--ink)}
+p,ul,ol{max-width:74ch}
+li{margin:.28em 0}
+strong{color:#f4efe4;font-weight:600}
+em{color:inherit}
+code{font-family:var(--mono);font-size:.86em;background:var(--bg-inset);border:1px solid var(--rule-soft);border-radius:4px;padding:.08em .34em;color:#d8d2c4}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 90px}
+/* ---------- header ---------- */
+header.masthead{padding:54px 0 8px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--sans);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px}
+.masthead .sub{font-size:1.06rem;color:var(--ink-dim);max-width:72ch;margin:.4em 0 1.4em}
+.metaline{display:flex;flex-wrap:wrap;gap:10px 26px;font-size:.8rem;color:var(--ink-faint);padding:12px 0 26px;font-family:var(--mono)}
+/* the two-space legend — the report's key */
+.spacekey{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 6px}
+.spacechip{display:inline-flex;align-items:center;gap:9px;padding:7px 14px 7px 10px;border-radius:6px;font-size:.85rem;border:1px solid var(--rule)}
+.spacechip .dot{width:11px;height:11px;border-radius:3px;flex:none}
+.spacechip.h{background:var(--backbone-wash)} .spacechip.h .dot{background:var(--backbone)}
+.spacechip.z{background:var(--loss-wash)} .spacechip.z .dot{background:var(--loss)}
+.spacechip b{font-family:var(--mono);font-weight:600;font-size:.9em}
+.hsp{color:var(--backbone);font-family:var(--mono);font-size:.92em;font-weight:600}
+.zsp{color:var(--loss);font-family:var(--mono);font-size:.92em;font-weight:600}
+/* pipeline diagram */
+.pipe{margin:26px 0 8px;overflow-x:auto}
+.pipe svg{display:block;min-width:640px}
+/* ---------- nav ---------- */
+nav.tabs{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);margin:0 -28px;padding:0 28px}
+nav.tabs .row{display:flex;gap:2px;overflow-x:auto;max-width:1080px;margin:0 auto}
+nav.tabs button{appearance:none;background:none;border:none;border-bottom:2px solid transparent;color:var(--ink-dim);font-family:var(--sans);font-size:.86rem;padding:13px 13px 11px;cursor:pointer;white-space:nowrap;letter-spacing:.01em}
+nav.tabs button:hover{color:var(--ink);background:var(--bg-hover)}
+nav.tabs button[aria-selected="true"]{color:var(--backbone);border-bottom-color:var(--backbone);font-weight:600}
+nav.tabs button .n{font-family:var(--mono);font-size:.72em;color:var(--ink-faint);margin-right:7px}
+nav.tabs button[aria-selected="true"] .n{color:var(--backbone-dim)}
+section.tab{display:none;padding-top:10px;animation:fadein .25s ease}
+section.tab.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* ---------- evidence tiers ---------- */
+.tier{display:inline-block;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.05em;border-radius:4px;padding:.14em .5em;vertical-align:.12em;margin-right:.35em}
+.tier.E{color:#0f1512;background:var(--est)}
+.tier.P{color:var(--backbone);border:1px solid var(--backbone-dim);background:var(--backbone-wash)}
+.tier.O{color:var(--open-c);border:1px dashed #5e5870;background:rgba(183,174,201,.07)}
+.tierlegend{display:flex;flex-wrap:wrap;gap:10px 22px;background:var(--bg-raised);border:1px solid var(--rule);border-radius:8px;padding:14px 18px;font-size:.86rem;margin:20px 0}
+.tierlegend div{display:flex;align-items:baseline;gap:6px;color:var(--ink-dim)}
+/* ---------- callouts, figures ---------- */
+.thesis{border-left:3px solid var(--backbone);background:var(--bg-raised);padding:18px 22px;margin:26px 0;border-radius:0 8px 8px 0;max-width:78ch}
+.thesis p{margin:.45em 0}
+.note{border:1px solid var(--rule);background:var(--bg-raised);border-radius:8px;padding:14px 18px;margin:20px 0;font-size:.92rem;color:var(--ink-dim);max-width:78ch}
+.note b{color:var(--ink)}
+figure.num{margin:26px 0;background:var(--bg-raised);border:1px solid var(--rule);border-radius:10px;padding:20px 22px;max-width:78ch}
+figure.num figcaption{font-size:.8rem;color:var(--ink-faint);margin-top:12px;font-family:var(--sans)}
+.bignum{font-family:var(--serif);font-size:2.5rem;color:var(--backbone);line-height:1;font-variant-numeric:tabular-nums}
+.numgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:24px 0}
+.numgrid .cell{background:var(--bg-raised);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+.numgrid .cell .v{font-family:var(--serif);font-size:1.75rem;color:var(--backbone);font-variant-numeric:tabular-nums;line-height:1.15}
+.numgrid .cell .v.z{color:var(--loss)}
+.numgrid .cell .k{font-size:.78rem;color:var(--ink-dim);margin-top:6px;line-height:1.45}
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;margin:22px 0;border:1px solid var(--rule);border-radius:10px;background:var(--bg-raised)}
+table{border-collapse:collapse;width:100%;font-size:.855rem;min-width:860px}
+caption{caption-side:top;text-align:left;font-family:var(--serif);font-size:1.02rem;color:#f2ede2;padding:14px 16px 4px;font-weight:600}
+.tcap-sub{display:block;font-family:var(--sans);font-size:.78rem;color:var(--ink-faint);font-weight:400;margin-top:3px}
+th{font-family:var(--sans);font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-dim);text-align:left;padding:12px 14px 9px;border-bottom:1px solid var(--rule);vertical-align:bottom;background:var(--bg-raised);position:sticky;top:46px}
+td{padding:10px 14px;border-bottom:1px solid var(--rule-soft);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-hover)}
+td.m{font-weight:600;color:#f2ede2;white-space:nowrap}
+td .sm,.sm{font-size:.8rem;color:var(--ink-dim)}
+.pill{display:inline-block;border-radius:5px;padding:.1em .5em;font-family:var(--mono);font-size:.78em;white-space:nowrap;margin:.1em .15em .1em 0}
+.pill.h{background:var(--backbone-wash);color:var(--backbone);border:1px solid rgba(223,160,84,.35)}
+.pill.z{background:var(--loss-wash);color:var(--loss);border:1px solid rgba(147,162,232,.35)}
+.pill.x{background:rgba(207,139,114,.1);color:var(--warn);border:1px solid rgba(207,139,114,.35)}
+.pill.g{background:rgba(127,184,148,.1);color:var(--est);border:1px solid rgba(127,184,148,.35)}
+.pill.n{background:var(--bg-inset);color:var(--ink-dim);border:1px solid var(--rule)}
+.yes{color:var(--est);font-weight:600} .no{color:var(--warn);font-weight:600} .part{color:var(--backbone);font-weight:600}
+/* ---------- cards / details ---------- */
+details.card{border:1px solid var(--rule);border-radius:10px;background:var(--bg-raised);margin:14px 0;overflow:hidden}
+details.card>summary{cursor:pointer;padding:15px 20px;list-style:none;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"+";font-family:var(--mono);color:var(--backbone);font-size:1rem;width:14px;flex:none}
+details.card[open]>summary::before{content:"–"}
+details.card>summary:hover{background:var(--bg-hover)}
+details.card>summary .t{font-family:var(--serif);font-weight:600;font-size:1.04rem;color:#f2ede2}
+details.card>summary .s{font-size:.8rem;color:var(--ink-faint)}
+details.card .body{padding:4px 22px 20px 46px;border-top:1px solid var(--rule-soft)}
+details.card .body p, details.card .body ul{max-width:72ch}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 16px;font-size:.9rem;margin:12px 0}
+.kv dt{color:var(--ink-faint);font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;padding-top:.15em}
+.kv dd{margin:0}
+blockquote{border-left:2px solid var(--loss-dim);margin:14px 0;padding:2px 0 2px 16px;color:var(--ink-dim);font-style:italic;max-width:70ch}
+blockquote .who{display:block;font-style:normal;font-size:.78rem;color:var(--ink-faint);margin-top:6px;font-family:var(--mono)}
+/* experiment cards */
+.exp .kv{grid-template-columns:130px 1fr}
+.exp-tag{font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);border:1px solid var(--rule);padding:.12em .5em;border-radius:4px}
+/* refs */
+.refbar{display:flex;gap:12px;align-items:center;margin:18px 0 6px}
+.refbar input{flex:1;max-width:420px;background:var(--bg-inset);border:1px solid var(--rule);border-radius:7px;color:var(--ink);font-family:var(--sans);font-size:.9rem;padding:9px 13px}
+.refbar input::placeholder{color:var(--ink-faint)}
+ol.refs{padding-left:26px;font-size:.9rem}
+ol.refs li{margin:.62em 0;color:var(--ink-dim)}
+ol.refs li b{color:var(--ink);font-weight:600}
+ol.refs li .v{font-family:var(--mono);font-size:.8em;color:var(--ink-faint)}
+ol.refs li.hide{display:none}
+.footnav{display:flex;justify-content:space-between;margin-top:60px;padding-top:20px;border-top:1px solid var(--rule)}
+.footnav button{appearance:none;background:var(--bg-raised);border:1px solid var(--rule);border-radius:8px;color:var(--ink);font-family:var(--sans);font-size:.88rem;padding:10px 18px;cursor:pointer}
+.footnav button:hover{background:var(--bg-hover);border-color:var(--backbone-dim)}
+.footnav button:disabled{opacity:.3;cursor:default}
+@media (max-width:720px){
+  body{font-size:15.5px} .wrap{padding:0 16px 70px} nav.tabs{margin:0 -16px;padding:0 16px}
+  .kv{grid-template-columns:1fr} .kv dt{padding-top:.6em} th{top:44px} h1{font-size:1.7rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Research report · Self-supervised representation learning · 2026-07-01</div>
+  <h1>Loss Space ≠ Representation Space</h1>
+  <p class="sub">Do modern SSL methods impose their stated desiderata — alignment, invariance, variance/covariance control, isotropy, non-collapse, redundancy reduction, predictive sufficiency — on the backbone representation used downstream, or on a nonlinear projector/predictor head that is thrown away? What breaks in the gap, and how do we measure it?</p>
+
+  <div class="spacekey" aria-label="Notation used throughout">
+    <span class="spacechip h"><span class="dot"></span><span><b>h = f(x)</b> &nbsp;backbone representation — <i>kept, probed, deployed</i></span></span>
+    <span class="spacechip z"><span class="dot"></span><span><b>z = g(h)</b> &nbsp;projector / predictor / decoder output — <i>where the loss lives, then discarded</i></span></span>
+  </div>
+
+  <div class="pipe" role="img" aria-label="Pipeline diagram: input x goes through backbone f to representation h, then through head g to embedding z. The SSL loss is attached to z; the downstream probe is attached to h; g is discarded after pretraining.">
+  <svg width="880" height="150" viewBox="0 0 880 150" xmlns="http://www.w3.org/2000/svg" font-family="SF Mono,Menlo,monospace">
+    <defs>
+      <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#7d776c"/></marker>
+    </defs>
+    <!-- x -->
+    <rect x="10" y="52" width="64" height="40" rx="7" fill="#101217" stroke="#2b2e37"/>
+    <text x="42" y="77" fill="#a49d8f" font-size="14" text-anchor="middle">x, T(x)</text>
+    <line x1="74" y1="72" x2="120" y2="72" stroke="#7d776c" marker-end="url(#arr)"/>
+    <!-- f -->
+    <rect x="122" y="42" width="150" height="60" rx="7" fill="#1b1e25" stroke="#8a6a3f"/>
+    <text x="197" y="68" fill="#e8e3d9" font-size="14" text-anchor="middle">backbone f</text>
+    <text x="197" y="88" fill="#7d776c" font-size="11" text-anchor="middle">ViT / ResNet</text>
+    <line x1="272" y1="72" x2="330" y2="72" stroke="#7d776c" marker-end="url(#arr)"/>
+    <!-- h -->
+    <rect x="332" y="47" width="80" height="50" rx="7" fill="rgba(223,160,84,.12)" stroke="#dfa054"/>
+    <text x="372" y="77" fill="#dfa054" font-size="16" font-weight="bold" text-anchor="middle">h</text>
+    <line x1="412" y1="72" x2="470" y2="72" stroke="#7d776c" marker-end="url(#arr)"/>
+    <!-- g -->
+    <rect x="472" y="42" width="168" height="60" rx="7" fill="#1b1e25" stroke="#5c67a0" stroke-dasharray="6 4"/>
+    <text x="556" y="64" fill="#e8e3d9" font-size="13.5" text-anchor="middle">head g</text>
+    <text x="556" y="84" fill="#7d776c" font-size="10.5" text-anchor="middle">projector · predictor · decoder</text>
+    <line x1="640" y1="72" x2="698" y2="72" stroke="#7d776c" marker-end="url(#arr)"/>
+    <!-- z -->
+    <rect x="700" y="47" width="80" height="50" rx="7" fill="rgba(147,162,232,.12)" stroke="#93a2e8"/>
+    <text x="740" y="77" fill="#93a2e8" font-size="16" font-weight="bold" text-anchor="middle">z</text>
+    <!-- loss attach -->
+    <line x1="740" y1="47" x2="740" y2="22" stroke="#5c67a0"/>
+    <text x="740" y="14" fill="#93a2e8" font-size="12.5" text-anchor="middle">SSL loss enforced here</text>
+    <!-- probe attach -->
+    <line x1="372" y1="97" x2="372" y2="124" stroke="#8a6a3f"/>
+    <text x="372" y="140" fill="#dfa054" font-size="12.5" text-anchor="middle">probe / k-NN / transfer evaluated here</text>
+    <!-- guillotine -->
+    <text x="836" y="77" fill="#cf8b72" font-size="11" text-anchor="middle">discarded</text>
+    <line x1="806" y1="52" x2="806" y2="92" stroke="#cf8b72" stroke-dasharray="3 4"/>
+  </svg>
+  </div>
+
+  <div class="metaline">
+    <span>76 primary sources · quote-verified 2026-07-01</span>
+    <span>5 research streams · adversarial claim verification</span>
+    <span>scope: SimCLR · MoCo · BYOL · SwAV · DINO/v2 · iBOT · Barlow · VICReg · MAE · I-JEPA · LeJEPA</span>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Report sections"><div class="row" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="t0"><span class="n">0</span>Executive summary</button>
+  <button role="tab" aria-selected="false" data-tab="t1"><span class="n">1</span>Method survey</button>
+  <button role="tab" aria-selected="false" data-tab="t2"><span class="n">2</span>The projector gap</button>
+  <button role="tab" aria-selected="false" data-tab="t3"><span class="n">3</span>Metrics</button>
+  <button role="tab" aria-selected="false" data-tab="t4"><span class="n">4</span>Failure modes</button>
+  <button role="tab" aria-selected="false" data-tab="t5"><span class="n">5</span>Experiment design</button>
+  <button role="tab" aria-selected="false" data-tab="t6"><span class="n">6</span>Theory</button>
+  <button role="tab" aria-selected="false" data-tab="t7"><span class="n">7</span>Synthesis &amp; roadmap</button>
+  <button role="tab" aria-selected="false" data-tab="t8"><span class="n">8</span>References</button>
+</div></nav>
+
+<!-- ==================== TAB 0 : EXECUTIVE SUMMARY ==================== -->
+<section class="tab active" id="t0" role="tabpanel">
+
+<h2>Executive summary</h2>
+
+<div class="thesis">
+<p><strong>Answer to the headline question: mostly no — the stated desiderata are enforced in the head's output space <span class="zsp">z</span>, not on the backbone representation <span class="hsp">h</span> that everyone actually uses.</strong> Every major joint-embedding method (SimCLR, MoCo v2/v3, BYOL, SwAV, DINO, iBOT, DINOv2, Barlow Twins, VICReg) applies its loss after a nonlinear MLP projector — and sometimes an additional predictor or a 65k–131k-way prototype layer — then discards that head and evaluates the backbone. MAE applies its loss in pixel space after a full decoder; I-JEPA applies it in the latent space of a separate predictor against an EMA teacher. Even LeJEPA (2025) — which strips away the field's other heuristics (no stop-gradient, no EMA teacher, no schedulers) and proves an isotropy-optimality theorem — still applies <em>both</em> its predictive loss and its SIGReg regularizer to the output of a 3-layer MLP projector (512→2048→2048→proj, BatchNorm), then probes the backbone. Across all eleven methods surveyed, <strong>none impose their loss on the representation actually used downstream.</strong></p>
+<p>This is not an accident of engineering but a load-bearing design: the head is where invariance, uniformity, whitening, and collapse-pressure are absorbed so that the backbone doesn't have to satisfy them. The gap is real, measured, and large — and it means most SSL theory certifies a space that is thrown away.</p>
+</div>
+
+<h3>Six established findings</h3>
+<ol>
+<li><span class="tier E">E</span><strong>The loss space is the worse representation.</strong> SimCLR's own ablation: the pre-projector layer <span class="hsp">h</span> beats the post-projector <span class="zsp">z</span> by &gt;10 points of linear-probe accuracy; Guillotine Regularization (Bordes et al., TMLR 2023) shows the trunk-vs-projector probe gap reaches ~30 points across SSL methods, while supervised networks show the <em>opposite</em> layer profile.</li>
+<li><span class="tier E">E</span><strong>Invariance is realized at <span class="zsp">z</span>, not <span class="hsp">h</span>.</strong> SimCLR Table 3: rotation is predictable from <span class="hsp">h</span> at 67.6% but from <span class="zsp">z</span> at 25.6%. RCDM diffusion visualizations (Bordes et al., TMLR 2022) "debunk an often restated but mistaken belief": SSL <em>backbone</em> representations are not invariant to their training augmentations — post-projector embeddings are.</li>
+<li><span class="tier E">E</span><strong>Whitening/variance/redundancy constraints are satisfied exactly at <span class="zsp">z</span> and only directionally at <span class="hsp">h</span>.</strong> VICReg's variance target is met exactly on the 8192-d expander output and merely "translates in an increased standard deviation at the representation level"; VICReg contains no ablation regularizing <span class="hsp">h</span> directly. Barlow Twins' decorrelation-to-identity is computed on the projector output and improves monotonically with projector width while the probed backbone stays fixed at 2048-d.</li>
+<li><span class="tier E">E</span><strong>Collapse-avoidance is implemented by head-side machinery.</strong> BYOL without its predictor collapses to 0.3%; SimSiam without it hits 0.1%; DINO's centering+sharpening act on prototype logits; DirectPred replaces the whole predictor with a closed-form spectral statistic; the rank-differential account (Zhuo et al., ICLR 2023) locates anti-collapse in a rank difference between the two <em>branch outputs</em>.</li>
+<li><span class="tier E">E</span><strong>Almost all guarantees bind <span class="zsp">z</span>.</strong> Alignment/uniformity (Wang &amp; Isola), the Arora contrastive bound, HaoChen's spectral-contrastive linear-probe guarantee, the Laplacian/MDS equivalences (Balestriero &amp; LeCun), VICReg's information-theoretic bounds — all are statements about the layer the loss touches. Saunshi et al. (ICML 2022) prove that loss-value-only analyses can be vacuous, which is exactly the degree of freedom the head exploits.</li>
+<li><span class="tier E">E</span><strong>The field is converging on closing the gap from both ends.</strong> Backbone-side guarantees now exist (Wen &amp; Li 2022 for the encoder under a predictor; U-MAE 2022 pulling MAE's pixel loss back to encoder-level alignment; Ouyang et al., ICLR 2025: "projection head is secretly an information bottleneck" with pre-projector guarantees), and two 2025–26 works reframe the problem: LeJEPA (which proves the isotropic Gaussian is optimal for worst-case downstream risk — though, as its implementation confirms, it enforces that distribution on an MLP projector and still probes the backbone) and Latent Distribution Matching (Mikulasch &amp; Zenke, ICML 2026 Spotlight: SSL = alignment to an assumed latent model + entropy maximization, with an identifiability theorem).</li>
+</ol>
+
+<h3>What follows from the gap</h3>
+<p><span class="tier P">P</span>Three consequences organize the report. <strong>(i) Metric mislocation:</strong> alignment, uniformity, isotropy, effective rank, and redundancy have been mostly measured — when measured at all — in the space where they were optimized; measuring the same quantities at <span class="hsp">h</span> is cheap, largely undone, and is the core of the proposed study (§3, §5). <strong>(ii) Semantic failure modes are invisible to the loss:</strong> object-absent crops, background shortcuts, feature suppression, and masked-region ambiguity all satisfy the loss in <span class="zsp">z</span>-space while corrupting what <span class="hsp">h</span> encodes (§4). <strong>(iii) Evaluation-protocol fragility:</strong> family rankings (contrastive vs MIM vs JEPA) move by 5–17 points depending on probe choice (MAE's linear-vs-finetune decorrelation; V-JEPA's 16-point attentive-probe dependence), so any audit must fix probes per space, not per method (§5, §7).</p>
+
+<h3>The one-sentence research opportunity</h3>
+<p><span class="tier O">O</span>No published work systematically measures <em>each method's own stated desideratum</em> in both spaces (<span class="hsp">h</span> and <span class="zsp">z</span>) across the modern method zoo under matched backbones and data — the closest antecedents (Guillotine Regularization; Dubois et al. risk decomposition) measure accuracy, not desiderata. A "metrics × models × spaces" audit (§3) plus failure-oriented probes (§5) is a well-scoped, compute-feasible first paper with a falsifiable central claim: <em>SSL methods satisfy their advertised properties in the space they discard, and the properties that survive into the backbone are different ones — sufficiency-like, not minimality-like.</em></p>
+
+<div class="numgrid">
+  <div class="cell"><div class="v">&gt;10 pts</div><div class="k">SimCLR linear-probe advantage of <span class="hsp">h</span> over <span class="zsp">z</span> — from the original paper's own ablation (arXiv:2002.05709 §4.2)</div></div>
+  <div class="cell"><div class="v">~30 pts</div><div class="k">max trunk-vs-projector probe gap across SSL methods on ImageNet (Guillotine, arXiv:2206.13378)</div></div>
+  <div class="cell"><div class="v z">67.6 → 25.6</div><div class="k">rotation predictability, <span class="hsp">h</span> vs <span class="zsp">z</span>: augmentation information is destroyed by the head, not the backbone (SimCLR Tab. 3)</div></div>
+  <div class="cell"><div class="v z">0.3%</div><div class="k">BYOL top-1 with predictor removed (collapse) — anti-collapse lives in the head (arXiv:2006.07733 Tab. 5)</div></div>
+  <div class="cell"><div class="v">0 / 11</div><div class="k">methods surveyed whose loss is applied to the representation actually probed — even LeJEPA uses a discarded MLP projector (arXiv:2511.08544)</div></div>
+  <div class="cell"><div class="v">16–17 pts</div><div class="k">V-JEPA frozen-eval swing between linear and attentive probes — protocol choice masquerading as representation quality (arXiv:2404.08471)</div></div>
+</div>
+
+<h3>How to read this report</h3>
+<div class="tierlegend">
+  <div><span class="tier E">E</span> <span><b>Established</b> — quote-verified against the primary source this session; peer-reviewed unless flagged as preprint</span></div>
+  <div><span class="tier P">P</span> <span><b>Plausible interpretation</b> — consistent with the evidence but involving synthesis or inference beyond any single paper</span></div>
+  <div><span class="tier O">O</span> <span><b>Open question</b> — no dedicated literature found; a candidate contribution for the planned study</span></div>
+</div>
+<p class="sm">Colors carry meaning throughout: <span class="hsp">ochre = backbone space h</span>, <span class="zsp">periwinkle = loss/head space z</span>. Every citation links to its arXiv/OpenReview page; the full list with venues lives in <b>§8 References</b>. Verification protocol: four specialist research agents retrieved and quoted primary sources (2026-07-01); a fifth adversarial-verification workflow independently cross-checked headline claims (3-vote refutation panels per claim). Claims that survived only as abstract-level paraphrase are marked in §8.</p>
+
+</section>
+
+<!-- ==================== TAB 1 : METHOD SURVEY ==================== -->
+<section class="tab" id="t1" role="tabpanel">
+
+<h2>1 · Method survey — where each loss actually lives</h2>
+
+<p>All facts below were verified against the primary papers (quotes retrieved 2026-07-01; see §8 for tags). The through-line: <strong>ten of eleven methods apply their objective to an auxiliary space that is discarded before evaluation.</strong> The auxiliary machinery is not a detail — its removal collapses training (BYOL, SimSiam), and its width/depth is a first-order hyperparameter (Barlow Twins, VICReg, DINO, MAE's decoder).</p>
+
+<div class="tablewrap">
+<table>
+<caption>Table 1 — Method × loss space × downstream representation<span class="tcap-sub">"Same space?" asks whether the SSL criterion is enforced on the representation that is evaluated downstream.</span></caption>
+<thead><tr>
+  <th>Method</th><th>Objective</th><th>Loss applied to</th><th>Head between h and loss</th><th>Asymmetry machinery</th><th>Downstream representation</th><th>Same space?</th>
+</tr></thead>
+<tbody>
+<tr><td class="m">SimCLR <a href="https://arxiv.org/abs/2002.05709">2002.05709</a></td><td>NT-Xent (InfoNCE)</td><td><span class="pill z">z = g(h), 128-d</span></td><td>2-layer MLP projector</td><td>none (in-batch negatives)</td><td><span class="pill h">h: ResNet avgpool 2048-d</span> — "we throw away the projection head"</td><td class="no">No</td></tr>
+<tr><td class="m">MoCo v1 <a href="https://arxiv.org/abs/1911.05722">1911.05722</a></td><td>InfoNCE, queue</td><td><span class="pill z">linear fc → 128-d</span></td><td>linear layer only</td><td>momentum key encoder (m=0.999)</td><td><span class="pill h">h: avgpool 2048-d</span></td><td class="part">Nearly — linear head only</td></tr>
+<tr><td class="m">MoCo v2 <a href="https://arxiv.org/abs/2003.04297">2003.04297</a></td><td>InfoNCE, queue</td><td><span class="pill z">z, 128-d</span></td><td>2-layer MLP (2048 hidden)</td><td>momentum encoder</td><td><span class="pill h">h: avgpool 2048-d</span> — "the transferring stage does not use this MLP head"</td><td class="no">No</td></tr>
+<tr><td class="m">MoCo v3 <a href="https://arxiv.org/abs/2104.02057">2104.02057</a></td><td>symmetrized InfoNCE</td><td><span class="pill z">predictor output, 256-d</span></td><td>3-layer projector + 2-layer predictor (4096 hidden)</td><td>momentum encoder; frozen patch-embed</td><td><span class="pill h">h: final [CLS] after LayerNorm</span></td><td class="no">No</td></tr>
+<tr><td class="m">BYOL <a href="https://arxiv.org/abs/2006.07733">2006.07733</a></td><td>MSE on normalized vectors</td><td><span class="pill z">q(g(h)) vs teacher g′(h′), 256-d</span></td><td>projector (4096→256) + predictor (same arch)</td><td>stop-grad + EMA teacher (τ 0.996→1)</td><td><span class="pill h">h: avgpool 2048-d</span> — "we only keep the encoder"</td><td class="no">No</td></tr>
+<tr><td class="m">SwAV <a href="https://arxiv.org/abs/2006.09882">2006.09882</a></td><td>swapped cluster prediction</td><td><span class="pill z">softmax over K=3000 prototypes on 128-d projected z</span></td><td>2-layer MLP + prototype matrix</td><td>Sinkhorn-Knopp codes (no-grad targets); multi-crop</td><td><span class="pill h">h: avgpool 2048-d</span></td><td class="no">No</td></tr>
+<tr><td class="m">DINO <a href="https://arxiv.org/abs/2104.14294">2104.14294</a></td><td>CE teacher↔student distributions</td><td><span class="pill z">K=65 536-way softmax on head output</span></td><td>3-layer MLP (2048) → ℓ2 bottleneck 256 → weight-normed K</td><td>stop-grad + EMA teacher; centering + sharpening; multi-crop</td><td><span class="pill h">h: [CLS] (concat last 4 blocks for ViT-S probe)</span> — "features used in downstream tasks are the backbone f output"</td><td class="no">No</td></tr>
+<tr><td class="m">iBOT <a href="https://arxiv.org/abs/2111.07832">2111.07832</a></td><td>DINO [CLS] loss + masked-patch distillation</td><td><span class="pill z">8192-way softmax; shared head for [CLS] &amp; patch tokens</span></td><td>3-layer MLP, ℓ2 bottleneck</td><td>EMA teacher (online tokenizer); centering/sharpening</td><td><span class="pill h">h: frozen backbone (DINO protocol)</span></td><td class="no">No</td></tr>
+<tr><td class="m">DINOv2 <a href="https://arxiv.org/abs/2304.07193">2304.07193</a></td><td>DINO-CLS + iBOT-patch + KoLeo</td><td><span class="pill z">two untied heads, up to 131 072 prototypes; KoLeo on [CLS] batch</span></td><td>DINO-style MLPs ×2</td><td>EMA teacher; Sinkhorn-Knopp centering; curated LVD-142M</td><td><span class="pill h">h: frozen backbone ([CLS]; +patch tokens for dense)</span></td><td class="no">No</td></tr>
+<tr><td class="m">Barlow Twins <a href="https://arxiv.org/abs/2103.03230">2103.03230</a></td><td>cross-correlation → identity</td><td><span class="pill z">z: 8192-d projector output (batch statistics)</span></td><td>3× linear-8192 (BN+ReLU ×2)</td><td>none</td><td><span class="pill h">h: avgpool 2048-d</span></td><td class="no">No</td></tr>
+<tr><td class="m">VICReg <a href="https://arxiv.org/abs/2105.04906">2105.04906</a></td><td>variance + invariance + covariance</td><td><span class="pill z">z: 8192-d expander output</span> — "loss is computed at the embedding level"</td><td>3-layer expander (8192)</td><td>none (branches may differ)</td><td><span class="pill h">h: avgpool 2048-d</span> — "the expander is discarded"</td><td class="no">No</td></tr>
+<tr><td class="m">MAE <a href="https://arxiv.org/abs/2111.06377">2111.06377</a></td><td>MSE on masked patches, normalized pixels</td><td><span class="pill z">pixel space, through decoder (8 blocks, 512-d)</span></td><td>full ViT decoder</td><td>none; 75% masking; encoder sees visible patches only</td><td><span class="pill h">h: encoder on uncorrupted image; avgpool or [CLS]; +BN before linear probe</span></td><td class="no">No</td></tr>
+<tr><td class="m">I-JEPA <a href="https://arxiv.org/abs/2301.08243">2301.08243</a></td><td>L2 in latent space, masked targets</td><td><span class="pill z">predictor ViT output vs EMA target-encoder patches</span></td><td>narrow ViT predictor (384-d, 6–12 blocks)</td><td>EMA target encoder (de-facto stop-grad); multi-block masking</td><td><span class="pill h">h: EMA target-encoder, avgpooled patches (best of last / last-4-concat)</span></td><td class="no">No — and eval uses the <em>teacher</em> branch</td></tr>
+<tr><td class="m">LeJEPA <a href="https://arxiv.org/abs/2511.08544">2511.08544</a> <span class="pill n">preprint</span></td><td>multi-view prediction + SIGReg (isotropic-Gaussian test)</td><td><span class="pill z">z: 3-layer MLP projector output (512→2048→2048→proj, BN)</span> — both losses on <code>proj</code></td><td>3-layer MLP projector + BN (≈ VICReg expander)</td><td>none — "no stop-gradient, no teacher–student, no schedulers"</td><td><span class="pill h">h: frozen backbone (concat CLS of last 2 layers)</span></td><td class="no">No</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="note"><b>Three architectural notes that matter for the study.</b> (1) <b>I-JEPA evaluates the EMA teacher</b>, not the trained student — so "the backbone" is itself a temporal ensemble; any h-space audit must specify which branch. (2) <b>"L-JEPA" resolves to LeJEPA</b> (Balestriero &amp; LeCun, arXiv:2511.08544); the only name-collision is AD-L-JEPA (arXiv:2501.04969), a LiDAR driving paper. (3) DINO/iBOT/DINOv2's "projector" ends in a 8k–131k-way prototype layer — the loss space is not merely nonlinear but categorical, the furthest of any family from the probed geometry. (4) <b>LeJEPA is not projector-free</b> — its official implementation (<code>galilai-group/lejepa</code>, <code>rbalestr-lab/lejepa</code>) defines <code>self.proj = MLP(512, [2048, 2048, proj_dim], BatchNorm1d)</code> and computes <code>sigreg(proj)</code> and <code>(proj.mean(0)-proj).square().mean()</code> on the projector output; the paper's Table 1(d) lists <code>emb. dim.</code> and <code>proj. dim.</code> as separate hyperparameters. What LeJEPA removes is the <em>heuristic stack</em> (stop-gradient, EMA teacher, schedulers), not the projector. <span class="tier E">E</span></div>
+
+<h3>Per-method dossiers</h3>
+<p class="sm">Each card: stated motivation (quoted), where the loss sits, what is evaluated, and the paper's own head ablations. Expand as needed.</p>
+
+<details class="card"><summary><span class="t">SimCLR</span><span class="s">Chen et al., ICML 2020 · the canonical projector ablation</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>view-invariant representations via contrastive agreement; the projector is motivated in the abstract itself: "a learnable nonlinear transformation between the representation and the contrastive loss substantially improves the quality of the learned representations." <span class="tier E">E</span></dd>
+<dt>Loss space</dt><dd>NT-Xent on <span class="zsp">z = g(h)</span>, a 2-layer MLP → 128-d: "the space where contrastive loss is applied"; "beneficial to define the contrastive loss on z's rather than h's."</dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span> (2048-d avgpool): "we throw away the projection head g(·)".</dd>
+<dt>Head ablations</dt><dd>nonlinear &gt; linear (+3%) &gt;&gt; none (&gt;10%); <span class="hsp">h</span> &gt; <span class="zsp">z</span> by &gt;10%. Table 3 — a probe trained to recognize the applied transformation: rotation 67.6% from h vs 25.6% from z; original-vs-corrupted 99.5 vs 59.6. The paper's own conjecture: "z is trained to be invariant to data transformation. Thus, g can remove information that may be useful for the downstream task, such as the color or orientation of objects."</dd>
+</dl>
+<p><span class="tier P">P</span>SimCLR thus contains, in 2020, the full thesis of this report in miniature — stated invariance desideratum, enforcement at z, evaluation at h, and quantitative proof that the desideratum does <em>not</em> hold at h. What it did not do is measure alignment/uniformity/rank at h, or ask whether that is a bug or the mechanism.</p>
+</div></details>
+
+<details class="card"><summary><span class="t">MoCo v1 → v2 → v3</span><span class="s">He et al. 2020; Chen et al. 2020; Chen, Xie, He 2021 · the head arrives, then doubles</span></summary><div class="body">
+<dl class="kv">
+<dt>Trajectory</dt><dd>v1: loss on a <em>linear</em> 128-d fc — the closest any classic method comes to loss-on-backbone (59.0% IN linear, m=0.999). v2: adds the SimCLR MLP head — +5.6 points from the head alone (60.6 → 66.2), evaluated <em>before</em> the head. v3 (ViT): 3-layer projector + 2-layer predictor, 256-d loss space; eval on final [CLS] after removing both heads.</dd>
+<dt>Predictor optionality</dt><dd>MoCo v3 without predictor: 75.5 vs 76.5 — "MoCo as a contrastive method does not need the predictor MLP to work." Contrast BYOL below. <span class="tier E">E</span></dd>
+<dt>Reading</dt><dd><span class="tier P">P</span>Within one method family, each capability jump coincided with moving the loss further from h — the cleanest longitudinal evidence that the head is functional, not cosmetic.</dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">BYOL</span><span class="s">Grill et al., NeurIPS 2020 · collapse-avoidance as head machinery</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>view-invariant prediction without negatives; non-collapse: "BYOL does not converge to such [collapsed] solutions" — attributed to predictor + EMA "encouraging encoding more and more information within the online projection."</dd>
+<dt>Loss space</dt><dd>normalized MSE between predictor output q(g(h)) and EMA-teacher projection, 256-d; stop-gradient on target.</dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span>: "At the end of training, we only keep the encoder f."</dd>
+<dt>Head ablations</dt><dd>No predictor + no negatives: 0.3% (total collapse). Random-constant target: 18.8%. τ_base=0.99: 72.5 (vs SimCLR 69.4). "The additional predictor is critical to prevent collapse." <span class="tier E">E</span></dd>
+<dt>Reading</dt><dd><span class="tier P">P</span>BYOL's non-collapse desideratum is not a property its loss enforces on any space — it is an emergent property of head-side optimization dynamics (see §6: DirectPred, rank differential, implicit variance regularization). Whether the <em>backbone's</em> spectrum benefits or merely survives is exactly the h-vs-z rank question of §3.</dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">SwAV</span><span class="s">Caron et al., NeurIPS 2020 · desiderata as batch-level constraints on codes</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>consistent cluster assignments across views ("swapped prediction"); implicit anti-collapse via Sinkhorn-Knopp equipartition of codes within the batch.</dd>
+<dt>Loss space</dt><dd>cross-entropy between softmax(z·prototypes/τ) and SK codes; z is a 128-d projected, ℓ2-normalized vector; prototypes trainable; codes computed under no-grad.</dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span>: 2048-d frozen features (75.3% linear).</dd>
+<dt>Notes</dt><dd>Multi-crop (2 global + V local 96px crops) is introduced here — the local-to-global mapping that §4 identifies as an information-tension failure surface. Prototype count barely matters (3k→100k: ≤0.3). The equipartition constraint is the "hidden uniform cluster prior" formalized by Assran et al. (§4). <span class="tier E">E</span></dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">DINO · iBOT · DINOv2</span><span class="s">Caron et al. 2021; Zhou et al. 2022; Oquab et al. 2023 · the categorical loss space</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>DINO: self-distillation with no labels; collapse controlled by centering ("prevents one dimension to dominate but encourages collapse to the uniform distribution") balanced against sharpening. iBOT: masked-patch distillation through an online tokenizer. DINOv2: general-purpose frozen features "that work across image distributions and tasks without finetuning" + KoLeo, which "encourages a uniform span of the features within a batch."</dd>
+<dt>Loss space</dt><dd>teacher-student cross-entropy over K-way softmax on the head output — K=65 536 (DINO), 8192 shared [CLS]/patch (iBOT), up to 131 072 with two untied heads (DINOv2). DINOv2's KoLeo is the notable exception-in-miniature: a uniformity regularizer applied to the <em>[CLS] features</em>, i.e. much closer to <span class="hsp">h</span> than the prototype loss. <span class="tier E">E</span></dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span>: frozen backbone. DINO's repo probes concat-of-last-4-[CLS] (ViT-S) or [CLS]+avgpooled patches (ViT-B); DINOv2 concatenates last-4 patch tokens for dense tasks — note that even "the backbone representation" is a protocol choice, not a single object.</dd>
+<dt>Head ablations</dt><dd>DINO: K matters little above 4096 (67.8@1k → 69.7@65k k-NN); the ℓ2 bottleneck is what prevents deep-head collapse (without it: 0.1). iBOT: shared vs untied heads ±0.3. DINOv2: untying helps k-NN (+0.3); KoLeo +0.5 IN-1k and +8 retrieval. <span class="tier E">E</span></dd>
+<dt>Reading</dt><dd><span class="tier P">P</span>This family's desiderata (uniform prototype usage, centering) are constraints on a categorical distribution over discarded prototypes — the loosest possible coupling to backbone geometry, yet it produces the best frozen features of the pre-2025 era. KoLeo (applied to the [CLS] features, one step closer to h than a prototype loss) is the surveyed field's closest existing move toward "impose the desideratum nearer h" — and even it is not applied at h directly.</dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">Barlow Twins &amp; VICReg</span><span class="s">Zbontar et al. 2021; Bardes et al. 2022 · exact satisfaction at z, directional transfer to h</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>BT: redundancy reduction (cross-correlation of the two views' outputs → identity), named for Barlow's neuroscience principle. VICReg: maintain per-dimension variance ≥ γ; decorrelate dimensions; align views — explicitly "avoid the collapse problem."</dd>
+<dt>Loss space</dt><dd>both compute batch statistics on wide head outputs: BT 8192-d projector; VICReg 8192-d expander ("The loss is computed at the embedding level on z and z′").</dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span>: 2048-d; expander/projector discarded.</dd>
+<dt>The width curve</dt><dd>BT "keeps improving with all output dimensionality tested" (to 16 384, no saturation); VICReg: 55.9% at 256-d expander → 68.8% at 16 384-d — while the probed backbone is fixed at 2048-d throughout. <span class="tier E">E</span></dd>
+<dt>The transfer statement</dt><dd>VICReg App. D.8: the std target is met exactly on embeddings and "translates in an increased standard deviation at the representation level" — the literature's most explicit partial-transfer claim. VICReg's expander role, in the authors' words: eliminate view-difference information, and expand dimension "so that decorrelating the embedding variables will reduce the dependencies (not just the correlations) between the variables of the representation." <span class="tier E">E</span> No ablation regularizes h directly (verified absence). <span class="tier E">E</span></dd>
+<dt>Reading</dt><dd><span class="tier P">P</span>The whole redundancy-reduction family therefore <em>argues</em> its desideratum transfers h-ward but demonstrates it only qualitatively — the exact quantitative question (how much decorrelation/variance survives at h, as a function of expander width/depth) is open and directly measurable. <span class="tier O">O</span></dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">MAE</span><span class="s">He et al., CVPR 2022 · the decoder is the projector, pixels are the loss space</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>predictive sufficiency via masked reconstruction: "mask random patches... and reconstruct the missing pixels"; scalability.</dd>
+<dt>Loss space</dt><dd>MSE on per-patch-normalized <em>pixels</em>, masked patches only, produced by an 8-block, 512-d decoder. No teacher, no negatives, no projector — the decoder is the head.</dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span>: encoder on <em>uncorrupted</em> images (train/test input mismatch by design); linear probe adds a non-affine BN.</dd>
+<dt>Head ablations</dt><dd>decoder depth is a linear-probe dial: 65.5% (1 block) → 73.5% (8 blocks) while fine-tuning is flat at ~84.9 — the paper's own statement that "a sufficiently deep decoder is important for linear probing... can yield up to 8% improvement." Linear and fine-tune "largely uncorrelated"; MAE features "less linearly separable, but stronger non-linear features." <span class="tier E">E</span></dd>
+<dt>Reading</dt><dd><span class="tier P">P</span>MAE inverts the joint-embedding story: instead of the head absorbing <em>invariance</em>, the decoder absorbs <em>low-level pixel statistics</em> so the encoder can stay abstract — same mechanism, opposite direction. How much pixel-level nuisance still leaks into h is measurable (§5, E9) and partially answered by Balestriero &amp; LeCun 2024 (§4).</dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">I-JEPA</span><span class="s">Assran et al., CVPR 2023 · latent prediction, teacher-side evaluation</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>"highly semantic image representations without relying on hand-crafted data-augmentations"; predict target-block <em>representations</em> from a context block.</dd>
+<dt>Loss space</dt><dd>average L2 between predictor outputs and EMA-target-encoder patch representations; predictor is a narrow (384-d) ViT conditioned on target positions.</dd>
+<dt>Eval space</dt><dd><span class="hsp">h</span> of the <em>EMA teacher</em>: "We use the target-encoder for evaluation and average pool its output." Probe protocol: best of {last-layer avgpool, concat last-4 avgpool} — linear, not attentive (attentive probing is V-JEPA's protocol, motivated there by "no a priori reason for the encoder to yield a linearly separable subspace"). <span class="tier E">E</span></dd>
+<dt>Ablations</dt><dd>latent targets vs pixel targets: 66.9 vs 40.7 on IN-1% — the loss space's <em>type</em> (latent vs pixel) is worth 26 points. Predictor depth 6→12: 64.0→66.9. Masking design is fragile by the paper's own account: targets need "sufficiently large scale (semantic)" and context must be "sufficiently informative." <span class="tier E">E</span></dd>
+</dl>
+</div></details>
+
+<details class="card"><summary><span class="t">LeJEPA</span><span class="s">Balestriero &amp; LeCun, Nov 2025 (preprint) · heuristics-free, but still projector-based</span></summary><div class="body">
+<dl class="kv">
+<dt>Stated desiderata</dt><dd>embeddings should follow an <em>isotropic Gaussian</em> — proven "optimal... to minimize downstream prediction risk" (worst-case over tasks; Lemma 1–2 for linear probes under ridge, Theorem 1 for nonlinear probes: "unique minimizer of the integrated square bias" under a scalar covariance constraint).</dd>
+<dt>Loss space</dt><dd><span class="zsp">the output of a 3-layer MLP projector</span> (<code>MLP(512, [2048, 2048, proj_dim], BatchNorm1d)</code> in the official code). Multi-view prediction (each view regresses the mean of global-view embeddings) <em>and</em> SIGReg — random 1-D projections tested against N(0,1) with the Epps–Pulley statistic — are both computed on the projector output <code>proj</code>: <code>sigreg_loss = sigreg(proj)</code>, <code>inv_loss = (proj.mean(0)-proj).square().mean()</code>. The paper's Table 1(d) confirms distinct <code>emb. dim.</code> [512, 2048] and <code>proj. dim.</code> [64…1024] rows. What is genuinely absent is the heuristic stack: "no stop-gradient, no teacher-student, no hyper-parameter schedulers." <span class="tier E">E</span> <b>(Correction, 2026-07-02:</b> an earlier draft claimed LeJEPA applied its loss directly to the backbone; that was wrong — the "proj. dim." hyperparameter was the projector. Thanks to the reader who caught it via the official repo.)</dd>
+<dt>Eval space</dt><dd>the same embeddings, frozen linear/ridge probe; training loss "exhibits strong correlation with downstream linear probe performance" — label-free model selection. ~79% IN-1k linear, ViT-H/14; stability across 60+ architectures. <span class="tier E">E</span> (preprint — treat scale claims accordingly)</dd>
+<dt>Reading</dt><dd><span class="tier P">P</span>LeJEPA is therefore the <em>sharpest</em> case of the report's thesis, not its exception. It proves the isotropic Gaussian is the distribution embeddings "should follow to minimize downstream risk," then enforces that distribution on a projector it discards — so the optimality theorem, read literally, characterizes the thrown-away space, while the backbone that is actually probed is left to inherit isotropy only indirectly (the paper's notation does not distinguish the two, and does not claim the projector is discarded). The genuinely open question is whether a <em>distributional</em> constraint (isotropy of the whole embedding cloud) transfers to h more faithfully than the <em>pointwise</em> invariance other methods impose — directly testable (§5, E4/E10).</dd>
+</dl>
+</div></details>
+
+<h3>What is typically evaluated — and the protocol drift problem</h3>
+<p><span class="tier E">E</span>Every method evaluates frozen-backbone features, but the <em>definition</em> of "backbone features" drifts: SimCLR/BYOL/SwAV/BT/VICReg use ResNet avgpool; MoCo v3 uses final [CLS]; DINO uses concat-last-4-[CLS] (ViT-S) or [CLS]+patch-avg (ViT-B); MAE adds a BN before the probe; I-JEPA takes the best of two pooling schemes over the <em>teacher</em>; V-JEPA needs attentive pooling. <span class="tier P">P</span>These are not neutral choices — each protocol partially compensates for what the method failed to put into a single vector, and any cross-method audit that doesn't hold the readout fixed measures protocol, not representation. This motivates the fixed two-probe design in §5.</p>
+
+</section>
+
+<!-- ==================== TAB 2 : PROJECTOR GAP ==================== -->
+<section class="tab" id="t2" role="tabpanel">
+
+<h2>2 · The MLP/projector gap — what the head absorbs</h2>
+
+<p>This section reviews everything found on the role of projectors and predictors beyond the original method papers: ablations, mechanistic studies, and theory. The evidence supports a specific claim: <strong>the head is a sacrificial buffer that absorbs the pretext task's constraints — invariance, uniformity, whitening, low-rank pressure — so the backbone doesn't have to satisfy them.</strong> Five partially-overlapping explanations exist; none unifies all the evidence.</p>
+
+<h3>2.1 The phenomenon, quantified</h3>
+<ul>
+<li><span class="tier E">E</span><strong>Guillotine Regularization</strong> (Bordes, Balestriero, Garrido, Bardes, Vincent — <a href="https://arxiv.org/abs/2206.13378">TMLR 2023</a>) names and measures the trick: removing the head is "critical for SSL methods to display competitive performances on ImageNet for which more than 30 percentage points can be gained." Their framing is this report's thesis verbatim: "one would hope that the network layer at which invariance is explicitly enforced by the SSL criterion during training (the last projector layer) should be the one to use for best generalization performance downstream. But it seems not to be." Supervised networks show the <em>opposite</em> layer profile. Crucially, the optimal readout layer is <em>task-dependent</em>: ImageNet probes peak at the trunk, but "the best performances for Eurosat, CLEVR and Imagenet 1% are obtained at the first projector layer." And the gap is causally tied to pretext/downstream misalignment: with class-defined positive pairs (perfectly aligned pretext), the projector level <em>beats</em> the backbone.</li>
+<li><span class="tier E">E</span><strong>RCDM</strong> (Bordes, Balestriero, Vincent — <a href="https://arxiv.org/abs/2112.09164">TMLR 2022</a>) settles where invariance lives by generating images conditioned on each space: "SSL (backbone) representation are not invariant to the data augmentations they were trained with — thus debunking an often restated but mistaken belief; SSL post-projector embeddings appear indeed invariant to these data augmentation." Backbone features demonstrably retain scale, position, and color-style.</li>
+<li><span class="tier E">E</span><strong>Not SSL-specific:</strong> t-ReX (Sariyildiz et al., <a href="https://arxiv.org/abs/2206.15369">ICLR 2023 spotlight</a>) adds an expendable projector to <em>supervised</em> training and gains transfer SOTA, showing "the design of the projector allows us to control the trade-off between performance on the training task and transferability." The buffer effect is objective-agnostic.</li>
+</ul>
+
+<h3>2.2 Rank and dimensional collapse: the head as spectral shield</h3>
+<ul>
+<li><span class="tier E">E</span><strong>Jing et al.</strong> (<a href="https://arxiv.org/abs/2110.09348">ICLR 2022</a>): contrastive embeddings dimensionally collapse ("span a lower-dimensional subspace") via strong augmentation + implicit low-rank regularization; a linear projector "only needs to be low-rank" (Prop. 2); and — the shield claim — "Without a projector, SimCLR suffers from dimensional collapse in the <em>representation</em> space." DirectCLR (loss on a sub-vector of h, no trainable projector) beats SimCLR-with-linear-projector (62.7 vs 61.1) but not the nonlinear head (66.5).</li>
+<li><span class="tier E">E</span><strong>Rank Differential Mechanism</strong> (Zhuo et al., <a href="https://arxiv.org/abs/2303.02387">ICLR 2023</a>): every asymmetric device (predictor, EMA, SwAV's Sinkhorn, DINO's sharpening) is a spectral filter creating a consistent rank difference between branch <em>outputs</em>, provably raising effective dimensionality. Explicitly does not connect output-rank to backbone rank — a named open edge.</li>
+<li><span class="tier E">E</span><strong>RankMe</strong> (Garrido et al., <a href="https://arxiv.org/abs/2210.02885">ICML 2023</a>) measures smooth effective rank <em>of embeddings z</em> and uses it for label-free model selection — it works because "performance on embeddings and representations scales almost monotonically." The h↔z rank monotonicity is an empirical regularity, not a theorem. <strong>α-ReQ</strong> (Agrawal et al., NeurIPS 2022) is its backbone-side complement: eigenspectrum decay coefficient α of <em>backbone</em> covariance predicts linear-readout quality. No paper bridges the two spaces formally. <span class="tier O">O</span></li>
+<li><span class="tier E">E</span><strong>Small projectors are possible</strong> (Agrawal et al., <a href="https://arxiv.org/abs/2312.10725">NeurIPS 2024</a>): with a stronger orthogonalization constraint, reduced projector dimensionality suffices — evidence the giant-head requirement is an optimization artifact, not fundamental.</li>
+</ul>
+
+<h3>2.3 The predictor as closed-form spectral machinery</h3>
+<ul>
+<li><span class="tier E">E</span><strong>DirectPred</strong> (Tian, Chen, Ganguli, <a href="https://arxiv.org/abs/2102.06810">ICML 2021</a>): the linear predictor's eigenspace provably aligns with its input correlation; replacing the trained predictor with a closed-form spectral function matches BYOL (72.4 vs 72.5). Removing stop-gradient provably collapses (Thm 2).</li>
+<li><span class="tier E">E</span><strong>Wen &amp; Li</strong> (<a href="https://arxiv.org/abs/2205.06226">NeurIPS 2022</a>) — the gap-aware exception: their theorem is about the <em>encoder beneath the head</em>. The trainable head produces a <em>substitution effect</em> and an <em>acceleration effect</em> that jointly make the encoder "learn all the features rather than focus only on learning the stronger features." The head exists so the backbone learns balanced features.</li>
+<li><span class="tier E">E</span><strong>SimSiam</strong> (Chen &amp; He, CVPR 2021): predictor removal → 0.1%; the paper's own hypothesis is that the optimal predictor approximates the augmentation-conditional expectation E<sub>T</sub>[f(T(x))] — i.e. the predictor computes the marginalization the loss pretends the backbone performs. Zhang et al. (<a href="https://arxiv.org/abs/2203.16262">ICLR 2022</a>) later refuted parts of SimSiam's self-explanation via gradient decomposition; Richemond et al. showed BYOL works without batch statistics (73.9 vs 74.3), killing the BN-as-negatives folk theory — the field's understanding of its own anti-collapse machinery has been empirically wrong at least twice. <span class="tier P">P</span></li>
+</ul>
+
+<h3>2.4 The head absorbs augmentation information — and can be redirected</h3>
+<ul>
+<li><span class="tier E">E</span>SimCLR Table 3 (§1) is the original measurement; RCDM the visual proof.</li>
+<li><span class="tier E">E</span><strong>AugSelf</strong> (Lee et al., NeurIPS 2021): adding augmentation-parameter prediction preserves augmentation-aware information in h and improves transfer — implying default training leaves less of it than optimal.</li>
+<li><span class="tier E">E</span><strong>LooC</strong> (Xiao et al., ICLR 2021): route invariances into <em>separate head spaces</em> ("each of which is invariant to all but one augmentation"), keeping the shared backbone richer.</li>
+<li><span class="tier E">E</span><strong>CASSLE</strong> (Przewięźlikowski et al., KBS 2024): condition the projector on the augmentation parameters so invariance concentrates in the head by construction; their probes show vanilla models lose augmentation-awareness progressively through extractor <em>and</em> projector.</li>
+<li><span class="tier P">P</span>Together these are a design lesson: the invariance/information split between h and z is <em>steerable</em>, which makes it a measurable, controllable variable for the proposed study rather than a fixed fact of SSL.</li>
+</ul>
+
+<h3>2.5 Theories of why the head helps — five families, no unification</h3>
+<ol>
+<li><strong>Buffer / misalignment:</strong> the head absorbs pretext-specific constraints; gap shrinks as pretext↔downstream alignment rises. (Guillotine; SimCLR's conjecture; RCDM; VICReg's expander rationale; t-ReX.) The most direct measurement: Ma et al. (<a href="https://arxiv.org/abs/2301.12189">IJCAI 2024</a>) show the projector is "a uniform projector, regardless of whether the uniformity part appears explicitly in the objective function" — even SimSiam, whose loss has no uniformity term — and report backbone entropy consistently below projector entropy (SimCLR 1.75 vs 1.85; MoCo-v2 1.51 vs 2.03; CIFAR-10/ResNet-18), reading the encoder as offloading the uniformity burden onto the head. <span class="tier E">E</span> (Note: a 2026 preprint framing the head as a "universal geometric buffer" with implicit-whitening claims, arXiv:2605.17180, <em>failed</em> independent adversarial verification in this study — see §7 — and is deliberately not relied upon here.)</li>
+<li><strong>Rank protection:</strong> the head absorbs the objective's low-rank pressure, keeping h high-rank (Jing; RDM; Dubois et al.: heads "improve effective dimensionality and thus usability").</li>
+<li><strong>Implicit bias / feature weighting:</strong> Xue et al. (<a href="https://arxiv.org/abs/2403.11391">ICLR 2024</a>): training progressively unequalizes feature weights with depth; "lower layers tend to have more normalized and less specialized representations," and nonlinear heads let lower layers keep features "completely absent in higher layers" — also explains robustness gains, and transfers to supervised learning.</li>
+<li><strong>Information bottleneck:</strong> Ouyang et al. (<a href="https://arxiv.org/abs/2503.00507">ICLR 2025</a>): downstream guarantees for <em>pre-projector</em> features; "an effective projector should act as an information bottleneck, filtering out the information irrelevant to the contrastive objective." Ma et al. (IJCAI 2024): the head implements the <em>uniformity</em> term specifically.</li>
+<li><strong>Dynamics / asymmetry (predictor-specific):</strong> eigenspace alignment, variance asymmetry between branches, closed-form replaceability (DirectPred; Wang et al. CVPR 2022; Halvagal et al. NeurIPS 2023; Richemond et al. 2023 — optimal linear predictor ≈ orthogonal projection, EMA+stop-grad as "an efficient orthonormalization mechanism").</li>
+</ol>
+<p><span class="tier P">P</span>Families 1 and 4 are informationally near-equivalent (absorbing a constraint = filtering the information that violates it); 2 and 5 are linked through spectral filtering. A unification would need to explain the one result none of them predicts cleanly: Dubois et al.'s finding that <em>nonlinear</em> heads add no effective-dimensionality benefit over linear ones ("we still do not completely understand the impact of non-linear projections"). <span class="tier O">O</span></p>
+
+<div class="tablewrap">
+<table>
+<caption>Table 2 — Method × stated desideratum × what is actually enforced, where<span class="tcap-sub">"Enforced at h?" = does any term of the training objective act on the backbone representation directly?</span></caption>
+<thead><tr><th>Method</th><th>Stated desideratum (paper's language)</th><th>Mechanism that enforces it</th><th>Space acted on</th><th>Enforced at h?</th><th>Evidence it (partially) reaches h</th></tr></thead>
+<tbody>
+<tr><td class="m">SimCLR</td><td>invariance to augmentation; implicit uniformity</td><td>NT-Xent attraction/repulsion</td><td><span class="pill z">z (128-d sphere)</span></td><td class="no">No</td><td>h is <em>not</em> invariant (Tab. 3; RCDM); h inherits partial alignment <span class="tier P">P</span></td></tr>
+<tr><td class="m">MoCo v2/v3</td><td>large consistent dictionary; instance discrimination</td><td>InfoNCE vs queue/batch; EMA keys</td><td><span class="pill z">z (128/256-d)</span></td><td class="no">No</td><td>+5.6 pts at h from adding the head (v2) — benefit, not property</td></tr>
+<tr><td class="m">BYOL</td><td>predict other view; avoid collapse</td><td>predictor + stop-grad + EMA dynamics</td><td><span class="pill z">q(g(h)) vs teacher z′</span></td><td class="no">No</td><td>h high-rank in practice; mechanism theories are all z-side (§6)</td></tr>
+<tr><td class="m">SwAV</td><td>consistent cluster assignments; balanced clusters</td><td>swapped CE + Sinkhorn equipartition</td><td><span class="pill z">code space over prototypes</span></td><td class="no">No</td><td>uniform-cluster prior <em>does</em> reach h as a dataset assumption (§4) <span class="tier P">P</span></td></tr>
+<tr><td class="m">DINO</td><td>teacher-student agreement; no collapse (centering/sharpening)</td><td>CE on 65k-way softmax; EMA</td><td><span class="pill z">prototype logits</span></td><td class="no">No</td><td>strong k-NN at h (78.3) — emergent, not enforced</td></tr>
+<tr><td class="m">iBOT</td><td>masked-patch distillation (online tokenizer)</td><td>CE on shared 8192-way head, [CLS]+patch</td><td><span class="pill z">prototype logits (patch level)</span></td><td class="no">No</td><td>patch-level h features excel on dense tasks — indirect</td></tr>
+<tr><td class="m">DINOv2</td><td>general-purpose frozen features; spread features</td><td>DINO+iBOT losses; <b>KoLeo</b></td><td><span class="pill z">two heads</span> + <span class="pill h">KoLeo on [CLS] ≈ h</span></td><td class="part">Partially — KoLeo</td><td>KoLeo: +8 retrieval, +0.5 IN — a desideratum applied near-h that visibly works</td></tr>
+<tr><td class="m">Barlow Twins</td><td>redundancy reduction (decorrelated dimensions)</td><td>cross-correlation → identity</td><td><span class="pill z">z (8192-d batch stats)</span></td><td class="no">No</td><td>no h-space decorrelation measured in paper <span class="tier O">O</span></td></tr>
+<tr><td class="m">VICReg</td><td>variance floor; covariance → 0; view alignment</td><td>hinge-on-std + off-diag penalty + MSE</td><td><span class="pill z">z (8192-d expander)</span></td><td class="no">No</td><td>App. D.8: std at h increases directionally — the one explicit partial-transfer statement</td></tr>
+<tr><td class="m">MAE</td><td>reconstruct masked content (predictive sufficiency)</td><td>pixel MSE through decoder</td><td><span class="pill z">pixel space</span></td><td class="no">No</td><td>U-MAE theory pulls guarantee back to encoder; but h dimensionally collapses without added uniformity (§6)</td></tr>
+<tr><td class="m">I-JEPA</td><td>predictable, semantic latents without augmentations</td><td>L2 to EMA-teacher latents via predictor</td><td><span class="pill z">predictor output space</span></td><td class="no">No</td><td>C-JEPA: EMA insufficient against collapse; V-JEPA: no reason for linear separability at h</td></tr>
+<tr><td class="m">LeJEPA</td><td>isotropic Gaussian embeddings (min worst-case risk)</td><td>SIGReg + multi-view prediction, both on projector output</td><td><span class="pill z">z (3-layer MLP projector)</span></td><td class="no">No</td><td>isotropy enforced at projector; whether it reaches h is untested — the key open question <span class="tier O">O</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>2.6 What remains genuinely open</h3>
+<ul>
+<li><span class="tier O">O</span><strong>A quantitative transfer law.</strong> Nobody has measured <em>how much</em> of any z-space property (invariance level, decorrelation, uniformity, rank) survives at h as a function of head depth/width/nonlinearity. All existing evidence is qualitative (VICReg D.8, RCDM, CASSLE probes).</li>
+<li><span class="tier O">O</span><strong>Principled readout-layer selection.</strong> Guillotine shows the optimal layer varies by task; no a-priori criterion exists. RankMe/α-ReQ rank whole models, not layers.</li>
+<li><span class="tier O">O</span><strong>Prototype-head anatomy at scale.</strong> No dedicated analysis of what DINOv2/iBOT's 65k–131k prototype layers absorb, nor guillotine curves for masked-token heads.</li>
+<li><span class="tier O">O</span><strong>The nonlinearity mystery.</strong> Dubois et al.: nonlinear heads don't add effective dimensionality over linear ones, yet SimCLR's +3% nonlinear-over-linear is robust. Xue et al. explain part of it in stylized models only.</li>
+<li><span class="tier O">O</span><strong>Head-free at SOTA scale.</strong> DirectPred/DirectCLR replace or shrink the head only in (near-)linear regimes and trail full nonlinear heads slightly (62.7 vs 66.5; 72.4 vs 72.5). No surveyed method — including LeJEPA, which keeps a wide 3-layer MLP projector — trains head-free at scale without loss. Whether the nonlinear projector is eliminable at SOTA scale is the decisive missing experiment.</li>
+</ul>
+
+</section>
+
+<!-- ==================== TAB 3 : METRICS ==================== -->
+<section class="tab" id="t3" role="tabpanel">
+
+<h2>3 · Representation metrics — one battery, two spaces</h2>
+
+<p>The audit's instrument: a battery of metrics, every one computable identically on <span class="hsp">h</span> and on <span class="zsp">z</span> (and, where relevant, on intermediate head layers — the "guillotine curve"). For each metric: definition, which method's desideratum it operationalizes, whether any method actually optimizes it, and in which space. Estimator caveats are flagged because several of these are dimension- and sample-size-sensitive; the protocol in §5 fixes N, d handling, and preprocessing per metric.</p>
+
+<div class="tablewrap">
+<table>
+<caption>Table 3 — Metric × representation space × interpretation<span class="tcap-sub">"Optimized in" = space where some surveyed method's training objective directly pressures this quantity. All metrics are to be <em>measured</em> in both spaces in the proposed study.</span></caption>
+<thead><tr><th>Metric</th><th>Definition (operational)</th><th>Desideratum of</th><th>Optimized in</th><th>Interpretation at <span class="hsp">h</span> vs <span class="zsp">z</span></th></tr></thead>
+<tbody>
+<tr><td class="m">Alignment</td><td>E‖u−u′‖² over positive pairs, ℓ2-normalized features (Wang &amp; Isola)</td><td>SimCLR/MoCo/BYOL (view agreement)</td><td><span class="pill z">z</span></td><td>Expected small at z. At h: measures how much view-agreement survives the head — the transfer coefficient of invariance. <span class="tier P">P</span></td></tr>
+<tr><td class="m">Uniformity</td><td>log E exp(−2‖u−u′‖²) over pairs (Gaussian potential on sphere)</td><td>SimCLR (implicit); DINOv2 KoLeo (explicit, near-h)</td><td><span class="pill z">z</span> (+<span class="pill h">h</span> for KoLeo)</td><td>At z: the loss's repulsion term. At h: tests whether spread is inherited or whether h stays cone-concentrated while z is uniform.</td></tr>
+<tr><td class="m">Per-dim variance / std floor</td><td>fraction of dimensions with std &lt; γ·mean-std; hinge value at γ=1 (VICReg's term)</td><td>VICReg (explicit)</td><td><span class="pill z">z</span></td><td>VICReg satisfies exactly at z; App. D.8 claims directional transfer. Measure the actual std profile of h across all methods — collapse early-warning.</td></tr>
+<tr><td class="m">Off-diagonal covariance / redundancy</td><td>‖offdiag(C)‖²/d and mean |corr| on standardized features (BT/VICReg terms)</td><td>Barlow Twins, VICReg (explicit)</td><td><span class="pill z">z</span></td><td>The redundancy-reduction families' core claim, never measured at h in the originals. <span class="tier O">O</span> Prediction: substantial residual correlation at h.</td></tr>
+<tr><td class="m">Effective rank (RankMe)</td><td>exp(entropy of normalized singular values) of feature matrix</td><td>all joint-embedding methods (anti-dimensional-collapse)</td><td>indirect, <span class="pill z">z</span>-side machinery</td><td>RankMe validated on z; α-ReQ on h. Computing both gives the h↔z rank map — is the empirical monotonicity method-dependent? <span class="tier O">O</span></td></tr>
+<tr><td class="m">Spectral decay α</td><td>power-law exponent fit to covariance eigenspectrum (α-ReQ)</td><td>none explicitly; implicitly modulated by SSL design (Agrawal et al.)</td><td>—</td><td>At h: readout-quality band. At z: expect flatter (whitened) spectrum for BT/VICReg; the α(h)−α(z) difference is the head's spectral absorption. <span class="tier P">P</span></td></tr>
+<tr><td class="m">Isotropy / Gaussianity</td><td>SIGReg's own Epps–Pulley statistic over random 1-D projections; + kurtosis/skew per projection</td><td>LeJEPA (explicit, at <span class="pill z">z</span>)</td><td><span class="pill z">z</span> (LeJEPA); measure at both</td><td>The decisive test of LeJEPA's premise: SIGReg forces isotropy at the projector — does it <em>reach the backbone</em>? If h stays anisotropic while z is isotropic, even the "provable" method proves a property of the discarded space. <span class="tier O">O</span></td></tr>
+<tr><td class="m">Complete-collapse margin</td><td>trace of covariance; nearest-pair statistics; feature-std minima</td><td>BYOL/SimSiam/DINO (motivating fear)</td><td>emergent (z-side dynamics)</td><td>Sanity tier — all published checkpoints pass; matters for controlled re-trainings (§5 E10) where machinery is ablated.</td></tr>
+<tr><td class="m">Augmentation invariance / sensitivity</td><td>cos(f(x), f(T(x))) distributions per augmentation type T; plus a probe predicting T's parameters (SimCLR Tab. 3 protocol; CASSLE protocol)</td><td>all view-based methods (stated); LooC/AugSelf (contested)</td><td><span class="pill z">z</span></td><td>The single most decisive metric for the thesis: RCDM says h is <em>not</em> invariant. Quantify per-augmentation, per-method, both spaces. Color/crop/rotation separately.</td></tr>
+<tr><td class="m">k-NN consistency</td><td>k-NN label agreement between spaces: does x's neighborhood in h match its neighborhood in z? (Jaccard@k of neighbor sets; label agreement)</td><td>— (diagnostic, novel composition)</td><td>—</td><td>Direct measure of how much the head reorders semantic geometry. Low overlap + higher h-probe accuracy = head actively destroys semantic neighborhoods. <span class="tier O">O</span></td></tr>
+<tr><td class="m">Class separability</td><td>linear probe; k-NN accuracy; class-scatter ratios (between/within); few-shot probes</td><td>all (the implicit end goal)</td><td>neither (never supervised)</td><td>The Guillotine curve is exactly this metric vs layer. Include few-shot: Dubois et al. show full-shot and few-shot rank models differently.</td></tr>
+<tr><td class="m">CKA similarity h↔z <span class="pill x">contested metric</span></td><td>linear + RBF CKA between h and z on the same inputs</td><td>— (diagnostic)</td><td>—</td><td>How nonlinearly does the head warp the geometry? Near-1 linear CKA = head ≈ linear reparametrization (gap "shallow"); low CKA = genuinely different geometry (gap "deep"). <b>Caveat:</b> CKA's reliability for cross-representation correspondence was refuted under adversarial verification (§7; cf. Davari et al. critiques) — pair it with a second geometry measure (neighbor-overlap, Procrustes distance) rather than relying on it alone. <span class="tier P">P</span></td></tr>
+<tr><td class="m">View-predictability</td><td>train a small frozen-feature predictor: h(context/local view) → h(target/global view); report R²/L2</td><td>BYOL/I-JEPA/LeJEPA (predictive sufficiency)</td><td><span class="pill z">z</span> (all three — LeJEPA's prediction loss is also on the projector)</td><td>At h for non-predictive methods: do contrastive backbones support latent prediction anyway? Tests whether "predictive" is a distinguishing property or an emergent one. <span class="tier O">O</span></td></tr>
+<tr><td class="m">Information retention (nuisance + semantic)</td><td>decodability suite from frozen features: augmentation parameters (crop position/scale, color jitter magnitude, rotation), background class, object position/scale; plus reconstruction-based proxies (RCDM-style) where budget allows</td><td>negative desideratum for invariance methods; positive for MAE ("reconstruct everything")</td><td>—</td><td>The information ledger: what did the head delete, what did the backbone keep? Expect MAE ≫ contrastive at h for nuisances; the interesting cell is DINO/DINOv2 at h. <span class="tier P">P</span></td></tr>
+<tr><td class="m">Neighborhood purity under shift</td><td>k-NN accuracy on IN-R/IN-A/ObjectNet queries against IN-1k gallery, per space</td><td>— (robustness diagnostic)</td><td>—</td><td>Whether z's "cleaner" invariant geometry is actually more robust than h's richer geometry under distribution shift — the buffer theory predicts h wins on-distribution but the ordering under shift is open. <span class="tier O">O</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="note"><b>Estimator discipline (pre-registered in §5):</b> fixed N=50k features per dataset; d equalized across spaces by measuring both raw and PCA-к versions where dimension-sensitive (uniformity, isotropy tests are dimension-sensitive; rank measures need the same N/d regime to compare); features taken pre- and post-ℓ2-normalization where the metric's home method normalizes; ViT h defined <em>twice</em> ([CLS] and patch-avgpool) since methods disagree on the readout; z defined as final head output, with intermediate head layers stored for guillotine curves. Every metric ships with a null baseline (random-init backbone, and a label-shuffled probe where applicable).</div>
+
+<h3>3.1 The audit matrix: methods × metrics × spaces</h3>
+<p>The core deliverable of the study's first phase is the completed version of this matrix — each cell a number, computed at <span class="hsp">h</span> and at <span class="zsp">z</span>, on identical data. Below, the matrix is filled with <em>predictions</em> from the literature (✓ = expect desideratum satisfied, ✗ = expect violated, ? = genuinely unknown), so the experiment has falsifiable content before it runs. Cells where the two spaces should <em>diverge</em> are the paper's evidence; cells where they don't are its surprises.</p>
+
+<div class="tablewrap">
+<table>
+<caption>Predicted audit matrix (to be replaced by measurements)<span class="tcap-sub">Each cell: expectation at h / at z. Bold marks each method's own advertised desideratum — the diagonal the paper tests.</span></caption>
+<thead><tr><th>Method</th><th>Alignment</th><th>Uniformity</th><th>Variance floor</th><th>Decorrelation</th><th>Eff. rank high</th><th>Isotropy/Gauss.</th><th>Aug.-invariance</th><th>View-predictability</th></tr></thead>
+<tbody>
+<tr><td class="m">SimCLR</td><td><b>?/✓</b></td><td><b>✗/✓</b></td><td>?/✓</td><td>✗/~</td><td>~/✗ (dim. collapse at z)</td><td>✗/~</td><td><b>✗/✓</b> (RCDM)</td><td>?/—</td></tr>
+<tr><td class="m">BYOL</td><td><b>?/✓</b></td><td>✗/~</td><td>?/~</td><td>✗/~</td><td>~/~ (rank differential)</td><td>✗/✗</td><td><b>✗/✓</b></td><td><b>?/✓</b></td></tr>
+<tr><td class="m">SwAV</td><td>?/✓ (code space)</td><td>✗/✓ (equipartition)</td><td>?/~</td><td>✗/?</td><td>~/?</td><td>✗/✗</td><td><b>✗/✓</b></td><td>?/—</td></tr>
+<tr><td class="m">DINO</td><td>?/✓</td><td>✗/~ (centering)</td><td>?/?</td><td>✗/?</td><td>~/?</td><td>✗/✗</td><td><b>✗/✓</b></td><td>?/—</td></tr>
+<tr><td class="m">DINOv2</td><td>?/✓</td><td><b>~/✓</b> (KoLeo at ~h)</td><td>?/?</td><td>✗/?</td><td>✓/?</td><td>?/✗</td><td>✗/✓</td><td>?/—</td></tr>
+<tr><td class="m">Barlow Twins</td><td>?/✓</td><td>✗/~</td><td>?/✓</td><td><b>✗/✓</b></td><td>~/✓</td><td>✗/~</td><td>✗/✓</td><td>?/—</td></tr>
+<tr><td class="m">VICReg</td><td>?/✓</td><td>✗/~</td><td><b>~/✓</b> (D.8: directional)</td><td><b>✗/✓</b></td><td>~/✓</td><td>✗/~</td><td>✗/✓</td><td>?/—</td></tr>
+<tr><td class="m">MAE</td><td>✗/— (pixel loss)</td><td>✗/—</td><td>?/—</td><td>✗/—</td><td>✗ (U-MAE: collapse-prone)/—</td><td>✗/—</td><td>✗ (none trained)/—</td><td><b>?/—</b></td></tr>
+<tr><td class="m">I-JEPA</td><td>?/✓ (latent L2)</td><td>✗/✗</td><td>?/?</td><td>✗/?</td><td>?/? (C-JEPA: fragile)</td><td>✗/✗</td><td>✗ (by design: no augs)</td><td><b>?/✓</b></td></tr>
+<tr><td class="m">LeJEPA</td><td>?/✓</td><td>?/✓</td><td>?/✓</td><td>?/~</td><td>?/✓</td><td><b>?/✓</b> (SIGReg at z)</td><td>? (mild view stack)</td><td><b>?/✓</b></td></tr>
+</tbody>
+</table>
+</div>
+<p class="sm">Legend: ~ = partially/weakly expected; — = space doesn't exist for this method in that form (MAE's z is pixel logits). Note LeJEPA now takes the same h/z form as every other method — its bold cells (isotropy, view-predictability) are enforced at z and their transfer to h is the study's central unknown. Predictions synthesized from §1–§2 sources. <span class="tier P">P</span></p>
+
+<h3>3.2 Reading the matrix: three result patterns and what each would mean</h3>
+<ul>
+<li><strong>Pattern A — clean dissociation</strong> (desiderata hold at z, fail at h, yet h probes better): confirms the buffer account; the paper's contribution is the first quantitative transfer law and per-method transfer coefficients. Most likely outcome given RCDM/Guillotine. <span class="tier P">P</span></li>
+<li><strong>Pattern B — partial transfer tracks quality</strong> (methods whose h inherits <em>more</em> of the desideratum probe better within-family): would elevate transfer coefficients into a model-selection signal, extending RankMe beyond rank. <span class="tier O">O</span></li>
+<li><strong>Pattern C — the desiderata that matter at h are different ones</strong> (e.g., h-space effective rank and information retention predict downstream, while h-space alignment/uniformity don't): supports the sufficiency-not-minimality reading of §6 and reframes LeJEPA's contribution: its value would lie in choosing a <em>distributional</em> desideratum (isotropy) that transfers through the projector to h better than pointwise invariance, not in eliminating the projector. This is the most publishable outcome — it would say the field has been regularizing the wrong space with the right words. <span class="tier P">P</span></li>
+</ul>
+
+</section>
+
+<!-- ==================== TAB 4 : FAILURE MODES ==================== -->
+<section class="tab" id="t4" role="tabpanel">
+
+<h2>4 · Weaknesses of the SSL families</h2>
+
+<p>Failure modes sort into two kinds. <strong>Loss-blind semantic failures:</strong> the pretext is satisfied in <span class="zsp">z</span>-space while the supervision signal it manufactures is wrong (crops of different objects declared "same"; backgrounds sufficing to solve instance discrimination). <strong>Objective-shape failures:</strong> the loss's implicit priors (uniform clusters, invariances, pixel-variance weighting, high-influence-feature bias) mismatch the data or task. Both kinds are invisible to loss curves and mostly invisible to IN-1k linear probes — hence the failure-oriented evaluations of §5.</p>
+
+<h3>4.1 View-based contrastive &amp; distillation (SimCLR, MoCo, BYOL)</h3>
+<ul>
+<li><span class="tier E">E</span><strong>Crop tension / object-centric dependence.</strong> Purushwalkam &amp; Gupta (NeurIPS 2020): MoCo/PIRL "learn occlusion-invariant representations" but "fall short in capturing viewpoint and category instance invariance," and gains depend on "a clean object-centric training dataset like Imagenet." Mishra et al. (TMLR 2022) make it quantitative: random-resized-crop "performs poorly" on multi-small-object data; object-proposal crops give <b>+8.8 mAP</b> over scene-level cropping on OpenImages. Mo et al. (NeurIPS 2021): contrastive features are "contextually biased to the spurious scene correlations of different objects or object and background."</li>
+<li><span class="tier E">E</span><strong>But contested:</strong> Van Gansbeke et al. (NeurIPS 2021) find contrastive methods effective across object- vs scene-centric and long-tailed data. <span class="tier P">P</span>Resolution: the failure is real for small-object/multi-object regimes and co-occurrence shortcuts, not a blanket scene-data failure — which is exactly why §5 probes it with controlled crop-content manipulations rather than dataset swaps alone.</li>
+<li><span class="tier E">E</span><strong>Feature suppression.</strong> Chen et al. (NeurIPS 2021): "a few bits of easy-to-learn shared features can suppress, and even fully prevent, the learning of other sets of competing features" (color suppresses class; "the dominant object would suppress the learning of smaller objects"). Robinson et al. (NeurIPS 2021): InfoNCE "does not always sufficiently guide which features are extracted," and fixing one suppression can create another. Xue et al. (ICML 2023) trace it to SGD simplicity bias. Li et al. (CVPR 2023) generalize: shortcuts come in multiples; "mitigating one amplifies others" (Whac-A-Mole; ImageNet-W watermark shortcut "affects nearly every modern vision model").</li>
+<li><span class="tier E">E</span><strong>Background reliance &amp; memorization.</strong> Backgrounds Challenge (Xiao et al., ICLR 2021): adversarial backgrounds fool models up to 87.5% (supervised baseline harness). Ryali et al.: background-augmented SSL gains +1–2 IN / up to +4.2 low-label across MoCo-v2/BYOL/SwAV — SSL demonstrably uses backgrounds. Extreme form — <em>déjà vu memorization</em> (Meehan et al., NeurIPS 2023): from a background-only crop of a training image, the foreground object is recoverable "with high accuracy," across SSL algorithms, and it "cannot be detected by conventional techniques for evaluating representation quality."</li>
+<li><span class="tier E">E</span><strong>Invariance mis-specification.</strong> LooC: color-invariant features fail color-sensitive tasks. InfoMin: optimal views are task-dependent. Ericsson et al.: "different downstream tasks benefit from polar opposite (in)variances"; SSL models "fail to preserve colour information as well as supervised alternatives." <span class="tier P">P</span>Per §2, much augmentation information survives at h even when z is invariant — so downstream harm depends on the probe's access to h, another reason family-level claims need two-space measurement.</li>
+<li><span class="tier E">E</span><strong>Shape/texture bias is not fixed by SSL.</strong> Geirhos et al. 2020: SimCLR-era SSL models are texture-biased with error patterns "surprisingly similar" to supervised; NeurIPS 2021 (85k psychophysical trials): contrastive-SSL and supervised models "systematically agree in their categorisation errors." ViT architecture, not SSL objective, moves shape bias (Naseer et al.). MIM/JEPA models are absent from this psychophysics literature. <span class="tier O">O</span></li>
+<li><span class="tier E">E</span><strong>Adversarial fragility with a z-space cause.</strong> Gupta et al. (AAAI 2023): contrastive SSL shows "intrinsically higher sensitivity to perturbations," attributed to hypersphere uniformity + false negatives — a stated-desideratum (uniformity) directly implicated in a robustness failure. <span class="tier P">P</span>Whether the fragility lives in h or only in z-adjacent geometry is untested — audit cell.</li>
+</ul>
+
+<h3>4.2 Clustering &amp; prototype methods (SwAV, DINO; DINOv2's data pipeline)</h3>
+<ul>
+<li><span class="tier E">E</span><strong>The hidden uniform cluster prior</strong> (Assran et al., ICLR 2023): SimCLR/VICReg/SwAV/MSN all "learn features that enable uniform clustering" — excellent on class-balanced ImageNet, and it "can hamper performance when pretraining on class-imbalanced data." A z-space equipartition constraint acting as a dataset-level assumption.</li>
+<li><span class="tier E">E</span><strong>Curation dependence.</strong> Tian et al. (ICCV 2021): large ImageNet-vs-YFCC quality gap from heavy-tailed class shift. DINOv2's answer is an automatic curation pipeline (LVD-142M) — <span class="tier P">P</span>engineering away the uncurated-data failure rather than fixing the objective. Counterpoints: Liu et al. (ICLR 2022) — SSL is <em>more</em> robust to imbalance than supervised; SEER — uncurated pretraining improves fairness/robustness metrics. The two claims are compatible (relative robustness vs absolute quality degradation) but their joint shape is unmeasured. <span class="tier O">O</span></li>
+<li><span class="tier E">E</span><strong>Multi-crop as a failure surface.</strong> DINO's local 96px crops (&lt;50% area) train "local-to-global correspondences" — semantically, the model is required to agree about an image it mostly cannot see; on scene data local views may contain a different object than the global view. First dedicated task-conflict analysis only appeared Feb 2026 (De Plaen et al.: per-view-type predictors +3.8–4% — the shared head is forced to solve heterogeneous alignment tasks). Object-absent local views remain unstudied. <span class="tier O">O</span></li>
+<li><span class="tier O">O</span><strong>Prototype pathologies</strong> (dead/duplicated prototypes, long-tail prototype-class mismatch, what 131k prototypes encode at DINOv2 scale): no dedicated failure study found.</li>
+</ul>
+
+<h3>4.3 Masked image modeling (MAE, iBOT's MIM half)</h3>
+<ul>
+<li><span class="tier E">E</span><strong>Linear-separability deficit, by the paper's own account:</strong> MAE linear probes (ViT-B 68.0 / L 75.8 / H 76.6) trail MoCo v3; "linear probing and fine-tuning results are largely uncorrelated"; one fine-tuned block: 73.5→81.0.</li>
+<li><span class="tier E">E</span><strong>Pixel-variance shortcut, formalized:</strong> Balestriero &amp; LeCun (ICML 2024): reconstruction "allocates a model's capacity towards a subspace of the data explaining the observed variance — a subspace with uninformative features"; on TinyImageNet the top-variance subspace (90% of pixel variance) supports only 45% accuracy vs 55% for the bottom 20%; perception features are "learned last," explaining MAE's long schedules; masking realigns the objective only partially.</li>
+<li><span class="tier E">E</span><strong>Frequency/attention signatures:</strong> Park et al. (ICLR 2023): MIM uses high-frequency (texture-adjacent) signals, contrastive uses low-frequency/global shapes; contrastive attention collapses into homogeneity late, MIM keeps locality and head diversity (Xie et al., CVPR 2023) — the two families are complementary, and their h-spaces should look measurably different (CKA cell in §3).</li>
+<li><span class="tier E">E</span><strong>The best MIM features aren't at the top:</strong> MIM-Refiner (ICLR 2025): "strong representations within MIM models generally reside in intermediate layers" — a <em>within-backbone</em> guillotine effect: MAE's last blocks specialize toward reconstruction, i.e. the head boundary is fuzzy and partially inside the encoder. <span class="tier P">P</span>Any h-space audit of MAE must therefore be layer-resolved, not last-layer-only.</li>
+<li><span class="tier E">E</span><strong>Masked-region ambiguity:</strong> masked prediction is ill-posed — "we can guess that there is a tail, but we cannot determine its exact location" (Bar et al., ICML 2024; stochastic positional embeddings +1.7 linear). But StoP addresses <em>location</em> ambiguity only; nobody quantifies <em>content</em> multimodality (how many completions a mask admits) or links that entropy to representation damage. <span class="tier O">O</span></li>
+<li><span class="tier E">E</span><strong>U-MAE:</strong> MAE features dimensionally collapse without an added uniformity term (Zhang et al., NeurIPS 2022) — the anti-collapse desideratum, absent from MAE's design, turns out to bind at h.</li>
+</ul>
+
+<h3>4.4 Joint-embedding predictive (I-JEPA; LeJEPA)</h3>
+<ul>
+<li><span class="tier E">E</span><strong>Fragile anti-collapse:</strong> C-JEPA (NeurIPS 2024) identifies "the inefficacy of EMA from I-JEPA in preventing entire collapse" and patches it with VICReg terms. LeJEPA's abstract reads as the internal verdict: JEPA practice was "ad-hoc R&amp;D" on a heuristic stack.</li>
+<li><span class="tier E">E</span><strong>Context-insufficiency has no relief valve:</strong> I-JEPA's own paper requires targets of "sufficiently large scale (semantic)" and "sufficiently informative" context; Littwin et al. (SSLTP 2024): the encoder "cannot adaptively modulate the type of predicted... features based on the feasibility of the masked prediction task" — when context underdetermines the target, the objective still demands a point estimate in latent space. <span class="tier P">P</span>This is MAE's ambiguity problem relocated to latent space, where averaging over modes produces blurred <em>semantics</em> instead of blurred pixels — plausibly worse and definitely less visible.</li>
+<li><span class="tier E">E</span><strong>Implicit bias toward high-influence features</strong> (Littwin et al., NeurIPS 2024): in deep linear models, JEPAs favor high-regression-coefficient features vs reconstruction's variance-weighting — the flip side is potential neglect of low-influence-but-task-relevant detail; V-JEPA 2.1 (2026) reports exactly that phenotype: dense features "do not emerge reliably when the prediction loss is applied only to masked regions"; DMT-JEPA: "insufficient understanding of local semantics."</li>
+<li><span class="tier E">E</span><strong>Probe dependence:</strong> V-JEPA: "no a priori reason for the encoder to yield a linearly separable subspace" — attentive-vs-linear gap of 16–17 points; I-JEPA takes best-of-two pooling schemes and evaluates the EMA teacher. Low-shot semantics: I-JEPA ViT-H 73.3 vs iBOT ViT-L 81.0 on IN-1% — augmentation-based methods still dominate low-shot by ~7–8 points.</li>
+<li><span class="tier O">O</span><strong>No independent autopsy exists:</strong> every published I-JEPA critique is a method paper justifying its fix, several from affiliated labs. A neutral layer-wise, bias-profiled, two-space audit of I-JEPA has not been done — a concrete opening for this study.</li>
+<li><span class="tier P">P</span><strong>LeJEPA's exposure:</strong> LeJEPA keeps a 3-layer MLP projector and imposes SIGReg on <em>its</em> output, so — like every joint-embedding method — the projector can absorb the isotropy constraint while the backbone stays anisotropic. Its theorem proves isotropy is optimal for the probed distribution, but isotropy is enforced one space away from the probe. Whether SIGReg's <em>distributional</em> constraint transfers to h better than pointwise invariance does (and whether its heuristics-free training changes the transfer) is untested — and is the most interesting thing to measure about it. <span class="tier O">O</span></li>
+</ul>
+
+<h3>4.5 Cross-cutting evaluation gaps</h3>
+<ul>
+<li><span class="tier E">E</span>IN-1k linear accuracy correlates with many-shot transfer but "increasingly less" with few-shot, detection, dense prediction (Ericsson et al., CVPR 2021); single-metric evaluation can't say why a model is better (Dubois et al., ICML 2023); 700-experiment study questions the benchmarks outright (Kotar et al., ICCV 2021).</li>
+<li><span class="tier E">E</span>Probe fragility (MAE linear↮finetune; V-JEPA attentive gap; Shi et al.: the probe layer "itself can be susceptible to spurious correlations") means family rankings are substantially protocol artifacts.</li>
+<li><span class="tier O">O</span><strong>Named absences</strong> (all searched, none found): a group-robustness audit of SSL encoders (Waterbirds/CelebA worst-group); controlled IN-C/R/A comparison across families under matched backbone+probe; shape-bias psychophysics for MIM/JEPA; iBOT-specific failure analyses; SSL memorization beyond déjà vu. Each is a paper-sized hole; three of them are covered by §5's design.</li>
+</ul>
+
+<div class="tablewrap">
+<table>
+<caption>Table 4 — Model × expected strengths and weaknesses<span class="tcap-sub">Synthesis of §4 sources; entries marked ° are predictions (tier P), not published measurements.</span></caption>
+<thead><tr><th>Model</th><th>Expected strengths</th><th>Documented weaknesses</th><th>Predicted weak spots for §5's probes</th></tr></thead>
+<tbody>
+<tr><td class="m">SimCLR / MoCo</td><td>strong linear separability; global/low-frequency structure; calibration</td><td>texture-biased errors ≈ supervised; feature suppression; background reliance; color-information loss; adversarial fragility (uniformity-linked); crop tension on multi-object data</td><td>object-absent crops°, background-only probes°, texture-shape conflict°, small objects°</td></tr>
+<tr><td class="m">BYOL</td><td>as above + robust without negatives; less false-negative noise</td><td>anti-collapse is fragile machinery (predictor-dependent); same augmentation priors as SimCLR</td><td>same as SimCLR°; predictor-ablated variants collapse (E10)</td></tr>
+<tr><td class="m">SwAV</td><td>efficient; multi-crop boosts low-shot</td><td>uniform-cluster prior (imbalance-sensitive); multi-crop task conflict; prototype pathologies unstudied</td><td>long-tail pretraining°, object-absent <em>local</em> crops°, context-swap°</td></tr>
+<tr><td class="m">DINO</td><td>excellent k-NN/frozen features; emergent segmentation-ish attention</td><td>same cluster prior; centering/sharpening delicacy; local-to-global forces context inference</td><td>context-swap°, foreground-background conflict°, crop-semantics mismatch°</td></tr>
+<tr><td class="m">DINOv2</td><td>best general frozen features; dense tasks; KoLeo spread</td><td>curation-dependent by design; distillation obscures objective attribution; prototype-layer anatomy unknown</td><td>spurious-correlation datasets (Waterbirds)° — strong features may ride background cues; IN-A°</td></tr>
+<tr><td class="m">Barlow Twins / VICReg</td><td>no asymmetry machinery; wide-head decorrelation; stable</td><td>inherit contrastive failure modes (duality); decorrelation unverified at h; uniform prior (VICReg named by Assran et al.)</td><td>decorrelation audit at h°, imbalanced pretraining°, texture-shape°</td></tr>
+<tr><td class="m">MAE</td><td>fine-tuning king; dense/geometric tasks; locality; no augmentation priors</td><td>weak linear separability; pixel-variance shortcut; texture/high-freq reliance; late-layer degradation; collapse without uniformity (U-MAE)</td><td>background-only° (should <em>pass</em> object-absence better°), masked-ambiguity probes°, low-shot semantics°</td></tr>
+<tr><td class="m">iBOT</td><td>MIM + distillation hybrid; best-in-class low-shot (81.0 IN-1%)</td><td>no dedicated failure literature at all</td><td>everything — it is the least-audited strong model° <span class="tier O">O</span></td></tr>
+<tr><td class="m">I-JEPA</td><td>no hand-crafted augmentations; semantic latents; compute-efficient</td><td>fragile EMA anti-collapse; context-insufficiency without relief; high-influence-feature bias; weak dense/local semantics; probe-protocol sensitivity; low-shot deficit vs iBOT/DINO</td><td>masked-region ambiguity°, small objects°, multi-object scenes°, linear-vs-attentive probe deltas°</td></tr>
+<tr><td class="m">LeJEPA</td><td>heuristics-free (no stop-grad/EMA/teacher/schedulers); provable isotropy target; single hyperparameter; stability across architectures; label-free selection</td><td>preprint, unreplicated; <b>still projector-based</b> — isotropy enforced at z, not the probed h; mild view stack persists</td><td>isotropy transfer z→h° (E1); whether a distributional constraint needs less buffering than invariance° (E10)</td></tr>
+</tbody>
+</table>
+</div>
+
+</section>
+
+<!-- ==================== TAB 5 : EXPERIMENTS ==================== -->
+<section class="tab" id="t5" role="tabpanel">
+
+<h2>5 · Experiment design — a two-space audit plus failure probes</h2>
+
+<h3>5.0 Fixed experimental frame</h3>
+<dl class="kv">
+<dt>Backbones</dt><dd><b>ViT-S/16 and ViT-B/16</b> throughout. Where official ViT checkpoints don't exist (SimCLR, BYOL, SwAV, VICReg, Barlow Twins are ResNet-native), use published ViT reproductions (e.g., <code>solo-learn</code>, MMSelfSup) <em>and</em> retrain ViT-S versions on ImageNet-100 in-house so every method has one fully-controlled, recipe-matched instance. Report provenance per checkpoint; never mix provenance within a comparison. <span class="tier P">P</span>This dual-track (public checkpoints for scale, matched retrains for control) is the only way to separate objective effects from recipe effects — the confound that plagues most cross-method comparisons.</dd>
+<dt>Methods</dt><dd>SimCLR, MoCo v3, BYOL, SwAV, DINO, iBOT, DINOv2 (+ distilled variants flagged), Barlow Twins, VICReg, MAE, I-JEPA, LeJEPA; supervised ViT (DeiT recipe) and random-init as anchors. <b>Add:</b> data2vec 2.0 (latent-target MIM — the MAE↔I-JEPA midpoint) and MoCo v1 (the natural near-no-head baseline). Every joint-embedding retrain stores <em>the head</em>, all intermediate head layers, and (where applicable) both EMA branches — the study is impossible with backbone-only checkpoints, which is why it hasn't been done on public models alone. <span class="tier P">P</span></dd>
+<dt>Pretraining data</dt><dd>ImageNet-100 for the controlled grid (compute-feasible: ~13k GPU-h for 12 methods × 2 seeds on ViT-S); ImageNet-1k for public checkpoints; one long-tail variant (ImageNet-100-LT) for the cluster-prior probes.</dd>
+<dt>Readouts (fixed across all methods)</dt><dd>(1) linear probe on ℓ2-normalized features, (2) k-NN (k=20), (3) attentive probe — all three reported for <em>every</em> model on <em>every</em> eval, at <span class="hsp">h</span> ([CLS] and patch-avgpool separately, per-layer where flagged) and at <span class="zsp">z</span> (final head output + guillotine curve over head layers). Fine-tuning only for the transfer suite (it erases the very properties under study elsewhere). <span class="tier P">P</span></dd>
+<dt>Standard evals</dt><dd>IN-1k/IN-100 linear + k-NN; transfer classification (CIFAR-10/100, CUB-200, Flowers, Cars, EuroSAT — EuroSAT included deliberately: Guillotine shows its optimal layer differs); segmentation (ADE20K linear head; VOC/COCO frozen-feature protocol); robustness (IN-C, IN-R, IN-A, ObjectNet, IN-Sketch, Stylized-IN, ImageNet-W watermark check); low-shot (IN-1%, 10-shot transfer).</dd>
+<dt>Statistics</dt><dd>2–3 seeds for retrains; bootstrap CIs on all probe metrics; pre-registered directional hypotheses per experiment (below); correction for multiple comparisons within each experiment family.</dd>
+</dl>
+
+<div class="note"><b>Dataset additions beyond the brief</b> — each earns its place: <b>ImageNet-9 / Backgrounds Challenge</b> (the standard fg/bg factorization harness); <b>UrbanCars + ImageNet-W</b> (multi-shortcut Whac-A-Mole testbed); <b>Waterbirds &amp; CelebA-blond</b> (group-robustness with worst-group accuracy — the named literature hole); <b>Cue-conflict Stylized-IN</b> (Geirhos shape-bias psychophysics, missing for MIM/JEPA); <b>COCO-crops</b> (a purpose-built object-absent/multi-object crop bank, below); <b>CounterAnimal</b>-style context-swap sets if available, else synthesized fg/bg recombination from IN-9. Optional stretch: RIVAL-10 for pixel-level fg/bg control.</div>
+
+<div class="tablewrap">
+<table>
+<caption>Table 5 — Proposed experiments × hypothesis × expected takeaway<span class="tcap-sub">E1–E3 form the audit core; E4–E9 are failure probes; E10–E11 are causal interventions. Details in the cards below.</span></caption>
+<thead><tr><th>#</th><th>Experiment</th><th>Central hypothesis</th><th>Expected takeaway</th></tr></thead>
+<tbody>
+<tr><td class="m">E1</td><td>Two-space desiderata audit</td><td>Each method satisfies its stated desideratum at z but not at h; LeJEPA's isotropy and DINOv2's KoLeo transfer to h <em>more</em> than pointwise invariance does</td><td>The completed Table-3 matrix: quantitative per-method transfer coefficients; the paper's centerpiece</td></tr>
+<tr><td class="m">E2</td><td>Guillotine curves for desiderata (not accuracy)</td><td>Desiderata decay monotonically from z toward h; decay rate depends on head depth/width and predicts the accuracy guillotine curve</td><td>A transfer law: which layer to cut, predicted without labels</td></tr>
+<tr><td class="m">E3</td><td>Two-space metric → downstream regression</td><td>h-space rank/retention metrics predict downstream better than z-space alignment/uniformity; RankMe monotonicity is method-family-dependent</td><td>Which desiderata are worth enforcing where; extends RankMe/α-ReQ</td></tr>
+<tr><td class="m">E4</td><td>Augmentation-information ledger</td><td>Nuisance decodability at h: MAE &gt; JEPA &gt; contrastive ≫ their z; LeJEPA's h retains more than its z (projector present, as in all)</td><td>Direct test of the buffer theory; locates LeJEPA among projector methods</td></tr>
+<tr><td class="m">E5</td><td>Object-absent &amp; background-only crops</td><td>View-based methods embed background-only crops near their source image's class; MAE/I-JEPA less so</td><td>Quantifies crop-shortcut reliance per family; déjà-vu-adjacent without the privacy framing</td></tr>
+<tr><td class="m">E6</td><td>Foreground/background conflict &amp; context swap</td><td>Prototype/clustering methods (DINO family) most context-dependent; worst-group accuracy at h &lt; at z is possible (probe susceptibility)</td><td>First group-robustness audit of SSL encoders; fills a named hole</td></tr>
+<tr><td class="m">E7</td><td>Texture/shape cue-conflict psychophysics</td><td>MIM more texture-biased than contrastive at matched architecture; JEPA intermediate; shape bias measured at h ≠ at z</td><td>Completes the Geirhos matrix for MIM/JEPA; first two-space bias measurement</td></tr>
+<tr><td class="m">E8</td><td>Small-object &amp; multi-object scenes</td><td>Feature suppression: dominant objects crowd out small ones most under InfoNCE; patch-level methods (iBOT/DINOv2) resist</td><td>Connects suppression theory to dense-recognition failure; informs method choice for detection pipelines</td></tr>
+<tr><td class="m">E9</td><td>Masked-region ambiguity</td><td>I-JEPA target representations of high-ambiguity regions are low-norm/averaged; ambiguity correlates with downstream error on those regions</td><td>First content-ambiguity (not location) measurement for latent-prediction SSL</td></tr>
+<tr><td class="m">E10</td><td>Causal head interventions (retrain grid)</td><td>Moving each loss term from z to h (VICReg-on-h; SIGReg-on-z; head depth 0–3) trades invariance against retention along a measurable frontier</td><td>Causal, not correlational, version of E1; the "partial-transfer law" paper-within-the-paper</td></tr>
+<tr><td class="m">E11</td><td>Probe-protocol sensitivity map</td><td>Family rankings invert between linear/k-NN/attentive probes in predictable directions (JEPA gains most from attentive)</td><td>A probe-invariant reporting standard; deliverable checklist for §7's evaluation criteria</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>5.1 The audit core</h3>
+
+<details class="card exp" open><summary><span class="t">E1 — Two-space desiderata audit</span><span class="exp-tag">core · public checkpoints + retrains</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>Each method satisfies its own stated desideratum in <span class="zsp">z</span> and violates it at <span class="hsp">h</span>; magnitude of violation varies by family and predicts nothing about downstream accuracy (the buffer account) — or predicts it (pattern B/C of §3.2). Pre-register the Table-3 matrix as directional predictions.</dd>
+<dt>Protocol</dt><dd>50k IN-val features per model per space; compute the full §3 battery: alignment, uniformity, variance profile, off-diag covariance, RankMe, α, Epps–Pulley isotropy, per-augmentation invariance, CKA(h,z), neighbor-overlap. Guillotine variants at each head layer. Report per-method "desideratum satisfaction" at h and z with CIs.</dd>
+<dt>Data / models</dt><dd>IN-1k val (in-distribution); repeat on COCO val (shift) — all §5.0 models with heads preserved.</dd>
+<dt>Metrics</dt><dd>the §3 battery; the key derived quantity is the <b>transfer ratio</b> τ(m, M) = metric m at h ÷ metric m at z per method M.</dd>
+<dt>Expected failure to reveal</dt><dd>h fails advertised properties across the board (RCDM/Guillotine predict this). The LeJEPA-specific test: does its z→h isotropy dissociation come out <em>smaller</em> than the invariance dissociation of view-based methods? That would be evidence a distributional constraint transfers better — the reframed version of its "provable" claim.</dd>
+<dt>Interpretation</dt><dd>τ ≈ 0: pure buffer. τ ≈ 1 with worse accuracy at z: desiderata are epiphenomenal. τ heterogeneous across methods: desiderata-transfer is a design dial the field hasn't been reading.</dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E2 — Guillotine curves for desiderata</span><span class="exp-tag">core · needs stored head layers</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>Desiderata are not binary between spaces but decay along the head; the decay profile (per metric, per layer) predicts the accuracy-vs-layer curve of Bordes et al. without using labels.</dd>
+<dt>Protocol</dt><dd>For every model, compute the §3 battery at backbone output, each projector layer, predictor output; overlay with linear-probe accuracy per layer (the original guillotine curve). Fit accuracy-vs-layer from metrics-vs-layer (leave-one-method-out).</dd>
+<dt>Expected failure</dt><dd>invariance/uniformity rise monotonically toward z while probe accuracy falls after layer 0–1 — with the crossover layer shifting toward z for aligned tasks (reproduce Bordes' EuroSAT/CLEVR inversion, now with metric covariates).</dd>
+<dt>Interpretation</dt><dd>a label-free layer-selection rule (the §2.6 open problem) falls out if the fit is tight.</dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E3 — Which space's metrics predict downstream?</span><span class="exp-tag">core · regression study</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>h-space effective rank + nuisance-retention predict transfer suite performance better than z-space alignment/uniformity; the RankMe h↔z monotonicity holds within but not across families.</dd>
+<dt>Protocol</dt><dd>Regress each downstream score (transfer, robustness, low-shot, dense) on each metric×space, per family and pooled; report rank correlations with CIs; test RankMe(z) vs RankMe(h) as selectors on the retrain grid's hyperparameter sweeps (the RankMe use-case, now two-space).</dd>
+<dt>Expected failure</dt><dd>z-space metrics look excellent on the training distribution and decouple under shift (IN-R/A, ObjectNet targets).</dd>
+<dt>Interpretation</dt><dd>directly answers "which desiderata matter, where" — the actionable output for method designers; feeds §7's evaluation criteria.</dd>
+</dl>
+</div></details>
+
+<h3>5.2 Failure probes</h3>
+
+<details class="card exp"><summary><span class="t">E4 — Augmentation-information ledger</span><span class="exp-tag">probe · SimCLR-Tab.3 protocol, generalized</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>Nuisance decodability at h orders MAE &gt; I-JEPA &gt; DINO ≈ BYOL ≈ SimCLR ≫ each method's z; LeJEPA (also projector-based) sits among the joint-embedding methods, and its z retains less nuisance than its h — the buffer is present in LeJEPA too.</dd>
+<dt>Protocol</dt><dd>Frozen-feature probes predicting: crop position &amp; scale, color-jitter parameters, rotation (applied synthetically), background category (Places-labeled), object position/scale (bbox datasets). Both spaces, all models. This is SimCLR Table 3 and the CASSLE probe, run for the first time across the modern zoo.</dd>
+<dt>Expected failure</dt><dd>invariance-trained models retain far more nuisance at h than their papers imply (RCDM prediction) — the "invariant representation" claim survives only in z.</dd>
+<dt>Interpretation</dt><dd>the information ledger quantifies the buffer directly; LeJEPA's cell tests whether a heuristics-free, distributionally-regularized projector buffers differently from an invariance-trained one.</dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E5 — Object-absent and background-only crops</span><span class="exp-tag">probe · COCO-crops bank</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>View-based models place background-only crops close (in h) to the class centroid of the absent foreground — they learned crop-cooccurrence, not objects. MAE/I-JEPA (no cross-crop positives) show weaker binding; DINO's multi-crop shows the strongest (its local views trained exactly this mapping).</dd>
+<dt>Protocol</dt><dd>Build COCO-crops from COCO segmentation masks: (a) object-present crops, (b) object-absent crops from images containing the object elsewhere, (c) pure-background crops from object-free regions, (d) RRC-simulating crop pairs with logged IoU-with-object. Measure: cos(h(crop), class centroid), retrieval rank of source image, k-NN class of crop; linear-probe accuracy conditional on object-in-crop IoU bins. Repeat in z.</dd>
+<dt>Datasets</dt><dd>COCO (masks), IN-9 (factorized), VOC.</dd>
+<dt>Expected failure</dt><dd>high class-recoverability from object-absent crops for multi-crop distillation models; accuracy vs IoU curves flat (context-driven) rather than rising (object-driven).</dd>
+<dt>Interpretation</dt><dd>a graded, per-family measurement of the Purushwalkam–Gupta/Mishra crop tension — resolving it from a dataset dispute into a mechanism measurement; connects to déjà vu (Meehan) without the privacy framing.</dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E6 — Foreground/background conflict, context swap, group robustness</span><span class="exp-tag">probe · IN-9, Waterbirds, CelebA</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>Frozen SSL features carry background shortcuts into downstream probes: worst-group accuracy on Waterbirds ranks DINOv2 ≥ contrastive &gt; MIM at mean accuracy but with <em>inverted</em> worst-group ordering (strong semantic features can ride strong context features). Two-space twist: z (invariance-filtered) may be <em>more</em> group-robust than h for view-based methods — the head may absorb some context sensitivity. <span class="tier O">O</span></dd>
+<dt>Protocol</dt><dd>IN-9 suite (mixed-same/mixed-rand/only-bg-t/only-fg) for all models, both spaces, fixed probes; Waterbirds + CelebA-blond linear probes with worst-group accuracy (standard group-DRO eval, ERM probe); context-swap retrieval (fg pasted on conflicting bg — does h retrieve by fg or bg?).</dd>
+<dt>Expected failure</dt><dd>BG-gap (mixed-same − mixed-rand) substantial for all SSL, largest for multi-crop models; worst-group accuracy dramatically below mean for everyone (no SSL objective addresses it).</dd>
+<dt>Interpretation</dt><dd>fills the named literature hole (no canonical SSL group-robustness audit); the h-vs-z group-gap tests whether "the projector absorbs context reliance" — a genuinely open two-space question.</dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E7 — Texture/shape cue-conflict for MIM and JEPA</span><span class="exp-tag">probe · Stylized-IN, cue-conflict</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>At matched ViT-B: shape-bias ordering DINO ≥ contrastive &gt; I-JEPA &gt; MAE (Park et al.'s frequency analysis predicts MIM texture reliance); shape bias measured from z exceeds that from h for view-based methods (color/texture nuisances filtered by the head).</dd>
+<dt>Protocol</dt><dd>Geirhos cue-conflict stimuli through frozen features + linear probe (trained on IN); shape-vs-texture decision fractions; error-consistency vs humans and vs supervised ViT; Stylized-IN accuracy. Both spaces.</dd>
+<dt>Expected failure</dt><dd>MIM/JEPA texture-biased beyond supervised ViT baselines; completes the missing rows of the psychophysics literature (named absence, §4.5).</dd>
+<dt>Interpretation</dt><dd>family-level inductive-bias fingerprints at h; input to "which pretraining for which deployment" guidance.</dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E8 — Small objects and multi-object scenes</span><span class="exp-tag">probe · COCO, VOC multi-label</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>Feature suppression (Chen et al.) manifests as: multi-label probe recall falling with object-size rank; global-vector methods (SimCLR/BYOL/DINO-CLS) worst, patch-token methods (iBOT/DINOv2 patch pooling, MAE) best; z strictly worse than h everywhere (the head compresses toward the dominant object).</dd>
+<dt>Protocol</dt><dd>frozen-feature multi-label linear probes on COCO/VOC; per-object-size-decile recall; retrieval tests: does image embedding retrieve the second/third object's class neighbors? Compare [CLS]/global vs patch-pooled h.</dd>
+<dt>Expected failure</dt><dd>steep size-rank decay for contrastive global vectors; DINO-CLS ≈ SimCLR despite dense-task fame ([CLS] vs patch dissociation).</dd>
+<dt>Interpretation</dt><dd>connects instance-discrimination's single-vector bottleneck to dense-recognition needs; motivates patch-level desiderata (the iBOT/DINOv2 direction) as the fix the field already stumbled into. <span class="tier P">P</span></dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E9 — Masked-region ambiguity (content, not location)</span><span class="exp-tag">probe · I-JEPA/MAE-specific</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>For I-JEPA: target-block predictability from context varies enormously; on high-ambiguity blocks the predictor regresses to a mode-average whose norm/specificity is measurably lower; models trained with more ambiguous masking encode less local semantics (DMT-JEPA's complaint, made quantitative).</dd>
+<dt>Protocol</dt><dd>Define ambiguity operationally: (a) ensemble disagreement of k independent predictors (retrain predictor k× on frozen encoder); (b) conditional entropy proxy via a small generative in-filler; (c) human-free structural proxies (distance from context, texture homogeneity). Correlate ambiguity with: prediction error, target-representation norm, downstream per-region segmentation quality; compare MAE (pixel loss) vs I-JEPA (latent loss) vs data2vec on identical masks.</dd>
+<dt>Expected failure</dt><dd>latent-space averaging under ambiguity produces "semantic blur" — regions whose representations are systematically less class-informative; pixel-space MAE degrades more gracefully (blur is visible, not semantic). <span class="tier P">P</span></dd>
+<dt>Interpretation</dt><dd>the first content-multimodality measurement for masked prediction (named absence); directly informs masking-policy design and the stochastic-JEPA line (StoP handles location only).</dd>
+</dl>
+</div></details>
+
+<h3>5.3 Causal interventions</h3>
+
+<details class="card exp"><summary><span class="t">E10 — Move the loss, keep everything else</span><span class="exp-tag">causal · IN-100 retrain grid, the decisive experiment</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>The h↔z dissociation is caused by head placement, and it trades off: enforcing desiderata at h increases their satisfaction there while reducing nuisance retention and (for misaligned pretexts) transfer breadth — a measurable frontier, not a cliff.</dd>
+<dt>Protocol</dt><dd>Matched IN-100/ViT-S retrains: (1) VICReg with var/cov terms at z (standard), at h (expander kept for invariance term only), at both; (2) SimCLR with projector depth 0/1/2/3 (0 = DirectCLR-style); (3) BYOL with predictor replaced by DirectPred closed form; (4) LeJEPA standard (SIGReg on the 3-layer projector, as shipped) vs LeJEPA with SIGReg moved onto the backbone (projector removed / identity), vs projector depth 0/1/2/3 — the intervention that actually tests "impose the desideratum at h"; (5) DINO with KoLeo added at h (the DINOv2 hint, isolated). 2 seeds each. Full E1 battery + E4 ledger + transfer suite on every run.</dd>
+<dt>Expected failure</dt><dd>desiderata-at-h variants: higher metric satisfaction at h, lower augmentation-info retention, equal-or-better aligned-task accuracy, worse mis-aligned-task transfer (EuroSAT/CLEVR-style) — reproducing the Guillotine alignment story <em>causally</em>.</dd>
+<dt>Interpretation</dt><dd>this grid <em>is</em> the partial-transfer law (§2.6's top open problem). If standard (projector) LeJEPA beats SIGReg-on-backbone LeJEPA, the buffer is real even for a distributional constraint; if the two are close, isotropy is gentle enough to impose at h and the projector is dispensable for it — the strongest possible vindication of the "impose-at-h" program. Either answer is a finding. <span class="tier O">O</span></dd>
+</dl>
+</div></details>
+
+<details class="card exp"><summary><span class="t">E11 — Probe-protocol sensitivity map</span><span class="exp-tag">causal-adjacent · cheap, high-leverage</span></summary><div class="body">
+<dl class="kv">
+<dt>Hypothesis</dt><dd>Reported family rankings are probe artifacts within predictable bounds: attentive probes compress the MAE/JEPA deficit (V-JEPA's 16-point precedent); k-NN favors uniformity-trained models; per-space probes disagree most for methods with deep heads.</dd>
+<dt>Protocol</dt><dd>All models × {linear, k-NN, attentive, 2-layer MLP} × {h-CLS, h-patch-avg, best-layer, z} on IN-1k + 3 transfer sets; report the full ranking-stability tensor and a "protocol sensitivity" score per method.</dd>
+<dt>Expected takeaway</dt><dd>a minimal probe set that stabilizes rankings — the empirical basis for §7's reporting standard, and the cheapest of all eleven experiments (features precomputed in E1).</dd>
+</dl>
+</div></details>
+
+<h3>5.4 Compute reality check</h3>
+<p><span class="tier P">P</span>Feature extraction + probes (E1–E9, E11) run on public checkpoints in ~2–4 A100-weeks total — this half of the study is executable in a small-lab budget and already publishable if the retrain grid slips. The IN-100/ViT-S retrain grid (E10 + controlled instances for E1) is ~15–20 configurations × ~1 A100-week ≈ 4–6 A100-months, parallelizable. Nothing requires IN-1k-scale pretraining; every claim about scale rides on public checkpoints, clearly flagged.</p>
+
+</section>
+
+<!-- ==================== TAB 6 : THEORY ==================== -->
+<section class="tab" id="t6" role="tabpanel">
+
+<h2>6 · Theory — which space do the theorems govern?</h2>
+
+<p>Almost every formal result in SSL is a statement about the function the loss touches. When practice inserts a trainable head g and evaluates f, the theorem binds <span class="zsp">g∘f</span> and says nothing direct about <span class="hsp">f</span>. This section maps the major theory lines to their spaces, lists the claims that weaken across the gap, and collects the handful of results that survive it — which turn out to share a shape.</p>
+
+<div class="tablewrap">
+<table>
+<caption>Theory map — result × formal object × space × does it transfer to h?</caption>
+<thead><tr><th>Result</th><th>Formal object</th><th>Space</th><th>Transfers to h?</th></tr></thead>
+<tbody>
+<tr><td class="m">Alignment/uniformity <a href="https://arxiv.org/abs/2005.10242">Wang &amp; Isola ICML'20</a></td><td>ℓ2-normalized encoder output on S<sup>m−1</sup>; InfoNCE asymptotics</td><td><span class="pill z">loss layer</span></td><td>No formal claim. Their own experiments probe both output and fc7 — the modern split didn't exist yet; correlation observed, nothing proven.</td></tr>
+<tr><td class="m">Contrastive generalization bound <a href="https://arxiv.org/abs/1902.09229">Arora et al. ICML'19</a></td><td>any f in hypothesis class, loss computed on f; mean classifier on f</td><td><span class="pill z">loss layer</span></td><td>No — with a head, the theorem certifies g∘f; f is an arbitrary pre-image.</td></tr>
+<tr><td class="m">Vacuity of loss-only analyses <a href="https://arxiv.org/abs/2202.14037">Saunshi et al. ICML'22</a></td><td>the analysis paradigm itself</td><td>—</td><td>The enabling result: same loss, same augmentations, different function class ⇒ different downstream. The head is precisely such a function-class device. <span class="tier P">P</span></td></tr>
+<tr><td class="m">Spectral contrastive guarantee <a href="https://arxiv.org/abs/2106.04156">HaoChen et al. NeurIPS'21</a></td><td>population minimizer of spectral loss = top-k eigvecs of augmentation graph; linear probe on those features</td><td><span class="pill z">loss layer</span></td><td>No — the guaranteed probe sits on the loss features; practice probes one space below. HaoChen &amp; Ma ICLR'23 add function-class effects but keep the loss-layer object.</td></tr>
+<tr><td class="m">SSL = spectral embedding <a href="https://arxiv.org/abs/2205.11508">Balestriero &amp; LeCun NeurIPS'22</a></td><td>closed-form optima of VICReg/SimCLR/BT losses</td><td><span class="pill z">loss layer</span></td><td>No — "the learned embedding is a Laplacian/MDS embedding" is true of z; the head absorbs the whitening/orthogonality structure of that solution. <span class="tier P">P</span></td></tr>
+<tr><td class="m">DirectPred dynamics <a href="https://arxiv.org/abs/2102.06810">Tian et al. ICML'21</a></td><td>linear predictor W<sub>p</sub> eigenspace vs input correlation</td><td><span class="pill z">predictor space</span></td><td>Not addressed — backbone quality checked only empirically.</td></tr>
+<tr><td class="m">Prediction-head mechanism <a href="https://arxiv.org/abs/2205.06226">Wen &amp; Li NeurIPS'22</a></td><td><b>the encoder beneath a trainable head</b> (nonlinear, end-to-end)</td><td><span class="pill h">backbone</span></td><td><b>Yes — by construction.</b> Substitution + acceleration effects make the encoder learn all features; the head is a training device.</td></tr>
+<tr><td class="m">Rank differential <a href="https://arxiv.org/abs/2303.02387">Zhuo et al. ICLR'23</a></td><td>spectra of dual-branch outputs</td><td><span class="pill z">branch outputs</span></td><td>Explicitly not connected to backbone rank (named limitation).</td></tr>
+<tr><td class="m">Implicit variance regularization <a href="https://arxiv.org/abs/2212.04858">Halvagal et al. NeurIPS'23</a></td><td>eigenmodes of closed-form linear predictors</td><td><span class="pill z">predictor space</span></td><td>Not addressed.</td></tr>
+<tr><td class="m">Multi-view IB / sufficiency <a href="https://arxiv.org/abs/2002.07017">Federici et al. ICLR'20</a>, <a href="https://arxiv.org/abs/2006.05576">Tsai et al. ICLR'21</a></td><td>the latent z the objective shapes</td><td><span class="pill z">loss layer</span></td><td>Split verdict: <b>sufficiency survives</b> at h (data processing: h ⊇ info(z)); <b>minimality does not</b> — h is non-minimal by design. <span class="tier P">P</span></td></tr>
+<tr><td class="m">Minimal sufficiency is harmful <a href="https://arxiv.org/abs/2203.07004">Wang et al. CVPR'22</a></td><td>task-relevant info not shared between views</td><td><span class="pill z">loss layer</span></td><td>The danger is maximal at z; the head is arguably why practice escapes it — h keeps the non-shared information. <span class="tier P">P</span></td></tr>
+<tr><td class="m">VICReg information bound <a href="https://arxiv.org/abs/2303.00633">Shwartz-Ziv et al. NeurIPS'23</a></td><td>the regularized embedding's statistics</td><td><span class="pill z">expander output</span></td><td>No — the bound certifies entropy/decorrelation properties h is never forced to have.</td></tr>
+<tr><td class="m">Stepwise spectral learning <a href="https://arxiv.org/abs/2303.15438">Simon et al. ICML'23</a></td><td>linearized BT dynamics; loss-layer embeddings in closed form</td><td><span class="pill z">loss layer</span></td><td>Not addressed (kernel-PCA picture of z).</td></tr>
+<tr><td class="m">MAE mask theory <a href="https://arxiv.org/abs/2210.08344">Zhang et al. NeurIPS'22 (U-MAE)</a></td><td>pixel objective reduced to <b>encoder-level</b> alignment of mask-induced positive pairs</td><td><span class="pill h">encoder</span> (via decoder assumptions)</td><td><b>Yes — reverse-direction bridge:</b> loss in pixel space, guarantee pulled back to h; predicts and fixes h-space dimensional collapse.</td></tr>
+<tr><td class="m">MAE identifiability <a href="https://arxiv.org/abs/2306.04898">Kong et al. CVPR'23</a></td><td>which latents of a hierarchical model the encoder recovers; masking ratio selects the level</td><td><span class="pill h">encoder content</span></td><td>Content-level claim (what is represented), not geometry — the kind that survives heads. <span class="tier P">P</span></td></tr>
+<tr><td class="m">JEPA implicit bias <a href="https://arxiv.org/abs/2407.03475">Littwin et al. NeurIPS'24</a></td><td>deep linear self-distillation feature dynamics</td><td><span class="pill h">encoder (linear model, no head)</span></td><td>Yes within its model class; nonlinear-head regime open.</td></tr>
+<tr><td class="m">LeJEPA optimality <a href="https://arxiv.org/abs/2511.08544">Balestriero &amp; LeCun '25</a></td><td>embedding distribution minimizing worst-case downstream risk; SIGReg statistics</td><td><span class="pill z">projector output</span> (implementation); notation <code>f_θ</code>/<code>z</code> ambiguous in the paper</td><td><b>Gap present, not dissolved.</b> SIGReg is applied to the projector; the backbone is probed. The optimality theorem characterizes the enforced (projector) distribution — its relevance to the probed backbone rests on an unstated isotropy-transfer assumption.</td></tr>
+<tr><td class="m">Latent Distribution Matching <a href="https://arxiv.org/abs/2605.03517">Mikulasch &amp; Zenke ICML'26 Spotlight</a></td><td>ℱ<sub>LDM</sub> = −D<sub>KL</sub>[R(z,z′)∥P<sub>θ</sub>(z,z′)]: alignment to an assumed latent model + entropy; identifiability up to affine maps</td><td><span class="pill z">loss layer</span> (heads not discussed — verified absence)</td><td>Identifiability is a <em>content</em> claim and plausibly survives composition with a head on the data manifold — the most gap-robust kind of loss-layer theorem. <span class="tier P">P</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>6.1 Eight claims that weaken across the gap</h3>
+<ol>
+<li><span class="tier P">P</span><strong>"Good alignment + uniformity ⇒ good representation."</strong> Both metrics live on the loss sphere; Guillotine's core observation is that the layer where invariance is enforced is <em>not</em> the best layer; Xue et al. show h contains features z lacks entirely. Loss-sphere geometry under-determines h.</li>
+<li><span class="tier P">P</span><strong>Contrastive-loss-value generalization bounds.</strong> They bind g∘f; Saunshi et al. prove the loss value alone can be vacuous — the head is exactly the architectural degree of freedom their critique licenses.</li>
+<li><span class="tier P">P</span><strong>"Learned features are the augmentation graph's spectral embedding."</strong> True of z at the optimum; h is a pre-image that need not carry the spectral solution's whitening/orthogonality structure — Guillotine's layer-wise probes show the trunk does not behave like the loss-optimal embedding.</li>
+<li><span class="tier P">P</span><strong>"Invariance ⇒ minimal sufficient representation."</strong> By data processing, h is a superset of z's information — non-minimal by design (Ouyang: the head "filters out the information irrelevant to the contrastive objective"). Sufficiency-type conclusions survive at h; minimality/compression-type conclusions do not. And per Wang et al., that's fortunate.</li>
+<li><span class="tier P">P</span><strong>Isotropy/whitening optimality prescriptions.</strong> Theorems of the form "the probed distribution should be isotropic/uniform" are enforced in a space nobody probes — including in LeJEPA, whose SIGReg targets isotropy at the projector output while the backbone is probed. So LeJEPA's isotropy-optimality theorem, taken literally, binds the discarded space; its applicability to the backbone requires the (unproven) assumption that isotropy transfers through the projector.</li>
+<li><span class="tier P">P</span><strong>Dimensional-collapse diagnoses at the embedding.</strong> Rank at z ≠ rank at h; the head buffers collapse pressure (Jing: no projector ⇒ collapse moves into h). Rank-based model selection (RankMe) rests on an empirical, not formal, h↔z monotonicity.</li>
+<li><span class="tier P">P</span><strong>Non-contrastive stability theorems.</strong> DirectPred/IsoLoss/orthogonality results characterize predictor eigenmodes — the loss-adjacent machinery — while the object of interest is the encoder those dynamics shape (Wen &amp; Li is the corrective, and its very existence marks the others' scope).</li>
+<li><span class="tier P">P</span><strong>Information-theoretic bounds on VICReg-style objectives.</strong> The certified quantities (entropy floor, decorrelation) are satisfied at z exactly and at h only directionally — the bound's premises fail in the probed space.</li>
+</ol>
+
+<h3>6.2 The results that survive — and their common shape</h3>
+<p><span class="tier P">P</span>Five kinds of result cross the gap: (i) theorems whose object is the encoder-under-a-head (Wen &amp; Li); (ii) reductions that pull a far-space loss back to encoder-level structure (U-MAE); (iii) explicit backbone-side guarantees with the head modeled as a filter (Ouyang et al.); (iv) architectures that shrink the gap (DirectCLR — loss on a backbone sub-vector; note LeJEPA does <em>not</em> belong here, as it retains a full projector); (v) <em>content</em> claims — identifiability up to affine maps (LDM; Kong et al.) — which concern what is encoded rather than how it is arranged, and so are stable under the head's reparametrization. The pattern: <strong>geometry-claims break at the gap; content-claims and head-aware claims survive.</strong> That is also exactly the E1/E4 dichotomy — measure geometry desiderata (expect dissociation) and information content (expect survival) separately.</p>
+
+<h3>6.3 Where the two 2025–26 anchors sit</h3>
+<p><strong>LeJEPA</strong> supplies a normative target: among distributions with a scalar covariance constraint, the isotropic Gaussian uniquely minimizes integrated squared bias of downstream probes — for linear <em>and</em> nonlinear probes — so this is the distribution to aim for. But LeJEPA enforces it on a projector, not the backbone, so the theorem currently certifies the wrong space; closing that gap (SIGReg directly on h) is an experiment, not an established property. Its plausible empirical bet — that a <em>distributional</em> constraint transfers through the projector more faithfully than <em>pointwise</em> invariance — is exactly what E10's SIGReg-on-backbone arm tests. <span class="tier P">P</span></p>
+<p><strong>Latent Distribution Matching</strong> (Mikulasch &amp; Zenke, ICML 2026 Spotlight — verified) unifies the families at the loss layer: every surveyed objective is alignment (log-likelihood under an assumed latent model) plus an entropy estimator, and the choice of estimator generates the family tree — KDE→contrastive, parametric-Gaussian→VICReg, conditional-entropy-with-predictor→BYOL/SimSiam's stop-gradient, with CPC and JEPA also mapped. Its identifiability theorem (representations recover true latents up to affine transformation, even with nonlinear predictors) is the strongest available answer to "what do these objectives actually promise?" — and notably, the paper does not discuss projection heads at all. <span class="tier P">P</span>Composing LDM's loss-layer identifiability with the head question is an open theory problem this study's data would directly inform: if z identifies latents up to affine maps and h = g<sup>−1</sup>-ish pre-image retains strictly more information, then h identifies them too, plus nuisances — formalizing "sufficiency survives, minimality doesn't." <span class="tier O">O</span></p>
+
+</section>
+
+<!-- ==================== TAB 7 : SYNTHESIS ==================== -->
+<section class="tab" id="t7" role="tabpanel">
+
+<h2>7 · Synthesis, unified pattern &amp; roadmap</h2>
+
+<h3>7.1 Is there a unified pattern across SSL families?</h3>
+<p><span class="tier E">E</span>Yes, at two levels. <strong>Empirically</strong>, every joint-embedding family enforces its desiderata in a discarded space and relies on the same buffer effect — and the loss space frequently fails to satisfy its <em>own</em> stated properties (contrastive embeddings dimensionally collapse; SimCLR's z is only "isotropic" in aspiration). <strong>Theoretically</strong>, the two 2025–26 anchors supply the unification the field lacked:</p>
+<ul>
+<li><strong>Latent Distribution Matching</strong> (Mikulasch &amp; Zenke, ICML 2026 Spotlight — <em>existence and venue verified</em>, arXiv:2605.03517) casts <em>all</em> surveyed objectives as one template: <span class="zsp">alignment</span> (log-likelihood under an assumed latent model) + <span class="zsp">uniformity</span> (an entropy estimator), with the estimator choice generating the family tree (KDE → SimCLR; parametric Gaussian → VICReg; conditional-entropy-with-predictor → BYOL/SimSiam stop-gradient; CPC/JEPA also mapped). Its identifiability theorem — latents recovered up to an affine map — is the strongest statement of what these losses promise. It is stated at the loss layer and does not mention heads, which is precisely the seam this report probes.</li>
+<li><strong>LeJEPA</strong> (Balestriero &amp; LeCun, arXiv:2511.08544; "L-JEPA" resolves here) supplies the normative counterpart: the isotropic Gaussian uniquely minimizes worst-case downstream risk. It removes the heuristic stack (stop-grad, EMA, teacher, schedulers) but — as its implementation confirms — still imposes that desideratum on a 3-layer MLP projector and probes the backbone. So it names the right target without yet enforcing it in the probed space.</li>
+</ul>
+<p><span class="tier P">P</span>Read together: LDM says the families differ only in how they estimate the same two quantities in loss space; LeJEPA says pick one distributional desideratum (isotropy) and prove it optimal — yet still enforces it on a projector. The unified picture is that <strong>the field has spent five years regularizing the discarded space with increasingly sophisticated estimators, and not even the newest "provable" method has actually moved the desideratum onto the backbone.</strong> That move — SIGReg (or any desideratum) imposed directly on h — remains the untaken step this report's study is designed to test.</p>
+
+<h3>7.2 Do different methods satisfy different desiderata on the backbone?</h3>
+<p><span class="tier P">P</span>The predicted answer (Table 3, §3.1) is that <em>none of the classic methods satisfy their advertised desideratum at h</em> — but they differ in which <em>other</em> properties survive:</p>
+<ul>
+<li><strong>Contrastive (SimCLR/MoCo):</strong> h inherits partial alignment and strong linear separability, but not invariance (RCDM), not uniformity, not decorrelation. Low-frequency/global structure; texture-biased.</li>
+<li><strong>Distillation (BYOL/DINO):</strong> h inherits high effective rank and excellent k-NN structure as an emergent, unstated property; the stated non-collapse desideratum is a head-dynamics fact, not an h-property.</li>
+<li><strong>Redundancy-reduction (BT/VICReg):</strong> h inherits a raised variance floor <em>directionally</em> (VICReg D.8) but the decorrelation itself is unmeasured at h — the family's central claim is untested in the probed space.</li>
+<li><strong>Clustering (SwAV/DINO):</strong> the one desideratum that <em>does</em> reach h is a negative one — the uniform-cluster prior, which manifests as a dataset assumption (imbalance sensitivity).</li>
+<li><strong>MIM (MAE):</strong> h uniquely retains low-level/positional and nuisance information (the opposite failure); its stated "sufficiency" is real but its linear separability is weak and best features sit mid-backbone.</li>
+<li><strong>JEPA (I-JEPA / LeJEPA):</strong> h inherits latent-predictability but with fragile anti-collapse and weak local semantics. LeJEPA is no exception to the gap — its isotropy target is enforced at the projector and merely <em>hoped</em> to transfer to the probed backbone; whether it does is the open question that would make or break its "provable" framing at the representation level.</li>
+</ul>
+
+<h3>7.3 Robust, fragile, underexplored</h3>
+<div class="numgrid">
+  <div class="cell"><div class="k"><b style="color:var(--est)">Most robust on the backbone</b><br>DINOv2 (KoLeo pushes a desideratum near h; best frozen features; curated-data-hardened) and iBOT (MIM+distillation hybrid, best low-shot) — though DINOv2's robustness is partly bought with data curation, and iBOT is nearly un-audited.</div></div>
+  <div class="cell"><div class="k"><b style="color:var(--warn)">Most fragile / conditional</b><br>I-JEPA (fragile EMA anti-collapse, context-insufficiency, probe-sensitive, low-shot deficit) and MAE (weak linear probe, pixel-shortcut, needs fine-tuning) — strong only under their preferred readout.</div></div>
+  <div class="cell"><div class="k"><b style="color:var(--backbone)">Most likely to surprise</b><br>LeJEPA (its isotropy target is proven optimal but enforced at a projector — does it transfer to h?) and the redundancy-reduction pair (decorrelation at h has simply never been measured).</div></div>
+  <div class="cell"><div class="k"><b style="color:var(--open-c)">Most underexplored weaknesses</b><br>SSL group-robustness (no canonical audit), content-multimodality of masked prediction, prototype-head anatomy at scale, MIM/JEPA shape-bias psychophysics, iBOT failure modes.</div></div>
+</div>
+
+<h3>7.4 A new evaluation standard: four property classes, measured where they live</h3>
+<p>The report's constructive proposal. Current practice reports one number (IN-1k linear) that conflates all four; the audit demands they be separated and each measured in its home space.</p>
+<div class="tablewrap">
+<table>
+<caption>Proposed four-class evaluation criteria for SSL representations</caption>
+<thead><tr><th>Class</th><th>What it captures</th><th>Where measured</th><th>Instruments</th><th>Reported as</th></tr></thead>
+<tbody>
+<tr><td class="m" style="color:var(--loss)">Loss-space properties</td><td>the desideratum the objective actually enforces</td><td><span class="pill z">z + head layers</span></td><td>alignment, uniformity, variance floor, decorrelation, RankMe, isotropy test</td><td>satisfaction level + guillotine curve</td></tr>
+<tr><td class="m" style="color:var(--backbone)">Backbone-space properties</td><td>what survives into the probed representation</td><td><span class="pill h">h ([CLS], patch, best layer)</span></td><td>same battery + transfer ratio τ; nuisance/semantic information ledger; effective rank &amp; α</td><td>per-metric τ(h/z); retention profile</td></tr>
+<tr><td class="m" style="color:var(--est)">Downstream-useful properties</td><td>task performance under a fixed, disclosed readout</td><td><span class="pill h">h</span>, all probes</td><td>linear + k-NN + attentive; full-shot &amp; few-shot; transfer; dense</td><td>per-probe, never single-number; probe-sensitivity score</td></tr>
+<tr><td class="m" style="color:var(--warn)">Robustness / failure properties</td><td>behavior under shift and adversarial content structure</td><td><span class="pill h">h</span></td><td>IN-C/R/A, ObjectNet; object-absent/background/context-swap; texture-shape; worst-group; small/multi-object</td><td>gap-to-clean; worst-group; per-failure deltas</td></tr>
+</tbody>
+</table>
+</div>
+<p class="sm"><span class="tier P">P</span>The single most important reporting change: every representation metric and every probe result is tagged with its space (<span class="hsp">h</span>/<span class="zsp">z</span>/layer) and its readout, so that a claim like "method M is invariant" becomes "method M is invariant at z (τ=0.1 at h)" — falsifiable and located.</p>
+
+<h3>7.5 What the independent adversarial verification established — and what it didn't</h3>
+<p><span class="tier E">E</span>A separate verification pass (6 search angles → 23 primary sources → 101 extracted claims → 25 ranked claims → 3-vote refutation panels each) returned <strong>21 confirmed, 4 refuted</strong>. Confirmed 3-0: the loss-space/eval-space gap is real and foundational; no universal optimal readout layer; the head absorbs specialization while the backbone retains removed information; contrastive dimensional collapse in loss space; the prediction-head substitution/acceleration mechanism; DirectPred's analytic predictor; the projector as uniformity-projector (with entropy numbers); RankMe's cross-space predictivity; Wang &amp; Isola characterizing only the normalized loss space. Confirmed at 2-1 (framing weighted lower): pre-projector versatility, predictor+stop-grad as the collapse-prevention pair (four factors interact, not two), and the object-centric-bias critique.</p>
+<div class="note"><b>Refuted or contested — carried forward as caveats:</b> (1) All three claims from arXiv:2605.17180 (linear-head implicit whitening; smooth-nonlinearity negative-curvature escape; "universal geometric buffer") failed verification (1-2, 1-2, 0-3) — this report does not rely on them. (2) The claim that CKA reliably identifies cross-model representation correspondence was refuted 0-3 — CKA is treated as contested in the §3 battery. <b>Honest scope limit:</b> the verification pass confirmed the <em>projector-gap core</em> to a high standard but reached <em>no</em> verified claims about MAE/I-JEPA/LeJEPA specifics, SwAV/clustering internals, the failure-oriented experiment designs, or the LDM paper — those rest on the four specialist dossiers (which verified them by direct quotation against arXiv) rather than on the adversarial panel. Treat the §1 method details, §4 MIM/JEPA failures, and §6 JEPA theory as quote-verified but not adversarially cross-examined. <b>Post-review correction (2026-07-02):</b> an earlier draft claimed LeJEPA applied its loss directly to the backbone (making it "1 of 11" without the gap). A reader checked the official implementation (<code>galilai-group/lejepa</code>) and found a 3-layer MLP projector with both losses computed on its output; the paper's ambiguous <code>f_θ</code>/<code>z</code> notation and its unexplained "proj. dim." hyperparameter had been misread. Corrected throughout: <b>0 of 11</b> methods impose their loss on the probed representation, and LeJEPA is the sharpest illustration of the gap rather than its exception. This is a cautionary example of the same failure the report studies — reading a paper's stated desideratum instead of checking where the code applies it.</div>
+
+<h3>7.6 Prioritized experimental roadmap for a first paper</h3>
+<ol>
+<li><strong>Phase 0 — instrument &amp; pre-register (2 weeks).</strong> Fix the metric battery (§3, with CKA paired to a second geometry measure), the two-probe-per-space protocol, and the Table-3 directional predictions. Deliverable: a pre-registration that makes the central claim falsifiable before any number is computed.</li>
+<li><strong>Phase 1 — the two-space audit on public checkpoints (E1, E2, E3; ~1 month, ~2–4 A100-weeks).</strong> This is the paper's spine and is publishable alone. Output: the completed metrics × models × spaces matrix, per-method transfer ratios τ, guillotine curves for desiderata (not just accuracy), and the regression of downstream performance on each metric×space. Decision gate: does h dissociate from z as predicted, and do h-space metrics out-predict z-space ones?</li>
+<li><strong>Phase 2 — the augmentation-information ledger + two highest-value failure probes (E4, E5, E6; ~1 month).</strong> E4 tests the buffer theory directly and locates LeJEPA; E5 (object-absent/background crops via COCO masks) turns the crop-tension dispute into a graded per-family measurement; E6 delivers the missing SSL group-robustness audit. Each is a self-contained result.</li>
+<li><strong>Phase 3 — the causal intervention grid (E10; ~4–6 A100-months, parallelizable).</strong> The move-the-loss retrains (VICReg-on-h, SimCLR projector-depth sweep, SIGReg-on-backbone LeJEPA, KoLeo-at-h) convert correlation into causation and yield the partial-transfer law — the strongest single contribution, and the natural second paper if compute is tight.</li>
+<li><strong>Phase 4 — remaining failure probes + probe-sensitivity map (E7, E8, E9, E11; features already cached).</strong> Cheap given Phase 1 infrastructure; completes the shape-bias-for-MIM/JEPA and masked-ambiguity gaps and produces the probe-invariant reporting standard.</li>
+</ol>
+<div class="thesis">
+<p><strong>The minimum publishable unit is Phase 0 + Phase 1 + one failure probe</strong> — executable on public checkpoints in a small-lab budget, with a falsifiable central claim and a constructive deliverable (the four-class evaluation standard). The central claim to defend: <em>SSL methods satisfy their advertised desiderata in the space they discard; what survives into the backbone is sufficiency-like, not the minimality/invariance/isotropy the objectives name — and measuring the right property in the right space explains downstream success better than the loss value does.</em></p>
+</div>
+
+</section>
+
+<!-- ==================== TAB 8 : REFERENCES ==================== -->
+<section class="tab" id="t8" role="tabpanel">
+
+<h2>8 · References</h2>
+<p class="sm">Primary sources, quote-verified against arXiv / OpenReview / proceedings on 2026-07-01 unless marked. Tags: <span class="tier E">E</span> peer-reviewed &amp; quote-verified · <span class="tier P">P</span> preprint or abstract-level · items flagged <span class="pill x">refuted</span> failed adversarial verification and are cited only to record their exclusion.</p>
+
+<div class="refbar">
+  <input type="search" id="reffilter" placeholder="Filter references — author, method, venue, arXiv id…" aria-label="Filter references">
+  <span class="sm" id="refcount"></span>
+</div>
+
+<h3>Method papers</h3>
+<ol class="refs" id="reflist">
+<li><b>SimCLR</b> — Chen, Kornblith, Norouzi, Hinton. A Simple Framework for Contrastive Learning of Visual Representations. <span class="v">ICML 2020 · arXiv:2002.05709</span></li>
+<li><b>MoCo v1</b> — He, Fan, Wu, Xie, Girshick. Momentum Contrast for Unsupervised Visual Representation Learning. <span class="v">CVPR 2020 · arXiv:1911.05722</span></li>
+<li><b>MoCo v2</b> — Chen, Fan, Girshick, He. Improved Baselines with Momentum Contrastive Learning. <span class="v">tech report · arXiv:2003.04297</span></li>
+<li><b>MoCo v3</b> — Chen, Xie, He. An Empirical Study of Training Self-Supervised Vision Transformers. <span class="v">ICCV 2021 · arXiv:2104.02057</span></li>
+<li><b>BYOL</b> — Grill et al. Bootstrap Your Own Latent. <span class="v">NeurIPS 2020 · arXiv:2006.07733</span></li>
+<li><b>SimSiam</b> — Chen &amp; He. Exploring Simple Siamese Representation Learning. <span class="v">CVPR 2021 · arXiv:2011.10566</span></li>
+<li><b>SwAV</b> — Caron et al. Unsupervised Learning of Visual Features by Contrasting Cluster Assignments. <span class="v">NeurIPS 2020 · arXiv:2006.09882</span></li>
+<li><b>DINO</b> — Caron et al. Emerging Properties in Self-Supervised Vision Transformers. <span class="v">ICCV 2021 · arXiv:2104.14294</span></li>
+<li><b>iBOT</b> — Zhou et al. iBOT: Image BERT Pre-Training with Online Tokenizer. <span class="v">ICLR 2022 · arXiv:2111.07832</span></li>
+<li><b>DINOv2</b> — Oquab, Darcet, Moutakanni et al. DINOv2: Learning Robust Visual Features without Supervision. <span class="v">TMLR 2024 · arXiv:2304.07193</span></li>
+<li><b>Barlow Twins</b> — Zbontar, Jing, Misra, LeCun, Deny. Self-Supervised Learning via Redundancy Reduction. <span class="v">ICML 2021 · arXiv:2103.03230</span></li>
+<li><b>VICReg</b> — Bardes, Ponce, LeCun. Variance-Invariance-Covariance Regularization. <span class="v">ICLR 2022 · arXiv:2105.04906</span></li>
+<li><b>W-MSE</b> — Ermolov, Siarohin, Sangineto, Sebe. Whitening for Self-Supervised Representation Learning. <span class="v">ICML 2021 · arXiv:2007.06346</span></li>
+<li><b>MAE</b> — He, Chen, Xie, Li, Dollár, Girshick. Masked Autoencoders Are Scalable Vision Learners. <span class="v">CVPR 2022 · arXiv:2111.06377</span></li>
+<li><b>I-JEPA</b> — Assran et al. Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. <span class="v">CVPR 2023 · arXiv:2301.08243</span></li>
+<li><b>V-JEPA</b> — Bardes et al. Revisiting Feature Prediction for Learning Visual Representations from Video. <span class="v">TMLR 2024 · arXiv:2404.08471</span></li>
+<li><b>LeJEPA</b> — Balestriero &amp; LeCun. LeJEPA: Provable and Scalable SSL Without the Heuristics. <span class="v">preprint 2025 · arXiv:2511.08544</span> <span class="tier P">P</span></li>
+<li><b>SSL Cookbook</b> — Balestriero et al. A Cookbook of Self-Supervised Learning. <span class="v">2023 · arXiv:2304.12210</span></li>
+</ol>
+
+<h3>Projector / predictor role &amp; the gap</h3>
+<ol class="refs">
+<li><b>Guillotine Regularization</b> — Bordes, Balestriero, Garrido, Bardes, Vincent. Why removing layers is needed to improve generalization in SSL. <span class="v">TMLR 2023 · arXiv:2206.13378</span> — <em>the central gap paper; &gt;30pp; verified 3-0</em></li>
+<li><b>RCDM</b> — Bordes, Balestriero, Vincent. High Fidelity Visualization of What Your SSL Representation Knows About. <span class="v">TMLR 2022 · arXiv:2112.09164</span> — <em>backbone not invariant; projector output is</em></li>
+<li><b>Dimensional collapse / DirectCLR</b> — Jing, Vincent, LeCun, Tian. Understanding Dimensional Collapse in Contrastive SSL. <span class="v">ICLR 2022 · arXiv:2110.09348</span> — <em>51.5/61.1/66.5/62.7 numbers verified 3-0</em></li>
+<li><b>Rank Differential Mechanism</b> — Zhuo, Wang, Ma, Wang. Unified Understanding of Non-contrastive Learning via RDM. <span class="v">ICLR 2023 · arXiv:2303.02387</span></li>
+<li><b>DirectPred</b> — Tian, Chen, Ganguli. Understanding SSL Dynamics without Contrastive Pairs. <span class="v">ICML 2021 · arXiv:2102.06810</span></li>
+<li><b>Prediction-head mechanism</b> — Wen &amp; Li. The Mechanism of Prediction Head in Non-contrastive SSL. <span class="v">NeurIPS 2022 · arXiv:2205.06226</span> — <em>substitution/acceleration; encoder-level guarantee; verified 3-0</em></li>
+<li><b>Guillotine for supervised (t-ReX)</b> — Sariyildiz et al. No Reason for No Supervision. <span class="v">ICLR 2023 spotlight · arXiv:2206.15369</span></li>
+<li><b>Projection Head is Secretly an Information Bottleneck</b> — Ouyang, Hu, Zhang, Wang, Wang. <span class="v">ICLR 2025 · arXiv:2503.00507</span> — <em>pre-projector downstream guarantee</em></li>
+<li><b>Investigating the Benefits of Projection Head</b> — Xue, Gan, Ni, Joshi, Mirzasoleiman. <span class="v">ICLR 2024 · arXiv:2403.11391</span> — <em>progressive feature weighting; verified 3-0</em></li>
+<li><b>Deciphering the Projection Head (RED)</b> — Ma, Hu, Wang. <span class="v">IJCAI 2024 · arXiv:2301.12189</span> — <em>projector = uniformity projector; entropy numbers verified 3-0</em></li>
+<li><b>How Does SimSiam Avoid Collapse</b> — Zhang et al. <span class="v">ICLR 2022 · arXiv:2203.16262</span></li>
+<li><b>BYOL works even without batch statistics</b> — Richemond et al. <span class="v">2020 · arXiv:2010.10241</span></li>
+<li><b>The Edge of Orthogonality</b> — Richemond et al. What Makes BYOL Tick. <span class="v">ICML 2023 · arXiv:2302.04817</span></li>
+<li><b>On the Importance of Asymmetry for Siamese Representation Learning</b> — Wang et al. <span class="v">CVPR 2022 · arXiv:2204.00613</span></li>
+<li><b>Small projectors + multiple views</b> — Agrawal et al. <span class="v">NeurIPS 2024 · arXiv:2312.10725</span></li>
+<li><b>The Geometry of Projection Heads</b> — Chaudhry. <span class="v">preprint 2026 · arXiv:2605.17180</span> <span class="pill x">refuted 1-2 / 1-2 / 0-3</span> — <em>excluded; recorded for transparency</em></li>
+</ol>
+
+<h3>Representation metrics</h3>
+<ol class="refs">
+<li><b>RankMe</b> — Garrido, Balestriero, Najman, LeCun. Assessing Downstream Performance by Rank. <span class="v">ICML 2023 · arXiv:2210.02885</span> — <em>necessary-not-sufficient; verified 3-0</em></li>
+<li><b>α-ReQ</b> — Agrawal, Mondal, Ghosh, Richards. Representation Quality by Eigenspectrum Decay. <span class="v">NeurIPS 2022</span></li>
+<li><b>Alignment &amp; Uniformity</b> — Wang &amp; Isola. Understanding Contrastive Learning on the Hypersphere. <span class="v">ICML 2020 · arXiv:2005.10242</span> — <em>characterizes normalized loss space; verified 3-0</em></li>
+<li><b>Duality of contrastive / non-contrastive</b> — Garrido, Chen, Bardes, Najman, LeCun. <span class="v">ICLR 2023 · arXiv:2206.02574</span></li>
+<li><b>IdEst (intrinsic dimension)</b> — Mordacq, Kalogeiton, Oudot. <span class="v">2026 · arXiv:2606.03338</span> <span class="tier P">P</span></li>
+<li><b>Risk Decomposition</b> — Dubois, Hashimoto, Liang. Evaluating SSL via Risk Decomposition. <span class="v">ICML 2023 oral · arXiv:2302.03068</span></li>
+<li><b>CKA</b> — Kornblith, Norouzi, Lee, Hinton. Similarity of Neural Network Representations Revisited. <span class="v">ICML 2019 · arXiv:1905.00414</span> <span class="pill x">reliability refuted 0-3</span> — <em>treat as contested (cf. Davari et al.)</em></li>
+<li><b>AugSelf</b> — Lee et al. Improving Transferability via augmentation-aware self-supervision. <span class="v">NeurIPS 2021 · arXiv:2111.09613</span></li>
+<li><b>CASSLE</b> — Przewięźlikowski et al. Augmentation-aware SSL with Conditioned Projector. <span class="v">KBS 2024 · arXiv:2306.06082</span></li>
+</ol>
+
+<h3>Failure modes &amp; robustness</h3>
+<ol class="refs">
+<li><b>Demystifying Contrastive SSL</b> — Purushwalkam &amp; Gupta. Invariances, Augmentations, Dataset Biases. <span class="v">NeurIPS 2020 · arXiv:2007.13916</span> — <em>verified 2-1</em></li>
+<li><b>What Should Not Be Contrastive (LooC)</b> — Xiao, Wang, Efros, Darrell. <span class="v">ICLR 2021 · arXiv:2008.05659</span></li>
+<li><b>What Makes for Good Views (InfoMin)</b> — Tian et al. <span class="v">NeurIPS 2020 · arXiv:2005.10243</span></li>
+<li><b>Object-Aware Cropping</b> — Mishra et al. <span class="v">TMLR 2022 · arXiv:2112.00319</span> — <em>+8.8 mAP object crops</em></li>
+<li><b>Object-aware Contrastive (ContraCAM)</b> — Mo et al. <span class="v">NeurIPS 2021 · arXiv:2108.00049</span></li>
+<li><b>Revisiting Contrastive Methods (scene-centric)</b> — Van Gansbeke et al. <span class="v">NeurIPS 2021 · arXiv:2106.05967</span> — <em>counterpoint</em></li>
+<li><b>Multi-task latent-space objective (multi-crop conflict)</b> — De Plaen et al. <span class="v">2026 · arXiv:2602.05845</span> <span class="tier P">P</span></li>
+<li><b>Intriguing Properties of Contrastive Losses</b> — Chen, Luo, Li. <span class="v">NeurIPS 2021 · arXiv:2011.02803</span> — <em>feature suppression</em></li>
+<li><b>Can contrastive learning avoid shortcut solutions?</b> — Robinson et al. <span class="v">NeurIPS 2021 · arXiv:2106.11230</span></li>
+<li><b>Which Features are Learnt by Contrastive Learning?</b> — Xue et al. <span class="v">ICML 2023 · arXiv:2305.16536</span></li>
+<li><b>Texture bias</b> — Geirhos et al. ImageNet-trained CNNs are biased towards texture. <span class="v">ICLR 2019 · arXiv:1811.12231</span></li>
+<li><b>Shortcut Learning</b> — Geirhos et al. <span class="v">Nature Mach. Intell. 2020 · arXiv:2004.07780</span></li>
+<li><b>Surprising similarities (SSL vs supervised)</b> — Geirhos et al. <span class="v">2020 · arXiv:2010.08377</span></li>
+<li><b>Partial success closing the human-machine gap</b> — Geirhos et al. <span class="v">NeurIPS 2021 · arXiv:2106.07411</span></li>
+<li><b>Intriguing Properties of ViT</b> — Naseer et al. <span class="v">NeurIPS 2021 · arXiv:2105.10497</span></li>
+<li><b>Backgrounds Challenge (IN-9)</b> — Xiao et al. Noise or Signal. <span class="v">ICLR 2021 · arXiv:2006.09994</span></li>
+<li><b>Background Augmentations</b> — Ryali et al. <span class="v">2021 · arXiv:2103.12719</span></li>
+<li><b>Déjà Vu memorization</b> — Meehan et al. <span class="v">NeurIPS 2023 · arXiv:2304.13850</span></li>
+<li><b>LA-SSL (spurious correlation)</b> — Zhu et al. <span class="v">NeurIPS 2023 wksp · arXiv:2311.16361</span></li>
+<li><b>Robustness of unsupervised learning to shift</b> — Shi et al. <span class="v">ICLR 2023 · arXiv:2206.08871</span></li>
+<li><b>Whac-A-Mole</b> — Li et al. Shortcuts Come in Multiples. <span class="v">CVPR 2023 · arXiv:2212.04825</span></li>
+<li><b>Hidden Uniform Cluster Prior</b> — Assran et al. <span class="v">ICLR 2023 · arXiv:2210.07277</span></li>
+<li><b>SSL more robust to imbalance</b> — Liu et al. <span class="v">ICLR 2022 · arXiv:2110.05025</span></li>
+<li><b>When Does Contrastive Learning Work?</b> — Cole et al. <span class="v">CVPR 2022 · arXiv:2105.05837</span></li>
+<li><b>Divide and Contrast (uncurated)</b> — Tian et al. <span class="v">ICCV 2021 · arXiv:2105.08054</span></li>
+<li><b>What Do SSL ViTs Learn? (CL vs MIM)</b> — Park et al. <span class="v">ICLR 2023 · arXiv:2305.00729</span></li>
+<li><b>Dark Secrets of MIM</b> — Xie et al. <span class="v">CVPR 2023 · arXiv:2205.13543</span></li>
+<li><b>Learning by Reconstruction is Uninformative</b> — Balestriero &amp; LeCun. <span class="v">ICML 2024 · arXiv:2402.11337</span></li>
+<li><b>Stochastic Positional Embeddings (StoP)</b> — Bar et al. <span class="v">ICML 2024 · arXiv:2308.00566</span></li>
+<li><b>MIM-Refiner</b> — Alkin et al. <span class="v">ICLR 2025 · arXiv:2402.10093</span></li>
+<li><b>C-JEPA</b> — Mo &amp; Tong. Connecting JEPA with Contrastive SSL. <span class="v">NeurIPS 2024 · arXiv:2410.19560</span></li>
+<li><b>Enhancing JEPAs with Spatial Conditioning</b> — Littwin, Thilak, Gopalakrishnan. <span class="v">NeurIPS 2024 wksp · arXiv:2410.10773</span></li>
+<li><b>DMT-JEPA</b> — Mo &amp; Yun. <span class="v">2024 · arXiv:2405.17995</span></li>
+<li><b>How Well Do SSL Models Transfer?</b> — Ericsson et al. <span class="v">CVPR 2021 · arXiv:2011.13377</span></li>
+<li><b>Contrasting Contrastive Pipelines</b> — Kotar et al. <span class="v">ICCV 2021 · arXiv:2103.14005</span></li>
+<li><b>Contrastive SSL → higher adversarial susceptibility</b> — Gupta et al. <span class="v">AAAI 2023 · arXiv:2207.10862</span></li>
+</ol>
+
+<h3>Theory</h3>
+<ol class="refs">
+<li><b>Contrastive learning guarantees</b> — Arora, Khandeparkar, Khodak, Plevrakis, Saunshi. <span class="v">ICML 2019 · arXiv:1902.09229</span></li>
+<li><b>Understanding CL Requires Inductive Biases</b> — Saunshi et al. <span class="v">ICML 2022 · arXiv:2202.14037</span> — <em>loss-value analyses can be vacuous</em></li>
+<li><b>Spectral Contrastive Loss</b> — HaoChen, Wei, Gaidon, Ma. <span class="v">NeurIPS 2021 · arXiv:2106.04156</span></li>
+<li><b>Beyond Separability (linear transferability)</b> — HaoChen, Wei, Kumar, Ma. <span class="v">NeurIPS 2022 · arXiv:2204.02683</span></li>
+<li><b>Inductive Biases in Contrastive Learning</b> — HaoChen &amp; Ma. <span class="v">ICLR 2023 · arXiv:2211.14699</span></li>
+<li><b>SSL recovers spectral embedding methods</b> — Balestriero &amp; LeCun. <span class="v">NeurIPS 2022 · arXiv:2205.11508</span></li>
+<li><b>Implicit variance regularization</b> — Halvagal, Laborieux, Zenke. <span class="v">NeurIPS 2023 · arXiv:2212.04858</span></li>
+<li><b>Multi-View Information Bottleneck</b> — Federici et al. <span class="v">ICLR 2020 · arXiv:2002.07017</span></li>
+<li><b>SSL from a Multi-view Perspective</b> — Tsai et al. <span class="v">ICLR 2021 · arXiv:2006.05576</span></li>
+<li><b>Contrastive learning, multi-view redundancy, linear models</b> — Tosh, Krishnamurthy, Hsu. <span class="v">ALT 2021 · arXiv:2008.10150</span></li>
+<li><b>Information-Theory Perspective on VICReg</b> — Shwartz-Ziv et al. <span class="v">NeurIPS 2023 · arXiv:2303.00633</span></li>
+<li><b>Rethinking Minimal Sufficient Representation</b> — Wang, Guo, Deng, Lu. <span class="v">CVPR 2022 oral · arXiv:2203.07004</span></li>
+<li><b>The SSL Interplay</b> — Cabannes, Kiani, Balestriero, LeCun, Bietti. <span class="v">ICML 2023 · arXiv:2302.02774</span></li>
+<li><b>Stepwise Nature of SSL</b> — Simon et al. <span class="v">ICML 2023 · arXiv:2303.15438</span></li>
+<li><b>Barlow Twins ≈ HSIC</b> — Tsai, Bai, Morency, Salakhutdinov. <span class="v">2021 · arXiv:2104.13712</span></li>
+<li><b>How Mask Matters (U-MAE)</b> — Zhang, Wang, Wang. <span class="v">NeurIPS 2022 · arXiv:2210.08344</span> — <em>encoder-level guarantee for MAE</em></li>
+<li><b>MAE via Hierarchical Latent Variable Models</b> — Kong et al. <span class="v">CVPR 2023 highlight · arXiv:2306.04898</span></li>
+<li><b>How to Understand Masked Autoencoders</b> — Cao, Xu, Clifton. <span class="v">2022 · arXiv:2202.03670</span></li>
+<li><b>A Path Towards Autonomous Machine Intelligence</b> — LeCun. <span class="v">2022 · OpenReview BZ5a1r-kVsf</span> <span class="tier P">P</span></li>
+<li><b>JEPA Focus on Slow Features</b> — Sobal et al. <span class="v">NeurIPS 2022 wksp · arXiv:2211.10831</span></li>
+<li><b>How JEPA Avoids Noisy Features</b> — Littwin et al. <span class="v">NeurIPS 2024 · arXiv:2407.03475</span></li>
+<li><b>Understanding SSL via Latent Distribution Matching</b> — Mikulasch &amp; Zenke. <span class="v">ICML 2026 Spotlight · arXiv:2605.03517</span> — <em>existence &amp; venue verified; unifies families as alignment+entropy</em></li>
+<li><b>An Augmentation-Aware Theory for Contrastive SSL</b> — Cui, Wen, Wang. <span class="v">ICML 2025 · arXiv:2505.22196</span></li>
+</ol>
+
+<div class="footnav">
+  <button id="prevbtn">← Previous</button>
+  <button id="nextbtn">Next →</button>
+</div>
+<p class="sm" style="margin-top:24px;color:var(--ink-faint)">Compiled 2026-07-01 for a representation-learning project on the SSL backbone-vs-projector desiderata gap. Evidence tiers, quote-verification tags, and adversarial-verification verdicts are recorded inline; where a source failed verification it is marked <span class="pill x">refuted</span> and excluded from load-bearing claims. This is a literature synthesis and experiment design, not a completed empirical study — every predicted result (tier P) awaits the measurements proposed in §5.</p>
+
+</section>
+
+</div><!-- /.wrap -->
+
+<script>
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('nav.tabs button'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('section.tab'));
+  function show(id, push){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.tab===id)); });
+    var idx = tabs.findIndex(function(t){ return t.dataset.tab===id; });
+    var prev = document.getElementById('prevbtn'), next = document.getElementById('nextbtn');
+    if(prev && next){ prev.disabled = idx<=0; next.disabled = idx>=tabs.length-1; }
+    if(push){ history.replaceState(null,'', '#'+id); }
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.tab, true); }); });
+  var prev = document.getElementById('prevbtn'), next = document.getElementById('nextbtn');
+  function curIdx(){ return tabs.findIndex(function(t){ return t.getAttribute('aria-selected')==='true'; }); }
+  if(prev) prev.addEventListener('click', function(){ var i=curIdx(); if(i>0) show(tabs[i-1].dataset.tab, true); });
+  if(next) next.addEventListener('click', function(){ var i=curIdx(); if(i<tabs.length-1) show(tabs[i+1].dataset.tab, true); });
+  // deep-link support
+  var start = (location.hash||'').replace('#','');
+  if(start && document.getElementById(start) && document.getElementById(start).classList.contains('tab')){ show(start,false); }
+  // reference filter
+  var box = document.getElementById('reffilter');
+  var count = document.getElementById('refcount');
+  function allRefs(){ return Array.prototype.slice.call(document.querySelectorAll('ol.refs li')); }
+  function runFilter(){
+    var q = (box.value||'').toLowerCase().trim();
+    var items = allRefs(), shown=0;
+    items.forEach(function(li){
+      var hit = !q || li.textContent.toLowerCase().indexOf(q)>=0;
+      li.classList.toggle('hide', !hit);
+      if(hit) shown++;
+    });
+    if(count) count.textContent = shown + ' / ' + items.length + ' shown';
+  }
+  if(box){ box.addEventListener('input', runFilter); runFilter(); }
+})();
+</script>

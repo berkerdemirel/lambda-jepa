@@ -1,0 +1,21 @@
+# artifacts (large / regenerable)
+outputs/
+features/
+wandb/
+*.pt
+*.pth
+*.npy
+*.ckpt
+
+# env
+.venv/
+__pycache__/
+*.egg-info/
+.ipynb_checkpoints/
+
+# donors are reference clones, not vendored code
+third_party/solo-learn/
+
+# hydra run dirs
+multirun/
+.hydra/
