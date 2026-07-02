@@ -49,3 +49,11 @@ baselines may be tuning artifacts rather than properties of a method. Therefore:
 - Donor code (`third_party/`) is read-only reference: ports go through review, get a PORT_NOTES
   entry in the method dossier (donor commit, findings, deviations), and land in `sslgap/` in our
   style.
+
+## Cross-partition submission (H100 budget + gpu-partition OR)
+
+`sbatch --partition=gpu100,gpu --constraint="H100|A40|L40S" --job-name=h100-slotA|B
+--dependency=singleton …` starts on whichever pool frees first while `singleton` keeps the
+≤2-H100 cap (conservatively: ≤2 slot-jobs running anywhere). Training jobs OR in 48 GB cards only
+(A40|L40S — 24 GB 3090Ti/A10 OOM at bs 256 ViT-S/8); extraction/probes may use the full
+`RTX3090Ti|A40|A10|L40S|A100` pool without slot names. Feature spellings per `sinfo -o "%P %f"`.
