@@ -69,7 +69,9 @@ def _style(ax, title=None):
 
 
 def _save(fig, out_dir, name, wb):
+    """name may carry a subdir ("geometry/pca.png") — wandb keys keep the slash (section per dir)."""
     path = os.path.join(out_dir, name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight", facecolor=SURF)
     plt.close(fig)
     if wb:
@@ -165,7 +167,7 @@ def panel_guillotine(cfg, run_ids, res, out, wb):
                loc="lower right", frameon=False, fontsize=9)
     fig.suptitle("Guillotine curves: probes along trunk (L03–L12) → head taps (dotted line = trunk/head boundary)",
                  color=INK, fontsize=11)
-    return _save(fig, out, "probe_guillotine.png", wb)
+    return _save(fig, out, "probes/probe_guillotine.png", wb)
 
 
 def panel_pca(cfg, run_ids, store, man_val, out, wb):
@@ -192,7 +194,7 @@ def panel_pca(cfg, run_ids, store, man_val, out, wb):
                  "LDA(2) of val features — CLASS-SUPERVISED projection: class geometry, not intrinsic structure")
         fig.suptitle(title, color=INK, fontsize=11, y=1.001)
         fig.tight_layout()
-        names.append(_save(fig, out, f"{kind}_h_vs_z.png", wb))
+        names.append(_save(fig, out, f"geometry/{kind}_h_vs_z.png", wb))
     return names
 
 
@@ -230,7 +232,7 @@ def panel_relrep(cfg, run_ids, store, man_val, out, wb):
                      + ("PCA(2) axes (unsupervised)" if kind == "pca"
                         else "LDA(2) axes (CLASS-SUPERVISED — class geometry only)"),
                      color=INK, fontsize=11)
-        names.append(_save(fig, out, f"relrep_h_shared_{kind}.png", wb))
+        names.append(_save(fig, out, f"crossmodel/relrep_h_shared_{kind}.png", wb))
     return names
 
 
@@ -252,7 +254,7 @@ def panel_spectra(cfg, run_ids, null_ids, store, man_tr, out, wb):
                         plt.Line2D([], [], color=MUTED, lw=1.5, ls="--", label="h, random-init null")],
                loc="lower right", frameon=False, fontsize=9)
     fig.suptitle("Covariance eigenspectra (normalized to top eig, log–log)", color=INK, fontsize=11)
-    return _save(fig, out, "spectra_h_vs_z.png", wb)
+    return _save(fig, out, "geometry/spectra_h_vs_z.png", wb)
 
 
 def panel_probe_bars(cfg, run_ids, null_ids, res, out, wb):
@@ -282,7 +284,7 @@ def panel_probe_bars(cfg, run_ids, null_ids, res, out, wb):
     axes[0].set_ylabel("val acc", color=INK2, fontsize=8)
     axes[0].legend(frameon=False, fontsize=9, loc="upper left")
     fig.suptitle("Headline probes at h vs z.final (black tick = random-init null)", color=INK, fontsize=11)
-    return _save(fig, out, "probe_bars.png", wb)
+    return _save(fig, out, "probes/probe_bars.png", wb)
 
 
 def panel_confusion(cfg, run_ids, store, man_tr, man_val, out, wb):
@@ -310,7 +312,7 @@ def panel_confusion(cfg, run_ids, store, man_tr, man_val, out, wb):
                 ax.set_title(m, color=INK, fontsize=9)
     fig.suptitle("kNN(20) class confusion (rows = true, row-normalized) at h vs z — class order: "
                  + ", ".join(CLASSES), color=INK, fontsize=10)
-    return _save(fig, out, "knn_confusion.png", wb)
+    return _save(fig, out, "geometry/knn_confusion.png", wb)
 
 
 def panel_jaccard(cfg, run_ids, store, man_val, out, wb):
@@ -332,7 +334,7 @@ def panel_jaccard(cfg, run_ids, store, man_val, out, wb):
     ax.set_xticklabels(METHODS, fontsize=9)
     _style(ax, "Per-image neighborhood overlap between h and z (Jaccard@20, val) — what the head reorders (OP-7)")
     ax.set_ylabel("Jaccard@20(h, z)", color=INK2, fontsize=8)
-    return _save(fig, out, "neighborhood_jaccard_h_z.png", wb)
+    return _save(fig, out, "geometry/neighborhood_jaccard_h_z.png", wb)
 
 
 def panel_invariance(cfg, run_ids, store, out, wb):
@@ -360,7 +362,7 @@ def panel_invariance(cfg, run_ids, store, out, wb):
                loc="lower right", frameon=False, fontsize=9)
     fig.suptitle("View-invariance shape: ECDF of cos(view A, view B) under the FIXED audit stack "
                  "(right = more invariant)", color=INK, fontsize=11)
-    return _save(fig, out, "invariance_ecdf.png", wb)
+    return _save(fig, out, "geometry/invariance_ecdf.png", wb)
 
 
 def panel_nn_gallery(cfg, run_ids, store, man_tr, out, wb):
@@ -389,7 +391,7 @@ def panel_nn_gallery(cfg, run_ids, store, man_tr, out, wb):
                                   + [f"z NN{i}" for i in range(1, 6)])[c], fontsize=6, color=INK2)
         fig.suptitle(f"{m}: 5 nearest train neighbors at h (blue) vs z (red), cosine", color=INK, fontsize=11)
         fig.tight_layout()
-        names.append(_save(fig, out, f"nn_gallery_{m}.png", wb))
+        names.append(_save(fig, out, f"galleries/nn_gallery_{m}.png", wb))
     return names
 
 
@@ -424,7 +426,111 @@ def panel_tau_heatmap(cfg, run_ids, res, out, wb):
     ax.set_title("τ = value(h) / value(z.final), raw|full (color = log10|τ|: blue τ≪1, gray τ≈1, red τ≫1; "
                  "MAE row empty: z = —)", color=INK, fontsize=9)
     fig.colorbar(im, ax=ax, shrink=0.8).ax.tick_params(labelsize=7, colors=MUTED)
-    return _save(fig, out, "tau_heatmap.png", wb)
+    return _save(fig, out, "matrix/tau_heatmap.png", wb)
+
+
+def panel_orbits(cfg, out, wb):
+    """Aug-orbit clouds: SAME Q images x K audit-stack draws for every method (extract_orbits.py).
+    Color = image identity (not class); X = orbit centroid. Watch orbits contract h -> z."""
+    orb_dir = os.path.expanduser(cfg.orbits_dir)
+    fig, axes = plt.subplots(7, 2, figsize=(9, 26))
+    for r, m in enumerate(METHODS):
+        f = os.path.join(orb_dir, f"toy.{m}.s0.npz")
+        if not os.path.exists(f):
+            axes[r, 0].axis("off"), axes[r, 1].axis("off")
+            continue
+        d = np.load(f, allow_pickle=True)
+        ids = d["img_id"]
+        uids = list(dict.fromkeys(ids.tolist()))
+        for c, key in enumerate(("h", "z")):
+            X = d[key].astype(np.float32)
+            Xc = X - X.mean(0)
+            _, _, Vt = np.linalg.svd(Xc, full_matrices=False)
+            P = Xc @ Vt[:2].T
+            ax = axes[r, c]
+            for j, u in enumerate(uids):
+                sel = ids == u
+                ax.scatter(P[sel, 0], P[sel, 1], s=10, c=C10[j], alpha=0.6, linewidths=0)
+                mu = P[sel].mean(0)
+                ax.scatter(*mu, marker="X", s=60, c=C10[j], edgecolors="white", linewidths=0.8)
+                ax.annotate(CLASSES[int(d["y"][sel][0])], mu, fontsize=6, color=INK2,
+                            xytext=(4, 4), textcoords="offset points")
+            ax.set_xticks([]), ax.set_yticks([])
+            _style(ax, f"{m} · {str(d['h_space']) if key == 'h' else str(d['z_space'])}")
+    fig.suptitle("Augmentation orbits: 8 images x 24 audit-stack draws (color = image, X = orbit "
+                 "centroid) — h (left) vs z.final (right)", color=INK, fontsize=11, y=1.001)
+    fig.tight_layout()
+    return _save(fig, out, "orbits/orbit_clouds.png", wb)
+
+
+def panel_crossmodel(cfg, run_ids, store, man_tr, man_val, out, wb):
+    """Cross-model comparisons IN the shared relrep coordinates (D-009: same anchor images ->
+    coordinate-wise comparable spaces). No affinity proxies: direct per-image agreement,
+    cross-model retrieval, and probe transfer."""
+    from sklearn.linear_model import LogisticRegression
+    A = cfg.relrep_anchors
+    Rtr, Rva, ys = {}, {}, {}
+    for m in METHODS:
+        Xtr, _ = _feats(store, run_ids[m], man_tr, H[m])
+        Xva, _ = _feats(store, run_ids[m], man_val, H[m])
+        idx = anchor_indices(len(Xtr), A, seed=0)
+        anc = Xtr[idx] / (np.linalg.norm(Xtr[idx], axis=1, keepdims=True) + 1e-12)
+        Rtr[m] = (Xtr / (np.linalg.norm(Xtr, axis=1, keepdims=True) + 1e-12)) @ anc.T
+        Rva[m] = (Xva / (np.linalg.norm(Xva, axis=1, keepdims=True) + 1e-12)) @ anc.T
+        ys["tr"], ys["va"] = store.labels(run_ids[m], man_tr), store.labels(run_ids[m], man_val)
+    n = len(METHODS)
+    agree, retr, xfer = np.eye(n), np.eye(n), np.zeros((n, n))
+    probes = {m: LogisticRegression(max_iter=500).fit(Rtr[m], ys["tr"]) for m in METHODS}
+    for i, a in enumerate(METHODS):
+        Ra = Rva[a] / (np.linalg.norm(Rva[a], axis=1, keepdims=True) + 1e-12)
+        for j, b in enumerate(METHODS):
+            Rb = Rva[b] / (np.linalg.norm(Rva[b], axis=1, keepdims=True) + 1e-12)
+            if i != j:
+                agree[i, j] = float((Ra * Rb).sum(1).mean())
+                top1 = np.empty(len(Ra), dtype=np.int64)
+                for s in range(0, len(Ra), 512):
+                    top1[s:s + 512] = (Ra[s:s + 512] @ Rb.T).argmax(1)
+                retr[i, j] = float((top1 == np.arange(len(Ra))).mean())
+            xfer[i, j] = probes[a].score(Rva[b], ys["va"])
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4.6), layout="constrained")
+    from matplotlib.colors import LinearSegmentedColormap
+    ramp = LinearSegmentedColormap.from_list("blue_seq",
+        ["#fcfcfb", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"])
+    for ax, M, title in ((axes[0], agree, "per-image agreement\nmean cos(relrep_A(x), relrep_B(x))"),
+                         (axes[1], retr, "cross-model self-retrieval@1\nquery A -> gallery B (val)"),
+                         (axes[2], xfer, "probe transfer acc\nlinear probe fit on A, eval on B")):
+        im = ax.imshow(M, cmap=ramp, vmin=max(0.0, M.min() - 0.05), vmax=1.0)
+        for i in range(n):
+            for j in range(n):
+                ax.annotate(f"{M[i, j]:.2f}", (j, i), ha="center", va="center", fontsize=7,
+                            color="white" if M[i, j] > (M.max() + M.min()) / 2 else INK)
+        ax.set_xticks(range(n)), ax.set_yticks(range(n))
+        ax.set_xticklabels(METHODS, rotation=45, ha="right", fontsize=7)
+        ax.set_yticklabels(METHODS, fontsize=7)
+        ax.set_title(title, color=INK, fontsize=9)
+    fig.suptitle(f"Direct cross-model comparison in shared relrep coordinates "
+                 f"(A={A} anchor images, cosine, latentis-default no centering; rows = source A, "
+                 "cols = target B)", color=INK, fontsize=11)
+    return _save(fig, out, "crossmodel/relrep_direct_7x7.png", wb)
+
+
+def panel_tsne(cfg, run_ids, store, man_val, out, wb):
+    from sklearn.manifold import TSNE
+    names = []
+    for perp in cfg.tsne_perplexities:
+        fig, axes = plt.subplots(2, 4, figsize=(15, 8), layout="constrained")
+        for ax, m in zip(axes.flat, METHODS):
+            X, idx = _feats(store, run_ids[m], man_val, H[m], n=cfg.tsne_points)
+            yy = store.labels(run_ids[m], man_val)[idx]
+            P = TSNE(2, perplexity=perp, init="pca", random_state=0).fit_transform(X)
+            _class_scatter(ax, P, yy, label_classes=False)
+            _style(ax, f"{m} · h")
+        axes[1, 3].axis("off")
+        _class_legend(fig)
+        fig.suptitle(f"t-SNE of h (perplexity={perp}) — read NEIGHBORHOOD TOPOLOGY only: distances, "
+                     "cluster sizes and inter-cluster gaps are not meaningful", color=INK, fontsize=11)
+        names.append(_save(fig, out, f"geometry/tsne_h_perp{perp}.png", wb))
+    return names
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="viz")
@@ -465,9 +571,15 @@ def main(cfg: DictConfig):
         made += panel_nn_gallery(cfg, run_ids, store, man_tr, out, wb)
     if "tau" in P:
         made.append(panel_tau_heatmap(cfg, run_ids, res, out, wb))
+    if "orbits" in P:
+        made.append(panel_orbits(cfg, out, wb))
+    if "crossmodel" in P:
+        made.append(panel_crossmodel(cfg, run_ids, store, man_tr, man_val, out, wb))
+    if "tsne" in P:
+        made += panel_tsne(cfg, run_ids, store, man_val, out, wb)
     with open(os.path.join(out, "INDEX.md"), "w") as f:
         f.write("# M1 figures (generated by experiments/viz.py — numbers only)\n\n"
-                + "\n".join(f"- {n}" for n in made) + "\n")
+                + "\n".join(f"- {n}" for n in sorted(made)) + "\n")
     if wb:
         wb.finish()
     print(f"[viz] done: {len(made)} figures -> {out}")

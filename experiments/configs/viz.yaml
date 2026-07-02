@@ -1,4 +1,8 @@
-panels: [guillotine, pca, relrep, spectra, bars, confusion, jaccard, invariance, gallery, tau]
+panels: [guillotine, pca, relrep, spectra, bars, jaccard, invariance, gallery, tau, orbits, crossmodel, tsne]
+# available but off by default: confusion (Berker 2026-07-02: not useful)
+orbits_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/orbits
+tsne_perplexities: [30, 100]
+tsne_points: 3000
 run_id_overrides:
   dino: toy.dino.s0.ext          # switch to toy.dino.s0.probefix.ext when the rerun lands
 store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
