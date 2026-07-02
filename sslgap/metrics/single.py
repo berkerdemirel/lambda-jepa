@@ -3,6 +3,13 @@ dict of sub-metrics; the battery flattens them into rows."""
 import numpy as np
 
 
+def _sq_dists(x, y):
+    """Pairwise squared distances via the gram trick (one matmul, no [N,N,d] broadcast)."""
+    xx = (x ** 2).sum(1)[:, None]
+    yy = (y ** 2).sum(1)[None, :]
+    return np.clip(xx + yy - 2.0 * (x @ y.T), 0.0, None)
+
+
 def uniformity(X, n_sub=4096, seed=0):
     """Wang–Isola uniformity: log E exp(-2 ||u_i - u_j||^2) on L2-NORMALIZED features (the metric
     is defined on the sphere — normalization happens here, not in the battery variant machinery).
@@ -11,15 +18,7 @@ def uniformity(X, n_sub=4096, seed=0):
     x = X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
     if x.shape[0] > n_sub:
         x = x[rng.choice(x.shape[0], n_sub, replace=False)]
-    sq = ((x[:, None, :] - x[None, :, :]) ** 2).sum(-1) if x.shape[0] <= 2048 else None
-    if sq is None:                                    # blockwise pdist to bound memory
-        n = x.shape[0]
-        acc, cnt = 0.0, 0
-        for i in range(0, n, 1024):
-            d = ((x[i:i + 1024, None, :] - x[None, :, :]) ** 2).sum(-1)
-            acc += np.exp(-2.0 * d).sum() - np.exp(0.0) * d.shape[0]   # drop self-pairs
-            cnt += d.shape[0] * (n - 1)
-        return float(np.log(acc / cnt))
+    sq = _sq_dists(x, x)
     iu = np.triu_indices_from(sq, k=1)
     return float(np.log(np.exp(-2.0 * sq[iu]).mean()))
 
@@ -51,7 +50,7 @@ def collapse_margin(X, n_sub=2048, seed=0):
     rng = np.random.default_rng(seed)
     s = X.std(0)
     x = X[rng.choice(X.shape[0], min(n_sub, X.shape[0]), replace=False)]
-    d2 = ((x[:, None, :] - x[None, :, :]) ** 2).sum(-1)
+    d2 = _sq_dists(x, x)
     np.fill_diagonal(d2, np.inf)
     return {"trace_cov": float((X.var(0)).sum()), "min_std": float(s.min()),
             "nn_dist_p5": float(np.percentile(np.sqrt(d2.min(1)), 5))}
