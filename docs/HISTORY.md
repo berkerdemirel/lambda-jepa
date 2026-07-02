@@ -98,3 +98,12 @@ best 0.9113; sigreg loss-curve shape correlation 0.9997, inv 0.987; per-epoch ac
 with the last 30 epochs at +0.2 pt. Within the pre-registered ±1 pt + shape criterion → the frame
 loop, recipe hooks, and sslgap/ckpt/v1 format reproduce the official implementation. Every other
 M1 grid instance rides this certificate (they share the loop; only recipes differ).
+
+## 2026-07-03 — DINO probe incident CLOSED: rerun confirms monitor-only damage
+
+`toy.dino.s0.probefix` (identical recipe, probe-label fix only): online best **0.7758** — the
+monitor now reads what the audit reads (old run's offline student.h.cls was 0.785). Offline
+old-vs-new comparison over all 130 matched (space, probe) cells: mean Δ **+0.0005 ± 0.0071**, no
+systematic direction — the misaligned probe's shared grad-clip budget had no measurable effect on
+the learned representation. Matrix/viz/orbits point at the probefix run (cleaner provenance);
+the incident run's features remain in the store for the record.
