@@ -1,5 +1,5 @@
 run_id,train_manifest,val_manifest,space,probe,val_acc,n_train,n_val,num_classes
-toy.lejepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.3844585716724396,9469,3925,10
+toy.lejepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.3829299211502075,9469,3925,10
 toy.lejepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_house_v1,0.3880254626274109,9469,3925,10
 toy.lejepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_l2_v1,0.30878978967666626,9469,3925,10
 toy.lejepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,knn_v1_k200,0.31949044585987263,9469,3925,10

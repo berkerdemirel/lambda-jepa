@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,cka_linear,cross,0.8600460788057097,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,neighbor_jaccard,cross,0.2167055949382575,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,procrustes_distance,cross,0.462241807672437,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,knn_label_agreement,cross,0.6858,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,cka_linear,cross,0.8745641540334435,,,9469,384x8192,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,neighbor_jaccard,cross,0.23168528361902974,,,9469,384x8192,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,procrustes_distance,cross,0.5279698191086105,,,9469,384x8192,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,knn_label_agreement,cross,0.692,,,9469,384x8192,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,cka_linear,cross,0.8628138211738816,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,neighbor_jaccard,cross,0.23950445632798573,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,procrustes_distance,cross,0.4485645695658961,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,knn_label_agreement,cross,0.6996,,,9469,384x256,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,cka_linear,cross,0.8807376883892006,,,9469,384x4096,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,neighbor_jaccard,cross,0.2630222789594307,,,9469,384x4096,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,procrustes_distance,cross,0.5015143158186582,,,9469,384x4096,none
+toy.byol.s0.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,knn_label_agreement,cross,0.709,,,9469,384x4096,none

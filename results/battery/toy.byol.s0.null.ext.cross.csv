@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,cka_linear,cross,0.8749517413601039,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,neighbor_jaccard,cross,0.42558924994853786,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,procrustes_distance,cross,0.6078786433818396,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.out,knn_label_agreement,cross,0.6074,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,cka_linear,cross,0.8767801442287944,,,9469,384x8192,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,neighbor_jaccard,cross,0.4436163805578666,,,9469,384x8192,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,procrustes_distance,cross,0.6114646191537643,,,9469,384x8192,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.pred.tap1,knn_label_agreement,cross,0.622,,,9469,384x8192,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,cka_linear,cross,0.8896882447260632,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,neighbor_jaccard,cross,0.44365565248305183,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,procrustes_distance,cross,0.5647264935014934,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.out,knn_label_agreement,cross,0.6284,,,9469,384x256,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,cka_linear,cross,0.8874504485009173,,,9469,384x4096,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,neighbor_jaccard,cross,0.45442123502572423,,,9469,384x4096,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,procrustes_distance,cross,0.567717399068704,,,9469,384x4096,none
+toy.byol.s0.null.ext,imagenette.train.v1,student.h.gap~student.z.proj.tap1,knn_label_agreement,cross,0.626,,,9469,384x4096,none

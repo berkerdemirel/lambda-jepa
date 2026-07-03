@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.bottleneck,cka_linear,cross,0.981390792390025,,,9469,384x256,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.bottleneck,neighbor_jaccard,cross,0.7456849650349651,,,9469,384x256,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.bottleneck,procrustes_distance,cross,0.21804477152168045,,,9469,384x256,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.bottleneck,knn_label_agreement,cross,0.793,,,9469,384x256,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap1,cka_linear,cross,0.9965829944681139,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap1,neighbor_jaccard,cross,0.8702743256743257,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap1,procrustes_distance,cross,0.13042524789930302,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap1,knn_label_agreement,cross,0.8864,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap2,cka_linear,cross,0.9935836816779573,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap2,neighbor_jaccard,cross,0.8442671328671331,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap2,procrustes_distance,cross,0.16075080539230793,,,9469,384x2048,none
+toy.dino.s0.probefix.null.ext,imagenette.train.v1,teacher.h.cls~teacher.z.dino.tap2,knn_label_agreement,cross,0.8626,,,9469,384x2048,none

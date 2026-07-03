@@ -1,5 +1,5 @@
 run_id,train_manifest,val_manifest,space,probe,val_acc,n_train,n_val,num_classes
-toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.5999999642372131,9469,3925,10
+toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.600509524345398,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_house_v1,0.6155413389205933,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_l2_v1,0.4820381999015808,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,knn_v1_k200,0.5082802547770701,9469,3925,10
@@ -8,7 +8,7 @@ toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L03,linear_
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L03,linear_house_v1,0.4486624002456665,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L03,linear_l2_v1,0.3072611391544342,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L03,knn_v1_k200,0.3735031847133758,9469,3925,10
-toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L03,knn_v1_k20,0.418343949044586,9469,3925,10
+toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L03,knn_v1_k20,0.4180891719745223,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L06,linear_raw_v1,0.5008916854858398,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L06,linear_house_v1,0.5299362540245056,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls.L06,linear_l2_v1,0.3788534700870514,9469,3925,10
@@ -67,7 +67,7 @@ toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L03,knn_v1_
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L06,linear_raw_v1,0.4963057041168213,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L06,linear_house_v1,0.5194904208183289,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L06,linear_l2_v1,0.379872590303421,9469,3925,10
-toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L06,knn_v1_k200,0.41095541401273883,9469,3925,10
+toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L06,knn_v1_k200,0.41121019108280255,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L06,knn_v1_k20,0.4563057324840764,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L09,linear_raw_v1,0.5666241645812988,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L09,linear_house_v1,0.588280200958252,9469,3925,10
@@ -82,7 +82,7 @@ toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.cls.L12,knn_v1_
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap,linear_raw_v1,0.6524840593338013,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap,linear_house_v1,0.6703184247016907,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap,linear_l2_v1,0.5538853406906128,9469,3925,10
-toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap,knn_v1_k200,0.5192356687898089,9469,3925,10
+toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap,knn_v1_k200,0.5194904458598726,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap,knn_v1_k20,0.5857324840764331,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L03,linear_raw_v1,0.5521019101142883,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L03,linear_house_v1,0.5854776501655579,9469,3925,10
@@ -93,7 +93,7 @@ toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L06,linear_
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L06,linear_house_v1,0.6369426250457764,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L06,linear_l2_v1,0.5057324767112732,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L06,knn_v1_k200,0.4580891719745223,9469,3925,10
-toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L06,knn_v1_k20,0.5024203821656051,9469,3925,10
+toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L06,knn_v1_k20,0.5026751592356687,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L09,linear_raw_v1,0.6489171385765076,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L09,linear_house_v1,0.6723566651344299,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L09,linear_l2_v1,0.5589808821678162,9469,3925,10
@@ -102,5 +102,5 @@ toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L09,knn_v1_
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L12,linear_raw_v1,0.6524840593338013,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L12,linear_house_v1,0.6703184247016907,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L12,linear_l2_v1,0.5538853406906128,9469,3925,10
-toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L12,knn_v1_k200,0.5192356687898089,9469,3925,10
+toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L12,knn_v1_k200,0.5194904458598726,9469,3925,10
 toy.ijepa.s0.ext,imagenette.train.v1,imagenette.val.v1,teacher.h.gap.L12,knn_v1_k20,0.5857324840764331,9469,3925,10

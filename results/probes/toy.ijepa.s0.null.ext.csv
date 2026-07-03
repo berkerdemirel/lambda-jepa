@@ -1,5 +1,5 @@
 run_id,train_manifest,val_manifest,space,probe,val_acc,n_train,n_val,num_classes
-toy.ijepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.3943948745727539,9469,3925,10
+toy.ijepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.3946496546268463,9469,3925,10
 toy.ijepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_house_v1,0.3994904160499573,9469,3925,10
 toy.ijepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_l2_v1,0.31464967131614685,9469,3925,10
 toy.ijepa.s0.null.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,knn_v1_k200,0.31719745222929935,9469,3925,10

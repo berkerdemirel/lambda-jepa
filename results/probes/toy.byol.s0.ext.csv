@@ -1,5 +1,5 @@
 run_id,train_manifest,val_manifest,space,probe,val_acc,n_train,n_val,num_classes
-toy.byol.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.6392356157302856,9469,3925,10
+toy.byol.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_raw_v1,0.6389808654785156,9469,3925,10
 toy.byol.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_house_v1,0.650445818901062,9469,3925,10
 toy.byol.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,linear_l2_v1,0.5503184199333191,9469,3925,10
 toy.byol.s0.ext,imagenette.train.v1,imagenette.val.v1,student.h.cls,knn_v1_k200,0.5829299363057325,9469,3925,10
