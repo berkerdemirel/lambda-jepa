@@ -19,7 +19,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CELLS = [("A", "toy.lejepa.s0.e10A_ep150.pt", "proj"),
          ("Blr_best", "toy.lejepa.s0.e10Blr_best.pt", "embed"),
          ("D0", "toy.lejepa.s0.e10D0_ep150.pt", "embed"),
-         ("Dr", "toy.lejepa.s0.e10Dr_ep150.pt", "embed")]
+         ("Dr", "toy.lejepa.s0.e10Dr_ep150.pt", "embed"),
+         # Dlr moment-part trajectory (the pre-registered discriminating quantity, card §e10Dlr)
+         ("Dlr_ep38", "toy.lejepa.s0.e10Dlr_ep38.pt", "embed"),
+         ("Dlr_ep75", "toy.lejepa.s0.e10Dlr_ep75.pt", "embed"),
+         ("Dlr_ep112", "toy.lejepa.s0.e10Dlr_ep112.pt", "embed"),
+         ("Dlr_ep150", "toy.lejepa.s0.e10Dlr_ep150.pt", "embed")]
 BATCHES, BS, REPS = 8, 256, 5
 
 

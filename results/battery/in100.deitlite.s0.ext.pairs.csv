@@ -1,0 +1,7 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.deitlite.s0.ext,in100.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,1.4739007367897237,1.4668282477206955,1.479912012183628,10000,384,cheap
+in100.deitlite.s0.ext,in100.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.2630496316050302,0.25914217798488093,0.2667952148002288,10000,384,cheap
+in100.deitlite.s0.ext,in100.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.7169617170959259,0.7118076094559248,0.7225779030755042,10000,384,cheap
+in100.deitlite.s0.ext,in100.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.6415191414519015,0.638989086878249,0.6442449693603656,10000,384,cheap
+in100.deitlite.s0.ext,in100.pairs100.v1@audit_v1,student.z.logits,alignment,pairs,1.2874886819337394,1.2790965378662158,1.294635394965993,10000,100,cheap
+in100.deitlite.s0.ext,in100.pairs100.v1@audit_v1,student.z.logits,cos_invariance,pairs,0.35625565903308243,0.3518377933189839,0.3608156483441862,10000,100,cheap

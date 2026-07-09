@@ -9,3 +9,7 @@ seed: 0
 hydra:
   run:
     dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}
+spaces: null              # optional list filter for the battery loop (wall-split mitigation)
+out_suffix: ""            # battery CSV suffix for split parts ({run_id}.{suffix}.csv)
+do_pairs: true
+do_cross: true

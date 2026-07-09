@@ -326,6 +326,37 @@ Run toy.lejepa.s0.e10Dlr, h100-slotB, smoke 62176060 → full 62176061.
   locked, but the DISCRIMINATING quantity for the D-story is the MOMENT part (Blr_best 6.2,
   D0-end 16.0): how close Dlr's embed covariance gets to I, and whether it stays there.
 
+**e10Dlr COMPLETED (2026-07-09 evening, job 62176061): best .5432 (~ep145), final .5383 — NO
+storm, NO decay, monotone 150 epochs.** Milestones .259(5)/.334(20)/.372(30)/.400(40)/
+.449(65)/.490(95)/.513(110)/.543(145); gradient checks at ep32 and ep91–99 quiet (median ~1.3,
+max <3.5 — quietest run in the family incl. A); terms co-descending throughout (end: sigreg
+~7.7, inv ~.25). vs D0 (best .336→final .145) and every killed sibling. Fuse-scaling storm
+branch falsified for this arm; predictions 1–2 quantitative reads + prediction 3 (shape) await
+the battery. Post-chain queued: extract/audit/probe 62178368/69/70 (toy.lejepa.s0.e10Dlr.ext);
+moment-part trajectory on cadence ckpts queued (sigreg_ref_check + Dlr_ep{38,75,112,150} cells,
+job 62178372). ALL numbers land raw — the joint analysis is next session's item 2 (Berker:
+"we will wait untill Dlr finishes and then analyze the results"). H100 3-slot grant now LAPSED
+(D-021); deitlite still holds slotA until ~ep100.
+
+**e10Dlr moment-part trajectory (results/diag/sigreg_ref.csv, job 62178570) — numbers only:**
+
+| Dlr ckpt | T_actual | cov-matched twin | moment part | shape residue |
+|---|---|---|---|---|
+| ep38 | 11.56 | 10.28 | 9.22 | 1.29 |
+| ep75 | 10.00 | 8.64 | 7.59 | 1.36 |
+| ep112 | 9.09 | 7.37 | 6.32 | 1.71 |
+| ep150 | 7.93 | 6.36 | 5.31 | 1.57 |
+
+Two patterns for the joint reading: (1) the moment part descends MONOTONICALLY 9.2 → 5.31,
+ending below Blr_best's 6.23 — the flagged discriminating quantity improves all run and never
+reverses; (2) unlike every other 512-d cell (residue ≈ 0 ± 0.5), Dlr's shape residue is
+consistently POSITIVE and ~1.3–1.7 (locked prediction-2 bar "<1" is therefore NOT met as
+written) — a shape deviation large enough to survive slicing at K=512 typically indicates
+low-dimensional/cluster structure (cf. the MC's 10-cluster cell reading 25–27; a partial
+cluster geometry reads ~1–2). Whether that residue is the GOOD kind (semantic clustering
+emerging in the representation) is exactly a battery question — toy.lejepa.s0.e10Dlr.ext is on
+disk. UNSCORED; joint analysis next session.
+
 ## AGREED TAKEAWAY
 
 *(empty)*

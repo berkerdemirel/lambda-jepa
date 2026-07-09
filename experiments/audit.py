@@ -4,6 +4,12 @@ on every pairs manifest, and the cross-space similarity triple between the probe
 each of its z taps.
 
   sbatch slurm/audit.sbatch run_id=toy.lejepa-lamb002.ext
+
+Wide-space runs can outlive the 8 h wall (byol's 8192-d taps ≈ 1.5 h/space at IN-100 scale) —
+the pre-planned mitigation (HANDOVER 2026-07-09) is splitting by space:
+  sbatch slurm/audit.sbatch run_id=... 'spaces=[student.z.proj.tap1]' out_suffix=part1 \
+         do_pairs=false do_cross=false
+then concat the {run_id}.{suffix}.csv pieces into {run_id}.csv.
 """
 import os
 
@@ -29,14 +35,21 @@ def main(cfg: DictConfig):
     frames = []
     man = cfg.train_manifest or next(m for m in eval_mans if "train" in m)
     meta = store.meta(cfg.run_id, man)
+    only = set(cfg.spaces) if cfg.get("spaces") else None
+    suffix = f".{cfg.out_suffix}" if cfg.get("out_suffix") else ""
     for space in store.spaces(cfg.run_id, man):
+        if only and space not in only:
+            continue
         print(f"[audit] battery {cfg.run_id} {man} {space}")
         frames.append(run_battery(store, cfg.run_id, man, space,
                                   n_boot=cfg.n_boot, max_n=cfg.max_n, seed=cfg.seed))
-    battery = pd.concat(frames, ignore_index=True)
-    battery.to_csv(os.path.join(out_dir, f"{cfg.run_id}.csv"), index=False)
+    if frames:
+        battery = pd.concat(frames, ignore_index=True)
+        battery.to_csv(os.path.join(out_dir, f"{cfg.run_id}{suffix}.csv"), index=False)
 
     pair_frames = []
+    if not cfg.get("do_pairs", True):
+        pair_mans = []
     for man_key in pair_mans:
         bases = sorted({s.rsplit(".view", 1)[0] for s in store.spaces(cfg.run_id, man_key)})
         print(f"[audit] pairs {cfg.run_id} {man_key} ({len(bases)} spaces)")
@@ -45,6 +58,9 @@ def main(cfg: DictConfig):
         pd.concat(pair_frames, ignore_index=True).to_csv(
             os.path.join(out_dir, f"{cfg.run_id}.pairs.csv"), index=False)
 
+    if not cfg.get("do_cross", True):
+        print(f"[audit] done (split part): {cfg.run_id}{suffix} -> {out_dir}")
+        return
     branch = meta["probed_branch"]
     spaces = store.spaces(cfg.run_id, man)
     # PROTOCOL §3 h per method (D-003v2), recorded by the adapter; older M0 extractions

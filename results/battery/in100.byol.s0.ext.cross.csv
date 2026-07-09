@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.out,cka_linear,cross,0.73610399534333,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.out,neighbor_jaccard,cross,0.23532769243140764,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.out,procrustes_distance,cross,0.6115728508011009,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.out,knn_label_agreement,cross,0.451,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.tap1,cka_linear,cross,0.7419701768838907,,,50000,384x8192,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.tap1,neighbor_jaccard,cross,0.23909933135320136,,,50000,384x8192,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.tap1,procrustes_distance,cross,0.6001478507085363,,,50000,384x8192,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.pred.tap1,knn_label_agreement,cross,0.4484,,,50000,384x8192,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,cka_linear,cross,0.7341525471040395,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,neighbor_jaccard,cross,0.25457794869389294,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,procrustes_distance,cross,0.5967159729849985,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,knn_label_agreement,cross,0.4632,,,50000,384x256,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,cka_linear,cross,0.7721240531940007,,,50000,384x4096,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,neighbor_jaccard,cross,0.2762518796305174,,,50000,384x4096,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,procrustes_distance,cross,0.5426014391917312,,,50000,384x4096,none
+in100.byol.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,knn_label_agreement,cross,0.4696,,,50000,384x4096,none

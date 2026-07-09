@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.deitlite.s0.ext,in100.train500.v1,student.h.cls~student.z.logits,cka_linear,cross,0.9107603702132372,,,50000,384x100,none
+in100.deitlite.s0.ext,in100.train500.v1,student.h.cls~student.z.logits,neighbor_jaccard,cross,0.5568472128318877,,,50000,384x100,none
+in100.deitlite.s0.ext,in100.train500.v1,student.h.cls~student.z.logits,procrustes_distance,cross,0.3182274630487706,,,50000,384x100,none
+in100.deitlite.s0.ext,in100.train500.v1,student.h.cls~student.z.logits,knn_label_agreement,cross,0.9774,,,50000,384x100,none

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Study companion: Emergence of Invariance and Disentanglement in Deep Representations</title>
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(','\\)'], ['$', '$']], displayMath: [['\\[','\\]']]},
+      svg: {fontCache: 'global'}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#11182b;
+      --panel2:#151f37;
+      --panel3:#0f1628;
+      --text:#e7ecf7;
+      --muted:#a7b2c8;
+      --faint:#738098;
+      --line:#26324f;
+      --accent:#8bd3ff;
+      --accent2:#b8f7d4;
+      --warn:#ffd37a;
+      --bad:#ff9aa2;
+      --good:#8df1b4;
+      --code:#0c1325;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(139,211,255,.14), transparent 35%),
+        radial-gradient(circle at 80% 20%, rgba(184,247,212,.10), transparent 35%),
+        linear-gradient(180deg, #080d1b 0%, var(--bg) 35%, #080d1b 100%);
+      line-height:1.6;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .shell{display:grid; grid-template-columns:300px minmax(0,1fr); gap:28px; max-width:1440px; margin:0 auto; padding:28px}
+    aside{
+      position:sticky; top:22px; align-self:start; height:calc(100vh - 44px); overflow:auto;
+      border:1px solid var(--line); border-radius:var(--radius); background:rgba(17,24,43,.76); backdrop-filter:blur(12px); box-shadow:var(--shadow);
+      padding:18px 16px;
+    }
+    .brand{display:flex; gap:12px; align-items:center; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--line)}
+    .logo{width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#07101d; display:grid; place-items:center; font-weight:900}
+    .brand h1{font-size:15px; line-height:1.2; margin:0}
+    .brand p{margin:3px 0 0; color:var(--muted); font-size:12px}
+    nav a{display:block; padding:8px 10px; margin:3px 0; border-radius:10px; color:var(--muted); font-size:14px}
+    nav a:hover, nav a.active{background:#1b2847; color:var(--text); text-decoration:none}
+    .toc-note{font-size:12px; color:var(--faint); margin:14px 8px 0}
+    main{min-width:0}
+    section{margin:0 0 28px; scroll-margin-top:28px}
+    .hero{padding:42px; border:1px solid var(--line); border-radius:28px; background:linear-gradient(145deg,rgba(17,24,43,.95),rgba(14,22,40,.72)); box-shadow:var(--shadow); overflow:hidden; position:relative}
+    .hero:after{content:""; position:absolute; inset:auto -120px -160px auto; width:360px; height:360px; border-radius:50%; background:rgba(139,211,255,.08)}
+    .eyebrow{letter-spacing:.13em; text-transform:uppercase; color:var(--accent2); font-size:12px; font-weight:700}
+    h1,h2,h3,h4{line-height:1.18; margin:0 0 12px}
+    .hero h1{font-size:clamp(34px,5vw,64px); max-width:980px; letter-spacing:-.04em; margin-top:10px}
+    h2{font-size:clamp(25px,3vw,38px); letter-spacing:-.03em; margin-bottom:16px}
+    h3{font-size:22px; letter-spacing:-.02em; margin-top:22px}
+    h4{font-size:17px; margin-top:18px}
+    p{margin:0 0 14px}
+    .meta{display:flex; flex-wrap:wrap; gap:9px; margin:22px 0 0}
+    .pill{border:1px solid var(--line); background:#121b32; color:var(--muted); padding:7px 10px; border-radius:999px; font-size:13px}
+    .grid{display:grid; gap:16px}
+    .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{border:1px solid var(--line); border-radius:var(--radius); background:rgba(17,24,43,.86); box-shadow:0 10px 30px rgba(0,0,0,.18); padding:22px}
+    .card.soft{background:rgba(21,31,55,.66)}
+    .card h3:first-child,.card h4:first-child{margin-top:0}
+    .lead{font-size:18px; color:#dce6f8; max-width:960px}
+    .muted{color:var(--muted)}
+    .faint{color:var(--faint)}
+    .takeaway{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start}
+    .num{width:28px; height:28px; border-radius:50%; background:#213456; color:var(--accent); display:grid; place-items:center; font-weight:800; font-size:13px; margin-top:1px}
+    .callout{border-left:4px solid var(--accent); background:#101a31; padding:16px 18px; border-radius:0 14px 14px 0; margin:18px 0}
+    .callout.warn{border-color:var(--warn)}
+    .callout.bad{border-color:var(--bad)}
+    .callout.good{border-color:var(--good)}
+    .tag{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:3px 8px; font-size:12px; white-space:nowrap}
+    .citation{color:var(--accent2); font-size:.93em; white-space:nowrap}
+    .math{overflow:auto; background:var(--code); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin:12px 0}
+    code,kbd{font-family:var(--mono); background:#0e172b; border:1px solid #243150; border-radius:6px; padding:2px 5px; color:#dce9ff}
+    table{width:100%; border-collapse:collapse; margin:12px 0; overflow:hidden; border-radius:14px}
+    th,td{border-bottom:1px solid var(--line); padding:11px 10px; text-align:left; vertical-align:top}
+    th{color:#d9e8ff; background:#16223d; font-size:13px}
+    td{color:#d6deee}
+    tr:last-child td{border-bottom:none}
+    .tabs{margin-top:14px}
+    .tab-buttons{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px}
+    .tab-buttons button,.small-btn{
+      appearance:none; border:1px solid var(--line); background:#101a31; color:var(--muted); border-radius:999px; padding:8px 12px; cursor:pointer; font-weight:650; font-size:13px;
+    }
+    .tab-buttons button.active,.small-btn.active,.small-btn:hover{background:#22385f; color:var(--text); border-color:#3b568b}
+    .tab-panel{display:none; padding:16px; border:1px solid var(--line); border-radius:14px; background:#0e172b}
+    .tab-panel.active{display:block}
+    details{border:1px solid var(--line); border-radius:14px; background:#101a31; padding:13px 15px; margin:12px 0}
+    summary{cursor:pointer; font-weight:800; color:#e9f2ff}
+    details > div{margin-top:12px; color:var(--muted)}
+    .eq-row{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; align-items:start}
+    .flow{width:100%; max-width:780px; margin:12px auto; display:block}
+    .flow text{fill:#e7ecf7; font-size:14px; font-family:var(--sans)}
+    .flow .box{fill:#111c34; stroke:#3a4d78; stroke-width:1.5}
+    .flow .green{stroke:#65e4a3}
+    .flow .blue{stroke:#8bd3ff}
+    .flow .arrow{stroke:#8bd3ff; stroke-width:2; fill:none; marker-end:url(#arrow)}
+    .flow .dash{stroke:#ffd37a; stroke-dasharray:6 5}
+    .slider-wrap{padding:18px; background:#0e172b; border:1px solid var(--line); border-radius:16px}
+    input[type=range]{width:100%}
+    .meter{height:14px; background:#0b1326; border:1px solid var(--line); border-radius:999px; overflow:hidden; margin:12px 0}
+    .meter span{display:block; height:100%; background:linear-gradient(90deg,var(--bad),var(--warn),var(--good)); width:50%}
+    .status{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px}
+    .status div{border:1px solid var(--line); border-radius:12px; padding:11px; background:#121c33}
+    .status b{display:block; color:#fff; margin-bottom:2px}
+    .quiz details{background:#0e172b}
+    .footer{color:var(--faint); font-size:13px; padding:24px 4px 50px}
+    .chipline{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 0}
+    .skip-list li{margin:9px 0}
+    ul,ol{padding-left:22px; margin-top:8px}
+    li{margin:5px 0}
+    .mini-title{font-size:13px; text-transform:uppercase; color:var(--accent2); letter-spacing:.09em; font-weight:800; margin:0 0 6px}
+    .equation-step{display:none}
+    .equation-step.active{display:block}
+    .step-controls{display:flex; gap:8px; margin-top:10px}
+    .notice{font-size:13px; color:var(--muted); border:1px dashed #3a4d78; border-radius:12px; padding:12px; background:#0d1629}
+    @media (max-width: 980px){
+      .shell{grid-template-columns:1fr; padding:16px}
+      aside{position:relative; top:auto; height:auto; max-height:none}
+      .grid.two,.grid.three,.eq-row,.status{grid-template-columns:1fr}
+      .hero{padding:28px}
+    }
+    @media print{
+      body{background:white;color:#111}
+      aside,.step-controls,.tab-buttons{display:none!important}
+      .shell{display:block; max-width:none; padding:0}
+      .card,.hero,details,.tab-panel{box-shadow:none; border-color:#ccc; background:white; color:#111}
+      .tab-panel{display:block!important}
+      a{color:#0645ad}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="logo">IB</div>
+        <div>
+          <h1>Study companion</h1>
+          <p>Achille &amp; Soatto, JMLR 2018</p>
+        </div>
+      </div>
+      <nav id="toc">
+        <a href="#overview">1. Paper overview</a>
+        <a href="#problem">2. Problem and motivation</a>
+        <a href="#contributions">3. Main contributions</a>
+        <a href="#notation">4. Background and notation</a>
+        <a href="#setup">5. Setup and assumptions</a>
+        <a href="#results">6. Main results</a>
+        <a href="#equations">7. Equation walkthrough</a>
+        <a href="#method">8. Method / algorithm</a>
+        <a href="#experiments">9. Experiments</a>
+        <a href="#scope">10. Scope and limitations</a>
+        <a href="#study">11. Study guide</a>
+      </nav>
+      <p class="toc-note">Inline references such as <span class="citation">Sec. 5, Prop. 5.2</span> refer to the attached paper.</p>
+    </aside>
+
+    <main>
+      <section class="hero" id="overview">
+        <div class="eyebrow">Paper overview</div>
+        <h1>Emergence of Invariance and Disentanglement in Deep Representations</h1>
+        <p class="lead"><strong>Alessandro Achille and Stefano Soatto.</strong> Journal of Machine Learning Research 18, 2018. The paper develops an information-theoretic story for why deep networks trained with noise, bottlenecks, SGD-like implicit regularization, or an explicit information regularizer can learn representations that are sufficient for the task while becoming insensitive to nuisance variation and less statistically entangled.</p>
+        <div class="meta">
+          <span class="pill">JMLR 18 (2018), pages 1-34</span>
+          <span class="pill">Submitted 01/17; revised 04/18; published 06/18</span>
+          <span class="pill">arXiv:1706.01350v3</span>
+          <span class="pill">Keywords: representation learning, PAC-Bayes, information bottleneck, flat minima</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid two">
+          <div class="card">
+            <h2>One-paragraph summary</h2>
+            <p>The central claim is a chain of implications. First, if a representation \(z\) is sufficient for predicting \(y\), then minimizing its information about the input \(I(z;x)\) makes it maximally insensitive to nuisance variables \(n\) that are irrelevant to \(y\) <span class="citation">Sec. 3, Prop. 3.1</span>. Second, deep architectures with noisy or bottlenecked layers naturally reduce information through the Markov chain of layers <span class="citation">Sec. 3, Cor. 3.4; Prop. 3.5</span>. Third, the paper shifts the information bottleneck from activations to weights: regularizing the information that learned weights w contain about the dataset D, \(I(w;D)\), controls memorization and yields a practical loss related to variational dropout and PAC-Bayes <span class="citation">Secs. 4, 6</span>. Finally, under stochastic multiplicative-weight assumptions, \(I(w;D)\) bounds the information and total correlation of layer representations, connecting flat minima, invariance, disentanglement, and generalization <span class="citation">Sec. 5</span>.</p>
+          </div>
+          <div class="card soft">
+            <h2>Key takeaways</h2>
+            <div class="takeaway"><div class="num">1</div><p><strong>Minimal means information-minimal, not low-dimensional.</strong> The paper minimizes \(I(z;x)\), not \(\dim z\), and argues this is what matters for invariance <span class="citation">Sec. 3</span>.</p></div>
+            <div class="takeaway"><div class="num">2</div><p><strong>The weight information bottleneck is the paper's main methodological twist.</strong> It regularizes \(H_{p,q}(y|x,w)+\beta I(w;D)\), rather than only studying \(I(z;x)\) post hoc <span class="citation">Eq. (3)</span>.</p></div>
+            <div class="takeaway"><div class="num">3</div><p><strong>Random labels expose memorization cost.</strong> For random labels, the theory predicts a transition near \(\beta=1\); experiments show sharp overfitting-to-underfitting transitions across architectures <span class="citation">Sec. 7.1, Figs. 1-2</span>.</p></div>
+            <div class="takeaway"><div class="num">4</div><p><strong>The strongest theoretical links need stochastic-weight assumptions.</strong> The duality bounds rely on multiplicative noise and distributional approximations, not arbitrary deterministic networks <span class="citation">Sec. 5, Props. 5.1-5.2</span>.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="problem">
+        <h2>Problem and motivation</h2>
+        <div class="card">
+          <p>The paper tries to reconcile two observations about deep learning.</p>
+          <div class="grid two">
+            <div>
+              <h3>The representation-learning observation</h3>
+              <p>Deep networks often learn internal activations that are insensitive to nuisance variation such as translation, deformation, occlusion, background, or other task-irrelevant factors. Some invariance is architectural, for example convolution and pooling, but the paper emphasizes complex, dataset-specific, non-group nuisances that architecture alone does not encode <span class="citation">Sec. 1.1</span>.</p>
+            </div>
+            <div>
+              <h3>The optimization/generalization observation</h3>
+              <p>Highly overparameterized networks can fit random labels, yet with real labels they often generalize. The paper argues this is not inconsistent with bias-variance ideas if complexity is measured by information in the weights rather than by parameter count <span class="citation">Secs. 1, 4, 7.2</span>.</p>
+            </div>
+          </div>
+          <div class="callout">
+            <p><strong>The paper's question:</strong> If the standard loss does not explicitly ask for invariance or disentanglement, why can these properties emerge under ordinary deep-network training?</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contributions">
+        <h2>Main contributions</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>1. Minimal sufficient representations are invariant</h3>
+            <p><strong>Claim:</strong> among sufficient representations, minimizing \(I(z;x)\) minimizes information about nuisances \(n\). In deterministic-label cases, the residual term in the equivalence vanishes <span class="citation">Sec. 3, Prop. 3.1</span>.</p>
+            <p><strong>Why it matters:</strong> invariance becomes an information-compression objective rather than a separately engineered property.</p>
+          </div>
+          <div class="card">
+            <h3>2. Bottlenecks and stacking promote invariance</h3>
+            <p><strong>Claim:</strong> if layers form a Markov chain and the later layer remains sufficient, information bottlenecks such as dimension reduction or noise make later representations more insensitive to nuisances <span class="citation">Sec. 3, Cor. 3.4; Prop. 3.5</span>.</p>
+            <p><strong>Support:</strong> this follows from Data Processing plus Proposition 3.1, not from a new training algorithm.</p>
+          </div>
+          <div class="card">
+            <h3>3. Cross-entropy contains an overfitting term</h3>
+            <p><strong>Claim:</strong> the training cross-entropy can be decomposed into intrinsic error, sufficiency, efficiency, and a negative term \(-I(y;w|x,\theta)\) that rewards memorizing labels not informative of the true data-generating parameter <span class="citation">Sec. 4, Eq. (2); App. C.3</span>.</p>
+            <p><strong>Why it matters:</strong> it motivates bounding this term by weight information or by a PAC-Bayes KL term.</p>
+          </div>
+          <div class="card">
+            <h3>4. Information bottleneck for weights</h3>
+            <p><strong>Claim:</strong> minimizing \(H_{p,q}(y|x,w)+\beta I(w;D)\) controls memorization. With tractable approximations it becomes a KL-regularized stochastic-weight objective <span class="citation">Sec. 4, Eqs. (3)-(5)</span>.</p>
+            <p><strong>Why it matters:</strong> it turns information in the weights into a model-complexity measure and a trainable regularizer.</p>
+          </div>
+          <div class="card">
+            <h3>5. Duality between weights and activations</h3>
+            <p><strong>Claim:</strong> under multiplicative stochastic weights and Gaussian approximations, \(I(z;x)+TC(z)\) is controlled by the information in the weights. Thus reducing \(I(w;D)\) pushes activations toward minimality and lower total correlation <span class="citation">Sec. 5, Props. 5.1-5.2; Cor. 5.3</span>.</p>
+          </div>
+          <div class="card">
+            <h3>6. Empirical validation</h3>
+            <p><strong>Claim tested:</strong> regularizing information in weights predicts phase transitions on random labels, recovers a bias-variance-like curve in \(\beta\), and reduces measured nuisance information in cluttered MNIST representations <span class="citation">Sec. 7, Figs. 1-4</span>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="notation">
+        <h2>Background and notation</h2>
+        <div class="card">
+          <p>The paper assumes standard information theory. The table below collects only the notation needed to follow the main argument.</p>
+          <table>
+            <thead><tr><th>Symbol</th><th>Meaning in the paper</th><th>Key role</th></tr></thead>
+            <tbody>
+              <tr><td>\(D=(\mathbf{x},\mathbf{y})\)</td><td>Training set of \(N\) input-label samples.</td><td>The object from which learned weights may memorize information.</td></tr>
+              <tr><td>\(x,y\)</td><td>A test datum and its task label.</td><td>Representation quality is about predicting \(y\) from \(x\).</td></tr>
+              <tr><td>\(\theta\)</td><td>Parameter of the unknown data distribution \(p_\theta(x,y)\), treated Bayesianly in Sec. 4.</td><td>Separates learning true structure from memorizing sample-specific labels.</td></tr>
+              <tr><td>\(z\)</td><td>A stochastic representation of \(x\), described by \(p(z|x)\).</td><td>The activation-like object whose sufficiency, minimality, invariance, and disentanglement are studied.</td></tr>
+              <tr><td>\(n\)</td><td>A nuisance: affects \(x\) but is uninformative about \(y\), so \(I(y;n)=0\).</td><td>The variable to which a good representation should be invariant.</td></tr>
+              <tr><td>\(w\)</td><td>Network weights, treated as a random variable induced by dataset and stochastic training.</td><td>Information \(I(w;D)\) is the paper's complexity measure.</td></tr>
+              <tr><td>\(q(w|D)\)</td><td>The distribution over weights output by the training procedure after seeing \(D\).</td><td>Not necessarily the exact Bayesian posterior; it is the learned stochastic-weight distribution.</td></tr>
+              <tr><td>\(q(y|x,w)\)</td><td>The network's predictive distribution.</td><td>Appears in cross-entropy and KL efficiency terms.</td></tr>
+              <tr><td>\(I(a;b)\), \(H(a)\), \(KL(p\|q)\)</td><td>Mutual information, entropy, and Kullback-Leibler divergence.</td><td>Core information-theoretic quantities.</td></tr>
+              <tr><td>\(TC(z)\)</td><td>Total correlation, \(KL(p(z)\|\prod_i p(z_i))\).</td><td>Zero iff components of \(z\) are independent; used as disentanglement measure <span class="citation">Sec. 2</span>.</td></tr>
+              <tr><td>\(\beta\)</td><td>Lagrange multiplier in IB-style losses.</td><td>Trades data fit against information complexity.</td></tr>
+              <tr><td>\(\alpha_i\)</td><td>Log-normal multiplicative-noise parameter for weight \(w_i\).</td><td>Controls the upper bound on information in weights <span class="citation">Sec. 4.2</span>.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid two">
+            <div class="card soft">
+              <h3>Representation concepts</h3>
+              <p><strong>Sufficient:</strong> \(z\) keeps all information about the task available in \(x\): \(I(z;y)=I(x;y)\).</p>
+              <p><strong>Minimal:</strong> among sufficient representations, \(z\) minimizes \(I(z;x)\).</p>
+              <p><strong>Invariant to \(n\):</strong> \(I(z;n)=0\). If zero is impossible, the paper uses <em>maximally insensitive</em> for minimizing \(I(z;n)\) among sufficient representations <span class="citation">Sec. 2.2</span>.</p>
+            </div>
+            <div class="card soft">
+              <h3>The two bottlenecks</h3>
+              <p><strong>Activation IB:</strong> \(H(y|z)+\beta I(z;x)\), the classical representation bottleneck <span class="citation">Eq. (1)</span>.</p>
+              <p><strong>Weight IB:</strong> \(H_{p,q}(y|x,w)+\beta I(w;D)\), the paper's training objective for stochastic weights <span class="citation">Eq. (3)</span>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="setup">
+        <h2>Mathematical setup and assumptions</h2>
+        <div class="card">
+          <svg class="flow" viewBox="0 0 760 260" role="img" aria-label="Flow diagram of data, nuisance, representation, weights, and task">
+            <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#8bd3ff"/></marker></defs>
+            <rect class="box green" x="34" y="40" width="130" height="52" rx="14"/><text x="99" y="72" text-anchor="middle">task y</text>
+            <rect class="box" x="34" y="160" width="130" height="52" rx="14"/><text x="99" y="192" text-anchor="middle">nuisance n</text>
+            <rect class="box blue" x="250" y="100" width="130" height="52" rx="14"/><text x="315" y="132" text-anchor="middle">input x</text>
+            <rect class="box blue" x="470" y="100" width="130" height="52" rx="14"/><text x="535" y="132" text-anchor="middle">repr. z</text>
+            <rect class="box green" x="640" y="100" width="90" height="52" rx="14"/><text x="685" y="132" text-anchor="middle">predict y</text>
+            <rect class="box" x="470" y="195" width="130" height="46" rx="14"/><text x="535" y="224" text-anchor="middle">weights w</text>
+            <rect class="box" x="250" y="195" width="130" height="46" rx="14"/><text x="315" y="224" text-anchor="middle">dataset D</text>
+            <path class="arrow" d="M164 66 C196 70, 213 97, 250 116"/>
+            <path class="arrow dash" d="M164 186 C196 179, 212 151, 250 135"/>
+            <path class="arrow" d="M380 126 L470 126"/>
+            <path class="arrow" d="M600 126 L640 126"/>
+            <path class="arrow" d="M380 218 L470 218"/>
+            <path class="arrow dash" d="M535 195 L535 154"/>
+            <text x="214" y="54" fill="#ffd37a">x=f(y,n) possible</text>
+            <text x="411" y="94" fill="#8bd3ff">x → z → y</text>
+            <text x="398" y="246" fill="#ffd37a">control I(w;D)</text>
+          </svg>
+
+          <div class="grid two">
+            <div>
+              <h3>Data and task model</h3>
+              <p>The training samples are drawn from an unknown distribution \(p_\theta(x,y)\). In Sec. 4, \(\theta\) is treated as a random variable under an unknown prior, but the paper notes this Bayesian framing is not necessary for the PAC-Bayes route in Sec. 6.</p>
+              <p>A nuisance is defined by marginal independence from the task, \(I(y;n)=0\), not by conditional independence \(I(y;n|x)=0\). Appendix D explains that the conditional definition would classify too much as nuisance when \(y\) is deterministic given \(x\).</p>
+            </div>
+            <div>
+              <h3>Representation model</h3>
+              <p>Representations are stochastic functions of inputs: \(p(z|x)\) defines \(z\), and the chain \(y\to x\to z\) holds. Layer-wise results use Markov chains \(x\to z_1\to z_2\to\cdots\to z_L\). The paper notes ResNets do not literally satisfy this for every layer because of skip connections, but their blocks can still be treated this way <span class="citation">Sec. 3</span>.</p>
+            </div>
+          </div>
+
+          <h3>Assumptions that matter</h3>
+          <table>
+            <thead><tr><th>Assumption</th><th>Where used</th><th>Interpretation and strength</th></tr></thead>
+            <tbody>
+              <tr><td>\(z\) is sufficient for \(y\)</td><td>Prop. 3.1; bottleneck/stacking results</td><td>Essential. Compression only gives invariance if task information is not destroyed. This is strong in out-of-distribution or transfer settings.</td></tr>
+              <tr><td>Nuisance \(n\) affects \(z\) only through \(x\): \(n\to x\to z\)</td><td>Prop. 3.1</td><td>Natural when representation is computed from the input, but it rules out side channels from nuisance to representation.</td></tr>
+              <tr><td>Discrete \(y\) for task-nuisance decomposition</td><td>Prop. 2.1 / App. C.1</td><td>Lets the authors show \(x=f(y,n)\) for some nuisance n independent of \(y\).</td></tr>
+              <tr><td>Weights are stochastic with multiplicative log-normal noise: \(w_i|D\sim\epsilon_i\hat w_i\)</td><td>Prop. 4.1; Props. 5.1-5.2</td><td>Central to computable information bounds. The paper also notes Gaussian multiplicative noise works with numerical approximation <span class="citation">App. B</span>.</td></tr>
+              <tr><td>Improper log-uniform prior \(\tilde q(w_i)=c/|w_i|\)</td><td>Prop. 4.1 and practical KL</td><td>Scale-invariant and convenient, but makes the PAC-Bayes bound vacuous under this model because of an arbitrary constant <span class="citation">Sec. 6; App. D</span>.</td></tr>
+              <tr><td>Approximate Gaussian marginals for \(p(z)\) and \(p(z|x)\)</td><td>Prop. 5.1</td><td>Justified heuristically by high input dimension and CLT-like reasoning. It is not a theorem for arbitrary deep activations.</td></tr>
+              <tr><td>Uncorrelated components and bounded kurtosis of \(x\)</td><td>Prop. 5.2</td><td>Enables a clean one-layer uniform bound. Satisfied by iid/sub-Gaussian/bounded-support examples, but not automatic for all representations.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="results">
+        <h2>Main theoretical results</h2>
+        <p class="muted">The cards below select the results that carry the paper's argument. Routine appendix proofs and minor corollaries are summarized only when they clarify the main chain.</p>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Core</span><span class="tag">Representation</span><span class="tag">Sec. 3, Prop. 3.1</span></div>
+          <h3>Result 1: Minimal sufficient representations are maximally invariant</h3>
+          <div class="tabs" data-tabs>
+            <div class="tab-buttons">
+              <button data-tab="plain" class="active">Plain English</button>
+              <button data-tab="math">Math details</button>
+              <button data-tab="proof">Proof idea</button>
+              <button data-tab="limits">What it does not imply</button>
+            </div>
+            <div class="tab-panel active" data-panel="plain">
+              <p>If \(z\) already preserves all task-relevant information about \(y\), then any remaining information it has about \(x\) is, in the paper's sense, nuisance information. Therefore, compressing \(z\) by reducing \(I(z;x)\) while maintaining sufficiency also reduces \(I(z;n)\).</p>
+              <p>For deterministic labels \(y=f(x)\), the residual in the theorem vanishes, so the connection is especially clean.</p>
+            </div>
+            <div class="tab-panel" data-panel="math">
+              <div class="math">\[
+                I(z;n) \le I(z;x)-I(x;y).
+              \]</div>
+              <p>For a particular nuisance construction, equality holds up to a residual:</p>
+              <div class="math">\[
+                I(z;n)=I(z;x)-I(x;y)-\epsilon,\qquad
+                \epsilon=I(z;y|n)-I(x;y),\qquad 0\le \epsilon\le H(y|x).
+              \]</div>
+              <p>Since sufficiency means \(I(z;y)=I(x;y)\), \(I(x;y)\) is the irreducible task information. The excess \(I(z;x)-I(x;y)\) is what can carry nuisance variation.</p>
+            </div>
+            <div class="tab-panel" data-panel="proof">
+              <ol>
+                <li>Use the Markov chain \((y,n)\to x\to z\), so by Data Processing \(I(z;y,n)\le I(z;x)\).</li>
+                <li>Expand \(I(z;y,n)=I(z;n)+I(z;y|n)\).</li>
+                <li>Because \(y\) and \(n\) are independent, \(I(z;y|n)\ge I(z;y)\).</li>
+                <li>Use sufficiency \(I(z;y)=I(x;y)\) to get the bound.</li>
+              </ol>
+            </div>
+            <div class="tab-panel" data-panel="limits">
+              <p>This is not saying any compressed representation is good. If compression destroys sufficiency, it can discard task information. It also does not prove invariance to a named real-world transformation unless that transformation fits the nuisance definition for the task.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Architecture</span><span class="tag">Noise / bottlenecks</span><span class="tag">Sec. 3</span></div>
+          <h3>Result 2: Bottlenecks and stacking can increase invariance</h3>
+          <div class="tabs" data-tabs>
+            <div class="tab-buttons">
+              <button data-tab="plain" class="active">Plain English</button>
+              <button data-tab="math">Math details</button>
+              <button data-tab="proof">Proof idea</button>
+              <button data-tab="limits">Caveats</button>
+            </div>
+            <div class="tab-panel active" data-panel="plain">
+              <p>A layer that receives less information from the previous layer, due to dimension reduction, pooling, dropout, or injected noise, can be more invariant if it remains sufficient. Stacking layers tends to remove information by Data Processing; if the final layer still solves the task, it is more nuisance-insensitive than earlier layers.</p>
+            </div>
+            <div class="tab-panel" data-panel="math">
+              <p>For \(x\to z_1\to z_2\) with a bottleneck \(I(z_1;z_2)&lt;I(z_1;x)\), if \(z_2\) is sufficient then</p>
+              <div class="math">\[
+                I(z_2;n)\le I(z_1;z_2)-I(x;y).
+              \]</div>
+              <p>For a layer chain \(x\to z_1\to\cdots\to z_L\), if \(z_L\) is sufficient, then \(z_L\) is more insensitive to nuisances than preceding layers <span class="citation">Prop. 3.5</span>.</p>
+            </div>
+            <div class="tab-panel" data-panel="proof">
+              <p>Apply Proposition 3.1 to later layers and combine it with Data Processing: later layers cannot contain more information about earlier layers than what passed through their channel.</p>
+            </div>
+            <div class="tab-panel" data-panel="limits">
+              <p>The paper explicitly warns against reading this as "more layers always help." The conclusion assumes the last layer is sufficient. In practice, deeper networks can be harder to optimize, and architectures with skip connections need block-level rather than layer-level Markov reasoning.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Optimization</span><span class="tag">Sec. 4, Eq. (2)</span><span class="tag">App. C.3</span></div>
+          <h3>Result 3: Cross-entropy has a negative memorization term</h3>
+          <div class="tabs" data-tabs>
+            <div class="tab-buttons">
+              <button data-tab="plain" class="active">Plain English</button>
+              <button data-tab="math">Math details</button>
+              <button data-tab="proof">Proof idea</button>
+              <button data-tab="limits">Interpretation</button>
+            </div>
+            <div class="tab-panel active" data-panel="plain">
+              <p>The training loss can be reduced either by learning task structure or by memorizing training labels. The decomposition isolates memorization as a negative term, so unregularized cross-entropy may reward it.</p>
+            </div>
+            <div class="tab-panel" data-panel="math">
+              <div class="math">\[
+              H_{p,q}(y|x,w)=
+              \underbrace{H(y|x,\theta)}_{\text{intrinsic error}}+
+              \underbrace{I(\theta;y|x,w)}_{\text{sufficiency}}+
+              \underbrace{\mathbb{E}_{x,w} KL(p(y|x,w)\|q(y|x,w))}_{\text{efficiency}}-
+              \underbrace{I(y;w|x,\theta)}_{\text{overfitting}}.
+              \]</div>
+              <p>The main text labels this Eq. (2); Appendix C.3 restates it as Eq. (8).</p>
+            </div>
+            <div class="tab-panel" data-panel="proof">
+              <p>The proof rewrites cross-entropy as entropy plus a KL mismatch term, then uses conditional mutual-information identities to decompose \(H_p(y|x,w)\). The negative sign appears because knowing weights can reveal label information beyond what \(x\) and \(\theta\) explain.</p>
+            </div>
+            <div class="tab-panel" data-panel="limits">
+              <p>The decomposition is explanatory; it does not make \(I(y;w|x,\theta)\) easy to compute. The paper therefore bounds or regularizes it indirectly.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Training objective</span><span class="tag">Secs. 4.1-4.2</span><span class="tag">PAC-Bayes in Sec. 6</span></div>
+          <h3>Result 4: Regularize information in the weights</h3>
+          <div class="tabs" data-tabs>
+            <div class="tab-buttons">
+              <button data-tab="plain" class="active">Plain English</button>
+              <button data-tab="math">Math details</button>
+              <button data-tab="proof">Why it works</button>
+              <button data-tab="limits">Caveats</button>
+            </div>
+            <div class="tab-panel active" data-panel="plain">
+              <p>To fit real structure, weights need information about the data-generating parameter \(\theta\), which can be bounded independently of sample size in the paper's model. To memorize random labels, they need information that grows with the number of samples. Penalizing \(I(w;D)\) therefore targets memorization.</p>
+            </div>
+            <div class="tab-panel" data-panel="math">
+              <div class="math">\[
+                L(q(w|D))=H_{p,q}(y|x,w)+\beta I(w;D). \tag{3}
+              \]</div>
+              <p>Since \(I(w;D)=\mathbb{E}_D KL(q(w|D)\|q(w))\) is generally intractable, use</p>
+              <div class="math">\[
+                L(q(w|D))=H_{p,q}(y|x,w)+\beta KL(q(w|D)\|p(w)), \tag{4}
+              \]</div>
+              <p>and, with a factorized approximation \(\tilde q(w)=\prod_i q(w_i)\),</p>
+              <div class="math">\[
+                L(q(w|D))=H_{p,q}(y|x,w)+\beta KL(q(w|D)\|\tilde q(w)). \tag{5}
+              \]</div>
+            </div>
+            <div class="tab-panel" data-panel="proof">
+              <p>The argument bounds the overfitting term in the cross-entropy decomposition by information stored in the weights. In Sec. 6, the same practical form also arises from a PAC-Bayes test-error bound, so the paper offers two routes to a KL-regularized weight objective.</p>
+            </div>
+            <div class="tab-panel" data-panel="limits">
+              <p>The ideal marginal \(q(w)\) is unavailable because it averages over datasets and stochastic training outcomes. The factorized prior is a tractable approximation. With the improper log-uniform prior used for analytic convenience, the PAC-Bayes numerical bound is vacuous, although the optimization objective remains meaningful in the paper's experiments.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Computable complexity</span><span class="tag">Sec. 4.2, Prop. 4.1</span></div>
+          <h3>Result 5: With multiplicative noise, weight information has a simple bound</h3>
+          <p>Under the paper's modeling assumptions, weights are parameterized as</p>
+          <div class="math">\[
+            w_i|D\sim \epsilon_i\hat w_i,\qquad \epsilon_i\sim \log\mathcal{N}(-\alpha_i/2,\alpha_i).
+          \]</div>
+          <p>With a log-uniform factorized prior, the information upper bound becomes</p>
+          <div class="math">\[
+            I(w;D)\le \tilde I(w;D)=-\frac12\sum_{i=1}^{\dim(w)}\log \alpha_i + C. \tag{Prop. 4.1}
+          \]</div>
+          <p><strong>Interpretation:</strong> larger weight noise corresponds to less storable information. The constant \(C\) is arbitrary because the prior is improper; the paper drops it for optimization because additive constants do not affect gradients <span class="citation">Remark 4.2</span>.</p>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Flat minima</span><span class="tag">Sec. 4.3, Prop. 4.3</span></div>
+          <h3>Result 6: Flat minima have low information</h3>
+          <div class="grid two">
+            <div>
+              <p><strong>Plain English:</strong> if the loss landscape is flat near a local minimum, weights can be stored with lower precision/noisier perturbations without increasing the loss much. That means the weights need less information about the dataset.</p>
+              <p>The paper links this to the idea that SGD-like procedures can bias optimization toward wide valleys and thus implicitly reduce weight information.</p>
+            </div>
+            <div class="math">\[
+              I(w;D)\le \tilde I(w;D)\le \frac12K\left[\log\|\hat w\|_2^2+\log\|H\|_*-K\log(K^2\beta/2)\right].
+            \]</div>
+          </div>
+          <p class="notice">The converse is not claimed: low information does not necessarily imply flatness. The paper explicitly notes this to avoid conflict with reparameterization critiques of flat-minima arguments <span class="citation">Sec. 4.3</span>.</p>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">Central duality</span><span class="tag">Sec. 5, Props. 5.1-5.2</span></div>
+          <h3>Result 7: Information in weights bounds information and total correlation in representations</h3>
+          <div class="tabs" data-tabs>
+            <div class="tab-buttons">
+              <button data-tab="plain" class="active">Plain English</button>
+              <button data-tab="math">Math details</button>
+              <button data-tab="proof">Proof idea</button>
+              <button data-tab="limits">Caveats</button>
+            </div>
+            <div class="tab-panel active" data-panel="plain">
+              <p>This is the paper's most distinctive bridge: make weights less informative about the dataset, and under the stochastic multiplicative layer model the activations become less informative about the input and have lower total correlation. By Result 1, lower \(I(z;x)\) among sufficient representations means more invariance; lower \(TC(z)\) means more component independence.</p>
+            </div>
+            <div class="tab-panel" data-panel="math">
+              <p>For a single linear layer \(z=Wx\) with noisy weights and approximate Gaussian marginals:</p>
+              <div class="math">\[
+              I(z;x)+TC(z)=
+              -\frac12\sum_{i=1}^{\dim(z)}\mathbb{E}_{x}\log
+              \frac{\tilde\alpha_i\hat W_i^2\cdot x^2}
+              {\hat W_i\cdot Cov(x)\hat W_i+\tilde\alpha_i\hat W_i^2\cdot\mathbb{E}(x^2)}.
+              \tag{6}
+              \]</div>
+              <p>With additional assumptions, a uniform bound is</p>
+              <div class="math">\[
+              g(\alpha)\le \frac{I(x;z)+TC(z)}{\dim(z)}\le g(\alpha)+c,
+              \quad g(\alpha)=-\frac12\log(1-e^{-\alpha}),
+              \quad c=O(1/\dim(x)).
+              \]</div>
+              <p>The homogeneous-noise parameter is related to weight information by \(\alpha=\exp\{-I(W;D)/\dim(W)\}\) <span class="citation">Prop. 5.2</span>.</p>
+            </div>
+            <div class="tab-panel" data-panel="proof">
+              <p>The layer's multiplicative weights turn uncertainty in \(W\) into uncertainty in \(z\). Under approximate Gaussianity, mutual information and total correlation reduce to log-variance ratios. The bounded-kurtosis argument controls a Taylor expansion and yields the clean uniform bound.</p>
+            </div>
+            <div class="tab-panel" data-panel="limits">
+              <p>The identity is not a general theorem for arbitrary deterministic layers. It relies on stochastic weights, Gaussian approximations, and, for the simple bound, assumptions on the input components. The multi-layer bound in Corollary 5.3 may be loose; the paper says this is expected because a bottleneck bounds what can pass through, not what actually passes through.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card theorem">
+          <div class="chipline"><span class="tag">PAC-Bayes</span><span class="tag">Sec. 6, Eq. (7)</span></div>
+          <h3>Result 8: The practical KL objective also arises from PAC-Bayes</h3>
+          <p>For any \(\lambda&gt;1/2\), prior \(p(w)\), and distribution \(q(w|D)\), the expected test error is bounded by a term with the same structure as Eq. (4): empirical cross-entropy plus a KL between posterior and prior.</p>
+          <div class="math">\[
+          \mathbb{E}_D[L^{test}(q(w|D))]
+          \le
+          \frac{1}{N(1-\frac{1}{2\lambda})}
+          \left(H_{p,q}(y|x,w)+\lambda L_{max}\mathbb{E}_D[KL(q(w|D)\|p(w))]\right). \tag{7}
+          \]</div>
+          <p>The paper notes that the sharpest bound would use \(p(w)=q(w)\), the marginal over training randomness, making it equivalent to the weight IB. Since \(q(w)\) is intractable, the factorized approximation \(\tilde q(w)=\prod_i q(w_i)\) recovers Eq. (5).</p>
+        </div>
+      </section>
+
+      <section id="equations">
+        <h2>Important equation walkthrough</h2>
+        <div class="card">
+          <p>The interactive panel follows the paper's main logic: representational compression, overfitting diagnosis, weight-information regularization, and activation-weight duality.</p>
+          <div class="eq-row">
+            <div class="math" id="eq-display">\[
+              L(p(z|x))=H(y|z)+\beta I(z;x)
+            \]</div>
+            <div>
+              <div class="equation-step active" data-step="0">
+                <p class="mini-title">Step 1: Classical activation information bottleneck</p>
+                <p>The first term pushes sufficiency: \(z\) should predict y. The second term pushes minimality: \(z\) should retain little about \(x\). The paper uses this as conceptual groundwork, then moves the bottleneck to weights <span class="citation">Sec. 2.1, Eq. (1)</span>.</p>
+              </div>
+              <div class="equation-step" data-step="1">
+                <p class="mini-title">Step 2: Minimality gives invariance</p>
+                <p>Once \(z\) is sufficient, the excess \(I(z;x)-I(x;y)\) upper-bounds nuisance information. This is why minimizing \(I(z;x)\) is interpreted as learning invariance <span class="citation">Sec. 3, Prop. 3.1</span>.</p>
+              </div>
+              <div class="equation-step" data-step="2">
+                <p class="mini-title">Step 3: Cross-entropy can reward memorization</p>
+                <p>The negative \(-I(y;w|x,\theta)\) term says the loss can decrease when weights memorize label information not explained by the task distribution <span class="citation">Sec. 4, Eq. (2)</span>.</p>
+              </div>
+              <div class="equation-step" data-step="3">
+                <p class="mini-title">Step 4: Weight bottleneck</p>
+                <p>Penalize \(I(w;D)\), because memorizing random labels requires information growing with \(N\), whereas learning the data-generating parameter can require bounded information in the model's idealization <span class="citation">Sec. 4, Eq. (3)</span>.</p>
+              </div>
+              <div class="equation-step" data-step="4">
+                <p class="mini-title">Step 5: Practical stochastic-weight objective</p>
+                <p>Replace intractable \(I(w;D)\) by a KL to a prior or factorized marginal approximation. This also matches the PAC-Bayes form <span class="citation">Secs. 4.1, 6</span>.</p>
+              </div>
+              <div class="equation-step" data-step="5">
+                <p class="mini-title">Step 6: Duality</p>
+                <p>Under stochastic multiplicative weights, reducing weight information bounds \(I(z;x)+TC(z)\), hence pushes toward minimal and disentangled activations <span class="citation">Sec. 5</span>.</p>
+              </div>
+              <div class="step-controls">
+                <button class="small-btn" id="prev-step">Previous</button>
+                <button class="small-btn active" id="next-step">Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="method">
+        <h2>Method or algorithm</h2>
+        <div class="card">
+          <p>The paper is primarily theoretical, but it uses a concrete stochastic-weight training procedure to make \(I(w;D)\) controllable and testable.</p>
+          <div class="grid two">
+            <div>
+              <h3>Training recipe in the paper's model</h3>
+              <ol>
+                <li>Choose a network and replace selected weights by stochastic weights \(w_i=\epsilon_i\hat w_i\).</li>
+                <li>Use multiplicative log-normal noise for the theory, or Gaussian multiplicative noise in some experiments for stability <span class="citation">App. B</span>.</li>
+                <li>Optimize cross-entropy plus \(\beta\) times a KL/information upper bound.</li>
+                <li>Use the reparameterization trick/local reparameterization trick to train efficiently, following variational dropout methods <span class="citation">Secs. 4.2, App. A</span>.</li>
+                <li>Control the effective complexity by sweeping \(\beta\): small \(\beta\) permits memorization; large \(\beta\) constrains information.</li>
+              </ol>
+            </div>
+            <div>
+              <h3>Pseudocode abstraction</h3>
+              <div class="math">\[
+              \begin{array}{ll}
+              \textbf{Input:} & D,\; \beta,\; \text{network } f_w,\; q(w|D;\phi) \\
+              \textbf{Repeat:} & w\sim q(w|D;\phi) \\
+              & \widehat L=\frac{1}{B}\sum_{(x_i,y_i)} -\log q(y_i|x_i,w) \\
+              & \quad\quad +\;\beta\,KL(q(w|D;\phi)\|\tilde q(w)) \\
+              & \phi\leftarrow \phi-\eta\nabla_\phi \widehat L \\
+              \textbf{Return:} & q(w|D;\phi)\text{ or its mean/noisy predictor.}
+              \end{array}
+              \]</div>
+            </div>
+          </div>
+          <div class="callout warn">
+            <p><strong>Difference from standard dropout:</strong> dropout injects noise but is not necessarily optimizing exactly this information bound. Variational dropout / information dropout style parameterizations make the information regularizer explicit and computable in the paper's setup.</p>
+          </div>
+
+          <div class="slider-wrap" aria-label="Beta intuition slider">
+            <h3>Interactive intuition: \(\beta\) and the random-label transition</h3>
+            <p class="muted">Move the slider in log space. The experiment in Sec. 7.1 predicts a qualitative transition near \(\beta=1\) for random labels.</p>
+            <input id="beta-slider" type="range" min="-2" max="2" step="0.01" value="0">
+            <div class="meter"><span id="beta-meter"></span></div>
+            <div class="status">
+              <div><b id="beta-val">\(\beta=1.00\)</b><span id="beta-regime">Boundary region for random labels.</span></div>
+              <div><b>Random labels</b><span id="random-msg">Near transition: architecture-specific smoothing, but the paper predicts the critical value at \(\beta=1\).</span></div>
+              <div><b>Real labels</b><span id="real-msg">Can still fit over a range of \(\beta&gt;1\) if the useful information about \(\theta\) is retained.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="experiments">
+        <h2>Experiments</h2>
+        <div class="card">
+          <p>The experiments are best read as validation of the paper's modeling assumptions and qualitative predictions, not as exhaustive empirical proof of the theory for all architectures.</p>
+
+          <div class="grid two">
+            <div class="card soft">
+              <h3>Experiment 1: Random-label phase transition</h3>
+              <p><strong>Question:</strong> Does controlling information in weights prevent memorization of random labels at the predicted threshold?</p>
+              <p><strong>Setup:</strong> Small AlexNet on cropped CIFAR-10 with completely random labels; the paper also tests Small AlexNet, All-CNN, and ResNet on \(N=10000\) random labels. Training details include SGD with momentum 0.9, large batch size 500, and no weight decay or other regularization in the random-label experiment <span class="citation">App. A.1</span>.</p>
+              <p><strong>Finding:</strong> For random labels, \(\beta&lt;1\) allows overfitting; \(\beta&gt;1\) leads to underfitting. Across architectures, Figure 2 shows a sharp transition near the critical value predicted by the theory <span class="citation">Sec. 7.1, Figs. 1-2</span>.</p>
+            </div>
+            <div class="card soft">
+              <h3>Experiment 2: Corrupted labels require more weight information</h3>
+              <p><strong>Question:</strong> Does fitting more random/corrupted labels require storing more information in the weights?</p>
+              <p><strong>Setup:</strong> Fix \(\beta=0.1\), \(N=30000\), train to convergence over different label-corruption levels <span class="citation">App. A.1</span>.</p>
+              <p><strong>Finding:</strong> As corruption increases, \(I(w;D)\) increases. For fully random 10-class labels, the increase is about \(3\) nats/sample, the same order as the \(\log 10\approx2.30\) nats needed to memorize a 10-class label <span class="citation">Sec. 7.1, Fig. 2</span>.</p>
+            </div>
+            <div class="card soft">
+              <h3>Experiment 3: Bias-variance trade-off via \(\beta\), not parameter count</h3>
+              <p><strong>Question:</strong> Does information in weights behave more like effective complexity than number of parameters?</p>
+              <p><strong>Setup:</strong> All-CNN on CIFAR-10 with ZCA whitening, no data augmentation. One sweep changes number of filters/weights with weight decay; another keeps architecture fixed and changes \(\beta\) <span class="citation">App. A.2</span>.</p>
+              <p><strong>Finding:</strong> Test error plateaus as parameter count grows, but sweeping \(\beta\) gives a characteristic underfit/fit/overfit curve. The paper interprets this as evidence that \(\tilde I(w;D)\) correlates better with generalization than raw parameter count <span class="citation">Sec. 7.2, Fig. 3</span>.</p>
+            </div>
+            <div class="card soft">
+              <h3>Experiment 4: Measuring nuisance information on cluttered MNIST</h3>
+              <p><strong>Question:</strong> Does reducing information in weights reduce \(I(z;n)\) for a controlled nuisance?</p>
+              <p><strong>Setup:</strong> Generate cluttered MNIST by adding ten random \(4\times4\) occluding squares. Train classifiers with different \(\beta\), use last convolutional layer as \(z\), and train a discriminator to estimate \(\log p(z|n)/p(z)\) <span class="citation">Sec. 7.3, App. A.3</span>.</p>
+              <p><strong>Finding:</strong> Lower weight information makes \(z\) increasingly insensitive to nuisance clutter while \(I(z;y)\) remains roughly constant. The paper cautions that the discriminator-based estimate has no formal quality guarantee <span class="citation">Sec. 7.3, Fig. 4</span>.</p>
+            </div>
+          </div>
+
+          <details>
+            <summary>Supplementary visualization: CelebA reconstructions</summary>
+            <div>
+              <p>Appendix A.4 trains a classifier for 40 CelebA binary attributes and a GAN-like reconstructor from representation \(z\). In Figure 5, increasing \(\beta\) makes reconstructed samples preserve task-relevant facial features such as hair color, sex, and expression while regenerating background, hairstyle, and other nuisance details. This visually supports the invariance interpretation, but it is a qualitative experiment rather than a theorem.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="scope">
+        <h2>What the paper solves and does not solve</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>What is actually solved</h3>
+            <ul>
+              <li>A formal connection between sufficiency + information minimality and invariance to task nuisances <span class="citation">Prop. 3.1</span>.</li>
+              <li>An explanation for why bottlenecks, stacking, and noise can promote invariance when sufficiency is maintained <span class="citation">Sec. 3</span>.</li>
+              <li>A weight-information regularizer motivated by cross-entropy decomposition and by PAC-Bayes <span class="citation">Secs. 4, 6</span>.</li>
+              <li>Closed-form/computable upper bounds on weight information under multiplicative-noise assumptions <span class="citation">Prop. 4.1</span>.</li>
+              <li>A theoretical bridge from low weight information to low activation information and total correlation under a specific stochastic-layer model <span class="citation">Sec. 5</span>.</li>
+              <li>Empirical evidence for predicted random-label phase transitions and nuisance-insensitivity trends <span class="citation">Sec. 7</span>.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Limitations and open questions</h3>
+            <ul>
+              <li><strong>Sufficiency is assumed in key places.</strong> If training fails or the test task differs, compression can remove useful information.</li>
+              <li><strong>The stochastic representation view is essential.</strong> Deterministic networks are related via noise/flatness arguments, but the strongest results are not arbitrary deterministic-network guarantees.</li>
+              <li><strong>Log-uniform priors simplify optimization but weaken PAC-Bayes numerics.</strong> The paper says the resulting test-error bound is vacuous under that improper prior.</li>
+              <li><strong>The nuisance estimator is approximate.</strong> The discriminator method for \(I(z;n)\) has no guarantee on approximation quality <span class="citation">Sec. 7.3</span>.</li>
+              <li><strong>Transfer learning is not addressed.</strong> The conclusion says using a representation optimized for one task on a different task is future work <span class="citation">Sec. 8</span>.</li>
+              <li><strong>Data acquisition is orthogonal.</strong> By Data Processing, representation learning cannot create task information absent from the data; active learning and experiment design are outside the paper's scope <span class="citation">Sec. 8</span>.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Material intentionally skipped or de-emphasized</h3>
+          <ul class="skip-list">
+            <li>Most appendix proof algebra beyond the key proof ideas, because the paper's conceptual contribution is the chain of information inequalities and regularizers, not the line-by-line derivations.</li>
+            <li>Full architecture tables except where they matter for experimental interpretation. The paper's central empirical claims do not depend on memorizing every layer shape.</li>
+            <li>Reference-by-reference related work details, except where they distinguish this paper from activation-IB, PAC-Bayes, variational dropout, and flat-minima perspectives.</li>
+            <li>Implementation stabilizers for the GAN reconstruction experiment, because they do not alter the main theoretical claims.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="study">
+        <h2>Study guide</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>What to remember</h3>
+            <ol>
+              <li>The paper's core representation theorem is: <em>sufficient + minimal</em> implies <em>maximally invariant to nuisances</em>.</li>
+              <li>Minimality is about mutual information \(I(z;x)\), not dimensionality.</li>
+              <li>The training-side innovation is the information bottleneck for weights: penalize \(I(w;D)\).</li>
+              <li>For random labels, memorization needs information growing with \(N\), so \(\beta\approx1\) becomes a predicted transition point.</li>
+              <li>Under stochastic multiplicative weights, low \(I(w;D)\) controls \(I(z;x)+TC(z)\), linking generalization, invariance, and disentanglement.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>Common confusions</h3>
+            <details><summary>Is disentanglement the same as invariance?</summary><div>No. Invariance is low information about nuisance variables \(I(z;n)\). Disentanglement is low dependence among components of \(z\), measured by total correlation \(TC(z)\). The paper links both to weight information, but they are different properties.</div></details>
+            <details><summary>Does the paper say every SGD-trained network is invariant?</summary><div>No. It argues SGD can implicitly reduce information in the weights under certain interpretations and cites related work. The rigorous representation conclusions still need sufficiency and the stated stochastic/Markov assumptions.</div></details>
+            <details><summary>Why does \(\beta=1\) matter?</summary><div>For random labels, reducing classification error requires storing label information in weights. The trade-off in Eq. (3) changes at \(\beta=1\): below it, memorization is favorable; above it, memorization is penalized more than it helps, in the idealized argument of Sec. 7.1.</div></details>
+            <details><summary>Is parameter count irrelevant?</summary><div>No. Parameter count can upper-bound capacity, but the paper argues it is too crude. The effective complexity relevant to these experiments is information stored in the learned weights.</div></details>
+          </div>
+        </div>
+
+        <div class="card quiz">
+          <h3>Short quiz</h3>
+          <details><summary>1. In Proposition 3.1, why is sufficiency needed?</summary><div>Without sufficiency, lowering \(I(z;x)\) could remove information about \(y\). Sufficiency fixes the amount of task information at \(I(x;y)\), so excess information can be interpreted as nuisance-related.</div></details>
+          <details><summary>2. What does total correlation measure here?</summary><div>\(TC(z)=KL(p(z)\|\prod_i p(z_i))\). It measures dependence among components. It is zero exactly when the components are independent.</div></details>
+          <details><summary>3. Why is \(I(w;D)\) connected to overfitting random labels?</summary><div>Random labels contain no structure in \(x\) or \(\theta\); fitting them means storing their identities in the weights. That storage cost grows roughly linearly with sample size.</div></details>
+          <details><summary>4. Why is the PAC-Bayes connection useful but limited here?</summary><div>It independently motivates the same KL-regularized objective. But the log-uniform prior used for the analytic information bound is improper, making the numerical PAC-Bayes generalization bound vacuous in the paper's model.</div></details>
+          <details><summary>5. What assumption makes the multi-layer bound possible?</summary><div>The layers must form a Markov chain so that Data Processing can be applied repeatedly. Skip connections complicate layer-level Markov structure, though the paper says ResNet blocks can still be considered.</div></details>
+        </div>
+      </section>
+
+      <div class="footer">
+        <p>Generated as a faithful study companion for the attached paper. References are to the paper's section, proposition, equation, figure, table, or appendix numbers.</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function(){
+      const links = Array.from(document.querySelectorAll('#toc a'));
+      const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id));
+          }
+        });
+      }, {rootMargin: '-20% 0px -70% 0px', threshold: 0});
+      sections.forEach(s => obs.observe(s));
+
+      document.querySelectorAll('[data-tabs]').forEach(group => {
+        const buttons = Array.from(group.querySelectorAll('[data-tab]'));
+        const panels = Array.from(group.querySelectorAll('[data-panel]'));
+        buttons.forEach(btn => btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-tab');
+          buttons.forEach(b => b.classList.toggle('active', b === btn));
+          panels.forEach(p => p.classList.toggle('active', p.getAttribute('data-panel') === key));
+          if(window.MathJax && window.MathJax.typesetPromise){ window.MathJax.typesetPromise([group]); }
+        }));
+      });
+
+      const equations = [
+        '\\[L(p(z|x))=H(y|z)+\\beta I(z;x)\\]',
+        '\\[I(z;n)\\le I(z;x)-I(x;y)\\]',
+        '\\[H_{p,q}(y|x,w)=H(y|x,\\theta)+I(\\theta;y|x,w)+\\mathbb{E}_{x,w}KL(p(y|x,w)\\|q(y|x,w))-I(y;w|x,\\theta)\\]',
+        '\\[L(q(w|D))=H_{p,q}(y|x,w)+\\beta I(w;D)\\]',
+        '\\[L(q(w|D))=H_{p,q}(y|x,w)+\\beta KL(q(w|D)\\|\\tilde q(w))\\]',
+        '\\[I(z;x)+TC(z)\\quad\\text{is controlled by}\\quad I(w;D)\\quad\\text{under the stochastic-weight model.}\\]'
+      ];
+      let step = 0;
+      const display = document.getElementById('eq-display');
+      const steps = Array.from(document.querySelectorAll('.equation-step'));
+      function renderStep(){
+        display.innerHTML = equations[step];
+        steps.forEach((s,i)=>s.classList.toggle('active', i===step));
+        if(window.MathJax && window.MathJax.typesetPromise){ window.MathJax.typesetPromise([display, steps[step]]); }
+      }
+      document.getElementById('prev-step').addEventListener('click', ()=>{ step=(step+equations.length-1)%equations.length; renderStep(); });
+      document.getElementById('next-step').addEventListener('click', ()=>{ step=(step+1)%equations.length; renderStep(); });
+
+      const slider = document.getElementById('beta-slider');
+      const betaVal = document.getElementById('beta-val');
+      const betaRegime = document.getElementById('beta-regime');
+      const randomMsg = document.getElementById('random-msg');
+      const realMsg = document.getElementById('real-msg');
+      const meter = document.getElementById('beta-meter');
+      function updateBeta(){
+        const logb = parseFloat(slider.value);
+        const beta = Math.pow(10, logb);
+        betaVal.textContent = `beta = ${beta.toFixed(beta < 0.1 ? 3 : beta < 10 ? 2 : 1)}`;
+        meter.style.width = `${(logb + 2) / 4 * 100}%`;
+        if(beta < 0.85){
+          betaRegime.textContent = 'Low regularization: high information in weights.';
+          randomMsg.textContent = 'Random labels can be memorized/overfit in the paper\'s idealized trade-off.';
+          realMsg.textContent = 'Real labels may fit, but excessive weight information can also encode sample-specific noise.';
+        } else if(beta <= 1.15){
+          betaRegime.textContent = 'Boundary region near the predicted random-label transition.';
+          randomMsg.textContent = 'Near transition: architecture and optimization smooth the empirical curve, but theory predicts beta = 1.';
+          realMsg.textContent = 'Often a useful regime in the experiments, with a fit/compression trade-off.';
+        } else {
+          betaRegime.textContent = 'Strong regularization: lower information in weights.';
+          randomMsg.textContent = 'Random-label memorization is disfavored; experiments show underfitting.';
+          realMsg.textContent = 'Can still fit real labels over a range if task structure needs bounded information.';
+        }
+        if(window.MathJax && window.MathJax.typesetPromise){ window.MathJax.typesetPromise([betaVal.parentElement]); }
+      }
+      slider.addEventListener('input', updateBeta);
+      updateBeta();
+    })();
+  </script>
+</body>
+</html>
