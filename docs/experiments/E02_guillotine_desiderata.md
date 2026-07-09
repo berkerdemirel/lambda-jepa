@@ -2,9 +2,12 @@
 
 > Derived from docs/report/ssl-projector-gap-report.html §5.1 E2.
 
-**Status:** draft, detailed 2026-07-02 · **Phase:** M2 (needs stored head-layer taps — retrained ckpts only)
-**Pre-registered:** ❏ PROPOSED — every prediction and threshold below awaits user sign-off
-(AUDIT_MATRIX locking covered E1 cells only; E2's curve-shape predictions are new content).
+**Status:** locked for IN-100 · **Phase:** M2 (needs stored head-layer taps — retrained ckpts only)
+**Pre-registered:** ✅ 2026-07-08 (Berker, dress-rehearsal discussion) — with the per-probe scoring
+qualifier below, added after the M1 toy grid showed the two headline probes moving in OPPOSITE
+directions along MAE's decoder (linear_raw .669→.693 up, knn_v1 .528→.450 down): an unqualified
+"accuracy" monotonicity prediction is unscoreable. Toy M1 numbers (including every tap probe)
+were visible when this lock was signed; the lock binds the IN-100 rung.
 
 ## Hypothesis
 
@@ -35,6 +38,15 @@ overlay, not the headline curve.
 Monotonicity is scored as Spearman ρ(metric, depth index) over the ordered points; "monotone"
 pre-declared as |ρ| ≥ 0.8 with the stated sign. Each method's OWN desideratum (AUDIT_MATRIX bold
 cell) is the headline curve; families are Holm–Bonferroni-corrected per method (PROTOCOL §6.7).
+
+**Per-probe scoring rule (qualifier added at lock, 2026-07-08):** every accuracy-curve prediction
+is scored SEPARATELY for `knn_v1` and `linear_raw_v1` — the toy grid showed the pair can disagree
+on direction (MAE decoder). Where the table below says "peak"/"↓ monotone" without naming a probe,
+the prediction binds `knn_v1`; `linear_raw_v1` carries the same sign as a soft prediction EXCEPT
+MAE's decoder segment, where linear_raw is left as an open measurement (toy showed it rising).
+Pair metrics along the depth axis (alignment/invariance) are read jointly with uniformity and the
+per-space `pair_margin` baseline (METRICS.md coupling caveat) — raw pair distances alone are not
+scored.
 
 | method | own-desideratum curve (prediction) | accuracy curve (knn_v1 + linear_raw_v1) |
 |---|---|---|

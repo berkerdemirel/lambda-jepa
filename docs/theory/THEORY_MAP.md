@@ -14,7 +14,7 @@ weaken across the gap, the results that survive it (which share a shape), and wh
 |---|---|---|---|
 | Alignment/uniformity — Wang & Isola, ICML'20 | ℓ2-normalized encoder output on S^(m−1); InfoNCE asymptotics | loss layer | No formal claim. Their own experiments probe both output and fc7 — the modern split didn't exist yet; correlation observed, nothing proven. |
 | Contrastive generalization bound — Arora et al., ICML'19 | any f in hypothesis class, loss computed on f; mean classifier on f | loss layer | No — with a head, the theorem certifies g∘f; f is an arbitrary pre-image. |
-| Vacuity of loss-only analyses — Saunshi et al., ICML'22 | the analysis paradigm itself | — | The enabling result: same loss, same augmentations, different function class ⇒ different downstream. The head is precisely such a function-class device. [P] |
+| Vacuity of loss-only analyses — Saunshi et al., ICML'22 | the analysis paradigm itself | — | The enabling result: same loss, same augmentations, different function class ⇒ different downstream [verified 2026-07-08: Table 1's exact-equal-loss pair 4.939/4.939 → 100% vs 50%; theorem-form Cor. 4.2, with the scope amendment that the *provable* vacuity (Lemma 4.1/Cor. 4.1 — any bound monotone in loss value is ≥ 1/2 − Õ(√(d/\|X̄\|)), for global minimizers AND all loss values) holds in the (near-)disjoint-augmentation regime, Def. 4.1 — the paper says "in some settings"]. "The head is precisely such a function-class device" is OUR inference — the published paper never mentions projection heads (sole setup mention: App. D.2, probed at projector output). [P] |
 | Spectral contrastive guarantee — HaoChen et al., NeurIPS'21 | population minimizer of spectral loss = top-k eigvecs of augmentation graph; linear probe on those features | loss layer | No — the guaranteed probe sits on the loss features; practice probes one space below. HaoChen & Ma ICLR'23 add function-class effects but keep the loss-layer object. |
 | SSL = spectral embedding — Balestriero & LeCun, NeurIPS'22 | closed-form optima of VICReg/SimCLR/BT losses | loss layer | No — "the learned embedding is a Laplacian/MDS embedding" is true of z; the head absorbs the whitening/orthogonality structure of that solution. [P] |
 | DirectPred dynamics — Tian et al., ICML'21 | linear predictor W_p eigenspace vs input correlation | predictor space | Not addressed — backbone quality checked only empirically. |
@@ -92,10 +92,14 @@ that a distributional constraint transfers through the projector more faithfully
 invariance — is exactly what E10's SIGReg-on-backbone arm tests. [P]
 
 **Latent Distribution Matching** (Mikulasch & Zenke, ICML 2026 Spotlight — verified) unifies the
-families at the loss layer: every surveyed objective is alignment (log-likelihood under an assumed
+families at the loss layer: the surveyed objectives are alignment (log-likelihood under an assumed
 latent model) plus an entropy estimator, and the choice of estimator generates the family tree —
 KDE → contrastive, parametric-Gaussian → VICReg, conditional-entropy-with-predictor →
-BYOL/SimSiam's stop-gradient, with CPC and JEPA also mapped. Its identifiability theorem
+BYOL/SimSiam's stop-gradient (equal-in-derivative), with CPC and JEPA also mapped. Scoping
+[verified 2026-07-08]: the unification is NOT universal by the paper's own account — real DINO
+"might not directly be related to any entropy estimator" (their words), Barlow Twins/SwAV/MAE
+are absent from the survey, and LeJEPA is classified as "single-variable LDM" that "does not
+provide identifiability guarantees" (their words) rather than derived. Its identifiability theorem
 (representations recover true latents up to affine transformation, even with nonlinear predictors)
 is the strongest available answer to "what do these objectives actually promise?" — and notably,
 the paper does not discuss projection heads at all. [P] Composing LDM's loss-layer identifiability

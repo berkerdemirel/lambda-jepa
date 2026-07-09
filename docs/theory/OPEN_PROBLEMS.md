@@ -35,10 +35,15 @@ found as of the report's compile date.
   recomputed per D-005/D-008) at toy/IN-100 scale; iBOT/DINOv2-toy in the M5+ roster expansion.
 
 ### OP-4 · The nonlinearity mystery
-- **Problem:** Dubois et al. find nonlinear heads add no effective-dimensionality benefit over
-  linear ones ("we still do not completely understand the impact of non-linear projections"), yet
-  SimCLR's +3% nonlinear-over-linear is robust; Xue et al. explain part of it in stylized models
-  only. None of the five §2.5 theory families predicts this cleanly.
+- **Problem:** the quote "we still do not completely understand the impact of non-linear
+  projections" is from **Dubois, Hashimoto & Liang, *Evaluating SSL via Risk Decomposition*,
+  ICML 2023 (arXiv 2302.03068) §5.3.3** [re-attributed 2026-07-08 — previously mis-cited to
+  Dubois '21/'22; the founding report's citation needs the same fix], where nonlinear heads add
+  no effective-dimensionality benefit over linear ones; yet SimCLR's +3% nonlinear-over-linear
+  is robust; Xue et al. explain part of it in stylized models only. Related [verified]: Dubois
+  '22 proves the *need* for heads theoretically, and the 2023 paper failed to confirm '22's
+  asymmetric-head gains — the theory and the measurements disagree within one group's own line.
+  None of the five §2.5 theory families predicts this cleanly.
 - **Why it matters:** it is the one datum no buffer/rank/bottleneck account unifies — a wedge into
   what the head actually does.
 - **Ours:** E10 projector-depth sweeps (SimCLR depth 0/1/2/3; LeJEPA depth 0–3) with the full

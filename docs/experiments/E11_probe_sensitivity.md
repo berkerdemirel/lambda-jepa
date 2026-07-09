@@ -3,8 +3,13 @@
 > Derived from docs/report/ssl-projector-gap-report.html §5.3 E11 — "cheapest of all eleven
 > experiments (features precomputed in E1)".
 
-**Status:** draft, detailed 2026-07-02 · **Phase:** M2 (nearly free once E01 features are cached)
-**Pre-registered:** ❏ PROPOSED — predictions and thresholds below await user sign-off.
+**Status:** locked for IN-100 · **Phase:** M2 (nearly free once E01 features are cached)
+**Pre-registered:** ✅ 2026-07-08 (Berker, dress-rehearsal discussion). **Honesty note:** the M1
+toy grid was fully visible at lock time, and it already leans on some of these predictions at toy
+scale — #2 (kNN favors uniformity-trained z: simclr/vicreg z beat their h by +18.5/+15 kNN pts),
+#3 partially (BYOL/DINO are the methods where the headline probe pair disagrees on h-vs-z
+direction), #4 untested, #1/#5 untouched (no token/attentive/BN probes at toy). The lock therefore
+binds the IN-100 rung as a *replication* test for #2/#3 and a fresh test for the rest.
 
 ## Hypothesis
 

@@ -37,6 +37,15 @@ Mean cosine similarity of raw (unnormalized-then-cosine) positive pairs. Range [
 more view-invariant**. Same coupling caveat as alignment; kept because it is scale-free and matches
 the RCDM-style invariance readouts in the literature.
 
+### `pair_margin` (pairs) — the coupling caveat, made a number (D-013)
+Positive-pair vs random-pair contrast within the same space: `cos_margin` = mean pos-pair cos −
+mean random-pair cos (random pairs = cross-view, different images, identical pipeline);
+`align_rel` = pos-pair E‖a−b‖² / random-pair E‖a−b‖². **cos_margin higher / align_rel lower =
+view-invariance beyond global compactness.** Added 2026-07-08 (M1 dress rehearsal): every trained
+h is cone-compact (uniformity −0.1…−0.45), so raw alignment/cos_invariance read h as *more*
+invariant than z across all view methods — including MAE, which trained on no augmentations.
+Alignment/invariance glyphs are scored on the margin, never on the raw pair value alone.
+
 ## Spread / anti-collapse
 
 ### `uniformity`

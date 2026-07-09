@@ -1,7 +1,8 @@
 # PROTOCOL.md — the fixed experimental frame
 
-**Version: v1-draft.2 (2026-07-02: D-003v2 space definitions, D-006v2 probe proposal, D-009 relrep).
-Pre-registration lock pending user sign-off.**
+**Version: v1-draft.3 (2026-07-09: D-020 convergence-guaranteed linear probes — v2 family is the
+headline; prior: v1-draft.2, 2026-07-02: D-003v2 space definitions, D-006v2 probe proposal, D-009
+relrep). Pre-registration lock pending user sign-off.**
 Any change to this file requires a DECISIONS row. Derived from the report's §5.0 fixed frame and §3
 estimator discipline, adapted to this cluster and the binding data ladder (DECISIONS L-004).
 
@@ -66,19 +67,29 @@ paper/donor recipe is listed under "Deviations" in the dossier.
   counts as h when that is what the method probes: LeJEPA h = `z.embed` (512-d). No dual/special-case
   reporting; single h per method.
 
-## 4 · Probes (D-006v2 — USER-APPROVED 2026-07-02)
+## 4 · Probes (D-006v2 — USER-APPROVED 2026-07-02; D-020 convergence amendment 2026-07-09)
 
 All probes run on frozen features from the store; fixed hyperparameters; identical across methods
 and spaces. Feature-side preprocessing is part of the probe id.
+
+**Convergence rule (D-020):** every trained (linear) probe must run to convergence, not to a fixed
+budget — same transform/optimizer/selection as its v1, stopping at patience 120 on best-val (any
+improvement resets), hard cap 1000 ep; `best_ep`/`epochs_run` recorded in every CSV (a best_ep
+within patience-reach of the cap = censored, flag before quoting). Why: fixed 30 ep boundary-
+censors plain Linear on unnormalized GAP features by 4.7–6.8 pts, differentially across methods
+(results/diag/probe_conv.csv; patience calibrated there, max observed stale-gap 108 ep). v1 rows
+are still computed for continuity.
 
 **Headline pair** (every table, every space): linear separability + lightly-parity kNN.
 
 | id | definition | role |
 |---|---|---|
-| `linear_raw_v1` | plain Linear on raw (unnormalized) features; AdamW lr 1e-3, wd 1e-7, 30 ep; best-val | **headline** linear separability |
-| `knn_v1` | weighted-cosine kNN, k=200, t=0.1 (+ k=20 reported alongside) | **headline** ssl_explore/lightly-parity kNN |
-| `linear_house_v1` | LayerNorm → Linear (ssl_explore `meters.offline_probe` exact port) | secondary: continuity with prior in-house tables; M0 parity anchor |
-| `linear_l2_v1` | ℓ2-normalize → Linear, same optimizer | E11 (probe-sensitivity study) |
+| `linear_raw_v2` | plain Linear on raw (unnormalized) features; AdamW lr 1e-3, wd 1e-7, patience-converged (D-020); best-val | **headline** linear separability |
+| `knn_v1` | weighted-cosine kNN, k=200, t=0.1 (+ k=20 reported alongside); optimizer-free, unversioned by D-020 | **headline** ssl_explore/lightly-parity kNN |
+| `linear_house_v2` / `linear_l2_v2` | patience-converged (D-020) LayerNorm→Linear / ℓ2→Linear | secondary / E11, converged counterparts |
+| `linear_raw_v1` | as raw_v2 at fixed 30 ep (pre-D-020 headline) | continuity column only — known censored at GAP spaces, never headline |
+| `linear_house_v1` | LayerNorm → Linear (ssl_explore `meters.offline_probe` exact port), 30 ep | continuity with prior in-house tables; M0 parity anchor |
+| `linear_l2_v1` | ℓ2-normalize → Linear, same optimizer, 30 ep | E11 (probe-sensitivity study) |
 | `attentive_v1` | 1 learned query, 1 CrossAttn block (6 heads) → Linear; fixed schedule | E11; **token spaces only** — vector spaces report `not-applicable`, never a silent fallback |
 | `sololearn_linear` | solo-learn's own linear-eval recipe | `rn18_in100` port validation only |
 | *(per-method paper probes)* | e.g. MAE's BN→Linear (flag F3) | E11 arms, added when their method enters |

@@ -107,3 +107,80 @@ old-vs-new comparison over all 130 matched (space, probe) cells: mean Δ **+0.00
 systematic direction — the misaligned probe's shared grad-clip budget had no measurable effect on
 the learned representation. Matrix/viz/orbits point at the probefix run (cleaner provenance);
 the incident run's features remain in the store for the record.
+
+## 2026-07-09 — probe-convergence incident: linear_raw@30ep was boundary-censored (D-020)
+
+Trigger: Berker questioned the M2 seed-0 offline probes sitting below the online monitors. First
+finding: the comparison itself was mis-drawn — the monitor head is LN+Linear (= house twin) and
+probes the audited-h space per method (dino teacher-CLS, lejepa embed-512), so the honest deltas
+were small and both-signed (offline house ≥ online for 6/7; dino +2.0 = probe-train-size/aug
+edge, consistent with the certified dino-ctrl 30k→50k slope +1.6). Second finding (Berker's
+convergence hypothesis, confirmed by diagnostic job 62168225 → results/diag/probe_conv{,_curves}
+.csv): `linear_raw_v1`'s fixed 30-ep budget boundary-censors plain Linear on unnormalized GAP
+features — best_ep=29 in every GAP cell, 4.7–6.8 pts below converged, differentially across
+methods (vicreg hit hardest; converged ordering differs from raw@30 ordering). Affine
+standardization (capacity-neutral) at 30 ep recovers ~all of it ⇒ optimizer conditioning, not
+feature geometry; per-sample LN residual ≈ nil at convergence (raw/std/house within ~1 pt at
+300 ep). CLS spaces converge by ep~20 — the artifact was invisible at CLS, biting only at
+GAP/embed. Resolution per Berker ("we shouldnt change our way of evaluation but we should make
+sure it converges"): v2 probe family, patience 120/cap 1000, best_ep+epochs_run in every CSV
+(D-020; PROTOCOL v1-draft.3); v1 columns kept for continuity; all stored-feature run_ids
+re-probed. Lessons: (1) a fixed probe budget is itself a protocol choice — convergence must be
+measured, not assumed (E11 gains a convergence axis; this diag is its first datum); (2) monitor
+numbers are only comparable to offline probes at the same space with the same head — HANDOVER
+now names each method's monitored space.
+
+## 2026-07-09 — E10 rescue campaign: 8 runs → a mechanism, a scaling law, and E10-T1
+
+Berker's rescue mandate (3×H100 granted, D-021) ran the full arc in one day. Grad-share
+measurement (results/diag/e10_grad_share.csv) revised the pre-registered λ rule mid-flight
+(A-matched → equal-pull; amendment dated pre-launch): at init B's balance was already A-like —
+the pilots died DYNAMICALLY. Rescue arms: Br (λ=.0035) stormed ep12; Bi (calibrated init,
+λ=.02) stormed ep12 — the timm head init (trunc_normal .02, not fan-in-scaled) leaves the embed
+~10× under-scaled, and fixing it delayed nothing; Dr (λ=.0015) never stormed but
+variance-collapsed (inv→1e-5, sigreg pinned at the derived σ²→0 ceiling 103 — theory value
+visible in a live curve); Blr (lr 3e-4 + calib) reached the family's healthiest state (sigreg
+5.2, inv 2e-4, probe .28) then stormed ~ep38. Berker's curve-reading found the mechanism class
+(post-warmup lr-triggered instability) and his forensics instruction is now standing practice
+(memory: curve-forensics-default); D0's "late decay" was re-diagnosed as the same storm
+(ignition ep32 — the grad-share replay on fixed ckpts was structurally blind to on-trajectory
+storms). Fuse-length law: ignition ep12/19/32 @1e-3 → ~38 @3e-4; buffered A: no ignition in
+145 ep. SIGReg value calibration (results/diag/sigreg_ref.csv): isotropic floor 1.053; at K=512
+every trained embed reads ≈ its covariance-matched Gaussian twin (shape residue ≈0) vs K=16
+where 84% of A's deviation is shape → E10-T1 agreed (dimensionality sets the statistic's job;
+placement sets stability — Berker's correction of the initial phrasing). Final arm e10Dlr
+(both losses at embed, λ=.02, calib, lr 3e-4) pre-registered and running: broke every family
+record (.42 @ep55, quiet grads); analysis when it finishes. Also: deitlite supervised anchor
+built+launched (D-022; trainer y pass-through, 8-method CPU revalidation); Dr battery chain
+landed (toy.lejepa.s0.e10Dr.ext).
+
+## 2026-07-09 — D-020 re-probe fleet complete (33/33); l2-probe censoring surfaced by design
+
+All stored-feature run_ids re-probed with the v2 family. Every M2 HEADLINE cell (linear_raw_v2
+at each method's h and z.final) converged uncensored. The recorded best_ep/epochs_run columns
+immediately surfaced a follow-on protocol fact: `linear_l2_v2` hits the 1000-ep cap in dozens
+of cells across toy+IN-100 (unit-norm inputs → tiny initial logit scale → slow convergence —
+the same conditioning mechanism as the raw@30 incident, one layer deeper). l2 is an E11 arm,
+not headline; deferred to the E11 M2 pass (options there: longer cap, per-probe lr, or carry
+capped flags — any change needs its own DECISIONS row). Superseded dino incident-run CSVs
+(toy.dino.s0.ext*) intentionally left v1-only.
+
+## 2026-07-08 — theory day (evening): anchor verification landed; Dubois '22 deep-read + positioning
+
+Four agent quote-verification reports landed in `docs/theory/verification/` (ib_mi_byol,
+dubois_xu, identifiability, saunshi); in-place corrections applied to DESIDERATA §3 with
+[verified] tags. Headline finding: the OP-4 quote ("we still do not completely understand the
+impact of non-linear projections") exists in NEITHER anchor paper — it is Dubois–Hashimoto–Liang,
+ICML 2023 (arXiv 2302.03068) §5.3.3; OP-4 re-cited, founding report needs the same fix. Also:
+Dubois '22 is NOT head-silent (proves the need for heads; symmetric projection breaks
+representation-layer linear optimality) — DESIDERATA §5.1 novelty claim re-scoped to the audit.
+Berker's backward-direction question on '21's unconstrained-Bayes-risk guarantee (expressive
+probes: multiple ERM fits sever the probe-risk ↔ representation link) → Dubois '22 deep-read:
+their Def. 3 W_n takes sup over the FULL ERM argmin set — the worry is inside their optimality
+concept, with exact invariance as the argmin-taming condition. Comparison note
+`docs/theory/DUBOIS22_VS_TRD_PI.md` written (DRAFT, not agreed): quantifier algebra, exchange-rate
+table, import candidates, and (§7) the novelty/strategy read — recommendation "proceed" (the
+'22-solved corner is not our problem; their own '23 paper couldn't confirm the '22 head
+prescription), two novelty re-scopes, DISSL-as-positive-control candidate. ALL pending
+discussion; nothing agreed. Lesson (for the ledger): quote-verify anchors BEFORE building on
+them — one misattributed quote had propagated into OP-4 and the founding report.

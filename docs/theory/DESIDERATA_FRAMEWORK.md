@@ -1,9 +1,14 @@
 # What we want from a representation — the same-page note
 
 **Status: agreed discussion basis (Berker + Claude, 2026-07-02) — the framework conversation's
-written form, saved at Berker's request. NOT results, NOT locked pre-registration. Claims about
-prior papers below are stated from memory at discussion confidence; a quote-verification pass
-(same standard as the founding report) is the agreed next step before anything here is cited.**
+written form, saved at Berker's request. NOT results, NOT locked pre-registration.
+Quote-verification pass RUN 2026-07-08** (agent reports: `verification/anchors_ib_mi_byol.md`,
+`anchors_dubois_xu.md`, `anchors_identifiability.md`; LeJEPA/R8(a) in TRD_PI_REVIEW_NOTES) —
+verified/amended claims carry [verified 2026-07-08] tags in-place; corrections applied: BYOL
+ablation cell re-attributed, Dubois '22 head-theorem acknowledged (§5.1 novelty claim re-scoped),
+OP-4 quote re-cited to Dubois–Hashimoto–Liang '23, LDM unification scoped, Saunshi vacuity
+scoped to the disjoint-augmentation regime (`anchors_saunshi.md`). **Still at memory confidence:
+only the MDL/Kolmogorov row (philosophical anchor, no factual claims to check).**
 
 Companions: THEORY_MAP.md (which space each theorem governs) · OPEN_PROBLEMS.md ·
 LDM_HEAD_COMPOSITION.md (OP-17) · the E1/E2/E4/E10/E11 cards this note retro-grounds.
@@ -16,8 +21,12 @@ from an interpretable account of what a good representation *is*. **And the clai
 (Berker, 2026-07-03): even reading the validation losses of the very quantities each method
 optimizes, you cannot predict the downstream ordering.** Two independent reasons: (i) *wrong
 functional* — the achieved value of a constraint says nothing about usable structure (Tschannen:
-tighter MI bounds can yield worse representations; collapse: BYOL-minus-predictor satisfies its
-loss at 0.3% accuracy; our SIGReg cells: trained-low loss, non-Gaussian space; the label-free
+tighter MI bounds can yield worse representations [verified 2026-07-08]; collapse: BYOL ablations
+whose objective admits collapsed solutions land at near-chance — minus-predictor 0.2%,
+minus-target-network 0.3%, both Table 5(b); predictor+stop-grad variant 5.5%, Table 19 [verified
+2026-07-08 against 2006.07733v3 — the paper never reports the loss value at the collapsed cells,
+so "satisfies its loss" is the objective-admits-collapse statement, not a measured one]; our
+SIGReg cells: trained-low loss, non-Gaussian space; the label-free
 selection literature — RankMe/α-ReQ — exists precisely because loss values don't rank);
 (ii) *wrong space* — the loss is measured a head away from what gets probed. Caveat kept honest:
 within one method's hyperparameter sweep (functional and space fixed) loss↔downstream correlation
@@ -85,14 +94,17 @@ reporting isotropy with adversarial/worst-direction statistics rather than avera
 |---|---|---|
 | IB / minimal sufficiency (Achille–Soatto '18; Federici et al. multi-view IB '20) | D1+D2 exactly; multi-view IB makes it label-free (sufficiency = shared-across-views info) | information-only: blind to geometry, hierarchy, usability — the zip objection applies to naive readings |
 | Tschannen et al. '20, *On MI Maximization* (Berker's citation) | formalizes the zip point: MI is bijection-invariant, so information content cannot explain representation quality; estimator/architecture biases do the work | diagnosis, no constructive replacement |
-| Dubois et al. '21 *Lossy Compression for Lossless Prediction*; Dubois et al. '22 *Idealized Representations* | cleanest existing "what we want": minimize rate s.t. lossless prediction of **every task invariant under the view group** (D1+D2 as one variational problem); '22 adds **linear** predictability of invariant tasks + dimension requirements (half of D4) | one readout tier; no hierarchy; loss-layer theory — the head/two-space question absent |
+| Dubois et al. '21 *Lossy Compression for Lossless Prediction*; Dubois et al. '22 *Idealized Representations* | cleanest existing "what we want": minimize rate s.t. lossless prediction of **every task invariant under the view group** (D1+D2 as one variational problem; '21 Thm 2 — invariance as an equivalence relation, generalizing groups) [verified 2026-07-08]; '22 adds **linear** predictability of invariant tasks + dimension requirements (Thm 1; probe-complexity-dependent dims §5) [verified] | one readout tier in '21 (Bayes risk, predictor-independent); no hierarchy. **Correction [verified 2026-07-08]: '22 is NOT head-silent — it proves the *need* for projection heads and that SimCLR's symmetric projection provably breaks linear-probe optimality (a theorem-level two-space statement). What it lacks is the two-space AUDIT and any cross-tier gap object** (see verification/anchors_dubois_xu.md; angle-by-angle comparison + import candidates: DUBOIS22_VS_TRD_PI.md, draft not agreed) |
 | **V-information** (Xu et al. '20, usable information under computational constraints) | the formalism for D4: I_V(Z→t) = information usable by function class V. Data-processing **fails by design** — computation creates usable information. "Represented" (I_linear high) vs "derivable" (I_V₂ high, I_linear low) = the cars example, formalized | a measurement language, not a learning objective |
-| Nonlinear ICA / identifiability (Zimmermann et al. '21; iVAE; LDM '26) | the formal home of "factors of variation"; Zimmermann: InfoNCE inverts the generative process **conditional on an assumed latent marginal (uniform on sphere)** → anti-collapse terms = the assumed latent prior of an implicit generative model, which identifiability results condition on. LDM: every SSL family = alignment + an entropy estimator; identifiability up to affine | priors chosen for tractability, not truth; heads absent everywhere (LDM verified silent); hierarchy absent |
+| Nonlinear ICA / identifiability (Zimmermann et al. '21; iVAE; LDM '26) | the formal home of "factors of variation"; Zimmermann: InfoNCE inverts the generative process **conditional on an assumed latent marginal (uniform on sphere)** [verified 2026-07-08: Th. 2/5/6 all condition on uniform marginals; "anti-collapse terms = the assumed latent prior" is OUR gloss — licensed by their uniformity-term = vMF-KDE-entropy identification (Eq. 29), but the paper never says "anti-collapse", and Fig. 2 shows affine identifiability is empirically robust to marginal mismatch]. LDM: the surveyed families = alignment + an entropy estimator (NOT universal: real DINO excepted in-paper; BT/SwAV/MAE absent; LeJEPA = "single-variable LDM", no identifiability guarantees — their words); identifiability up to affine, theorems scoped to predictive SSL on temporal data [verified] | priors chosen for tractability, not truth; heads absent everywhere (LDM silence re-verified across v1–v3, 2026-07-08: z = f(x) set directly, BYOL's projector silently folded into f); hierarchy absent |
 | LeJEPA optimality ('25) | the one principled *derivation* of a marginal: isotropy as the minimax choice (best worst-case downstream bias with no task model) | Berker's two flaws: enforced at the projector; enforced by a finite test battery (§2) |
 | MDL / Kolmogorov structure function, sophistication | philosophical anchor for D3 + the zip case: the image is all information, zero *structure*; the witness transmits posterior-minus-prior bits, highest-value-first = rate allocation in a two-part code | uncomputable; practical shadows (hierarchical VAEs, ordered/nested latents) underdeveloped in SSL |
 
 Also: Saunshi et al. '22 (loss-level analysis is vacuous without function-class assumptions)
-is the theorem-form of "no way to guess the method ordering ex ante".
+is the theorem-form of "no way to guess the method ordering ex ante" [verified 2026-07-08, with
+scope: provable vacuity lives in the (near-)disjoint-augmentation regime (Def. 4.1) — which the
+paper argues is the empirically relevant one for image augmentations (τ ≈ 0); Table 1's
+equal-loss pair (4.939/4.939 → 100% vs 50%) is the cleanest citable instance].
 
 ## 4 · The composed program (the sketch analogy, assembled)
 
@@ -116,8 +128,12 @@ MAE = pixel-sufficiency, no invariance tier. The audit measures which corner pro
 
 ## 5 · Where the angles are NOT covered (candidate contributions)
 
-1. **The two-space/head axis** — absent from every framework above; the project's core (E1/E2/E10;
-   OP-17's composition note is the theory-side sketch).
+1. **The two-space/head axis** — absent from every framework above *as a measurement/audit
+   program*. Qualification [verified 2026-07-08]: theorem-level two-space statements DO exist —
+   Dubois '22 proves the need for projection heads and that symmetric projection breaks
+   linear-probe optimality — so the claim is scoped to the audit (τ, per-metric transfer,
+   layer-resolved measurement), not to being the first two-space theorem (E1/E2/E10; OP-17's
+   composition note is the theory-side sketch).
 2. **D3 hierarchy** — no mature SSL-theory home; E2's guillotine axis is arguably its empirical
    shadow (rate allocation across depth).
 3. **D4's two-tier decodability** — appears nowhere as a *design principle*; E11's MLP-vs-linear
