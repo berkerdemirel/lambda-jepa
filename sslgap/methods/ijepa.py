@@ -129,7 +129,7 @@ class IJEPA(SSLMethod):
         return house_scheduler(optimizer, steps_per_epoch, total_steps,
                                self.cfg.warmup_ep, self.cfg.eta_min)
 
-    def training_step(self, modules, views, device):
+    def training_step(self, modules, views, device, y=None):
         x = views[:, 0]
         B = x.shape[0]
         ctx_keep, tgt_idx = self.masks(B)

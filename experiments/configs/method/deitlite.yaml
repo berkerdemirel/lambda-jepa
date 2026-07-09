@@ -1,0 +1,10 @@
+name: deitlite
+# Supervised anchor, D-022: plain CE on CLS, RRC+flip only ("lite" = no aug zoo / smoothing /
+# distillation), house optimizer (D-018 uniformity). IN-100 anchor -> 100 classes.
+num_classes: 100
+drop_path: 0.1
+lr: 1e-3
+wd: 5e-2
+warmup_ep: 10
+eta_min: 1e-5
+grad_clip: 1.0

@@ -80,7 +80,7 @@ class DINO(SSLMethod):
             frozen_gain = self.cfg.norm_last_layer and name.endswith("original0")
             p.requires_grad_(epoch > 0 and not frozen_gain)
 
-    def training_step(self, modules, batch_x, device):
+    def training_step(self, modules, batch_x, device, y=None):
         g, l = batch_x                                            # [N,2,C,G,G], [N,nl,C,L,L]
         N, nl = g.shape[0], l.shape[1]
         gx = g.transpose(0, 1).flatten(0, 1)                      # view-major [2N]

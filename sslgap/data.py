@@ -268,6 +268,13 @@ class MultiCropDataset(torch.utils.data.Dataset):
         return self.split_src.n
 
 
+def supervised_stack(img_size):
+    """Supervised-anchor aug (deitlite, D-022): plain RRC + flip — deliberately NO jitter/mixup/
+    randaug so the anchor stays a minimal supervised reference, not a tuned competitor."""
+    return v2.Compose([v2.RandomResizedCrop(img_size, scale=(0.08, 1.0)),
+                       v2.RandomHorizontalFlip(), *_TAIL])
+
+
 def simclr_stack(img_size):
     """SimCLR aug (paper Fig. 4 defaults): RRC + flip + jitter(0.8,.8,.8,.2)@0.8 + gray 0.2 + blur 0.5."""
     return v2.Compose([

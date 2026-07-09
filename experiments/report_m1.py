@@ -27,7 +27,11 @@ Z_FINAL = {"simclr": "student.z.proj.out", "vicreg": "student.z.proj.out",
 DESIDERATA = [
     ("Alignment",       "pairs",   "alignment",                        "pairs"),
     ("Uniformity",      "battery", "uniformity",                       "raw|full"),
-    ("Variance floor",  "battery", "variance_floor.hinge",             "raw|full"),
+    # scale-free lead (min std / mean std, HIGHER = better conditioned); raw hinge kept as the
+    # VICReg-exact reference but it is gamma=1-scale-dependent and the floor is trained on
+    # augmented batches — cross-space hinge comparisons are confounded (Berker 2026-07-08).
+    ("Variance floor (scale-free)", "battery", "variance_floor.min_over_mean_std", "raw|full"),
+    ("Var. floor (hinge, paired)",  "battery", "variance_floor.hinge",             "raw|full"),
     ("Decorrelation",   "battery", "offdiag_redundancy.mean_abs_corr", "raw|full"),
     ("Eff. rank",       "battery", "rankme",                           "raw|full"),
     ("Isotropy/Gauss.", "battery", "kurt_topeig.worst",                "raw|full"),
@@ -82,7 +86,11 @@ def main(cfg: DictConfig):
           "> Emitted by experiments/report_m1.py. Toy rung: recipe bring-up frame — protocol",
           "> shakedown, NOT locked interpretation (D-012 pending). Predicted glyphs = AUDIT_MATRIX",
           "> v1 (LOCKED); bold = the method's own desideratum. τ = value(h)/value(z) (E01).",
-          "> Dim-sensitive metrics: raw|full shown; raw|pca64 in the appendix blocks (§6.2).\n"]
+          "> Dim-sensitive metrics: raw|full shown; raw|pca64 in the appendix blocks (§6.2).",
+          "> Null columns = RANDOM-INIT-NET null; the moment-matched Gaussian null (null_gauss)",
+          "> lives in results/battery/*.csv — several cells flip verdict between the two.",
+          "> Pair rows (alignment/invariance) are interpretable only against the within-space",
+          "> random-pair baseline: results/M1/PAIR_MARGIN.md (METRICS.md coupling caveat).\n"]
 
     data = {}
     overrides = cfg.get("run_id_overrides") or {}   # e.g. {dino: toy.dino.s0.probefix.ext}
@@ -155,7 +163,8 @@ def main(cfg: DictConfig):
     md.append("\n## Appendix — full per-space battery pointers + MAE decoder taps\n")
     for m, d in data.items():
         spaces = sorted(d["bat"].space.unique())
-        md.append(f"- **{m}**: results/battery/{cfg.run_id_pattern.format(method=m)}.csv — "
+        rid = overrides.get(m) or cfg.run_id_pattern.format(method=m)
+        md.append(f"- **{m}**: results/battery/{rid}.csv — "
                   f"{len(spaces)} spaces: {', '.join(spaces)}")
     md.append("\n\n## AGREED TAKEAWAY\n\n*(empty — filled only after discussion; see CLAUDE.md)*\n")
     out = os.path.join(out_dir, "E1_TOY_MATRIX.md")

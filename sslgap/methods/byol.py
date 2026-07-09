@@ -61,7 +61,7 @@ class BYOL(SSLMethod):
     def _regress(q, t):
         return 2 - 2 * (F.normalize(q, dim=1) * F.normalize(t, dim=1)).sum(1).mean()
 
-    def training_step(self, modules, views, device):
+    def training_step(self, modules, views, device, y=None):
         N, V = views.shape[:2]
         tok = modules["backbone"].forward_features(views.flatten(0, 1))
         q = modules["predictor"](modules["projector"](tok[:, 0])).reshape(N, V, -1)  # loss: CLS

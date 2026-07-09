@@ -1,0 +1,8 @@
+methods: [simclr, byol, vicreg, dino, mae, ijepa, lejepa]
+run_id_pattern: "in100.{method}.s0.ext"
+null_run: in100.randinit-s0.ext      # SHARED anchor (h-side spaces only at this rung)
+results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

@@ -15,3 +15,22 @@ def cos_invariance(A, B):
     num = (A * B).sum(1)
     den = np.linalg.norm(A, axis=1) * np.linalg.norm(B, axis=1) + 1e-12
     return float((num / den).mean())
+
+
+def pair_margin(A, B, seed=0):
+    """Positive-pair vs random-pair contrast within the same space — the baseline that makes
+    alignment/cos_invariance interpretable (METRICS.md coupling caveat: a cone-collapsed space has
+    tiny alignment with zero invariance achievement; M1 dress rehearsal, Berker 2026-07-08).
+    Random pairs are cross-view different-image pairs (a[p_i] vs b[p_{i+1}]), so the view pipeline
+    is identical for both terms and only image identity differs."""
+    a = A / (np.linalg.norm(A, axis=1, keepdims=True) + 1e-12)
+    b = B / (np.linalg.norm(B, axis=1, keepdims=True) + 1e-12)
+    p = np.random.default_rng(seed).permutation(len(a))
+    q = np.roll(p, 1)
+    pos_cos, rand_cos = (a * b).sum(1).mean(), (a[p] * b[q]).sum(1).mean()
+    align_pos = ((a - b) ** 2).sum(1).mean()
+    align_rand = ((a[p] - b[q]) ** 2).sum(1).mean()
+    return {"pos_cos": float(pos_cos), "rand_cos": float(rand_cos),
+            "cos_margin": float(pos_cos - rand_cos),
+            "align_pos": float(align_pos), "align_rand": float(align_rand),
+            "align_rel": float(align_pos / (align_rand + 1e-12))}

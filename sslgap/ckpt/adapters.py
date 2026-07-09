@@ -21,7 +21,8 @@ from torchvision.ops import MLP
 from sslgap.ckpt.schema import Branch, LoadedCkpt
 from sslgap.methods.ijepa import MaskSampler
 from sslgap.models.backbones import build_vit_trunk
-from sslgap.models.heads import ByolHeads, DINOHead, DinoHeadTaps, LejepaHeads, TVMLPTaps
+from sslgap.models.heads import (ByolHeads, DINOHead, DinoHeadTaps, LejepaHeads, LinearTap,
+                                 TVMLPTaps)
 from sslgap.models.vitops import vit_tokens
 
 
@@ -196,6 +197,13 @@ def _asm_ijepa(mods, ck):
             "teacher", "teacher.h.gap")         # F2: teacher last-layer avgpooled patches
 
 
+def _asm_deitlite(mods, ck):
+    """Supervised anchor: single branch; h = last-layer CLS (classifier input, D-003v2);
+    z.logits = the CE loss space."""
+    return ({"student": Branch(mods["backbone"], LinearTap(mods["classifier"]), "cls")},
+            "student", "student.h.cls")
+
+
 def _asm_lejepa(mods, ck):
     # encoder = timm ViT WITH the emb Linear (exact port); split into trunk + embed for the
     # two-space layout — z.embed is LeJEPA's h (D-003v2 F4).
@@ -207,7 +215,7 @@ def _asm_lejepa(mods, ck):
 
 
 _NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "byol": _asm_byol,
-               "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa}
+               "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa, "deitlite": _asm_deitlite}
 
 
 def _resolve(dotted):

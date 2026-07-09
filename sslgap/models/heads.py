@@ -52,7 +52,9 @@ class TVMLPTaps(nn.Module):
 
     def forward(self, x):
         out, k = {}, 0
-        for layer in self.mlp:
+        # depth-0 projector (E10 D0) is a bare nn.Identity, not a Sequential -> proj.out = input
+        layers = self.mlp if isinstance(self.mlp, nn.Sequential) else [self.mlp]
+        for layer in layers:
             x = layer(x)
             if isinstance(x, tuple):  # no torchvision layer returns tuples; guard for exotic mlps
                 x = x[0]
@@ -89,3 +91,16 @@ class LejepaHeads(nn.Module):
     def forward(self, cls):
         e = self.embed(cls)
         return {"embed": e, **self.proj(e)}
+
+
+class LinearTap(nn.Module):
+    """Single named linear tap — the deitlite classifier (z.logits): the supervised anchor's
+    loss space is its 100-way logit layer, stored so the matrix has a z.final for it."""
+
+    def __init__(self, linear: nn.Linear, name="logits"):
+        super().__init__()
+        self.linear = linear
+        self.name = name
+
+    def forward(self, x):
+        return {self.name: self.linear(x)}

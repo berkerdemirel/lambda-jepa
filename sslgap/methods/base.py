@@ -67,7 +67,7 @@ class SSLMethod(ABC):
 
     # --- the step -----------------------------------------------------------------------------
     @abstractmethod
-    def training_step(self, modules, batch_x, device) -> tuple[dict, "torch.Tensor", int]:
+    def training_step(self, modules, batch_x, device, y=None) -> tuple[dict, "torch.Tensor", int]:
         """batch_x = the dataset item's x part (tensor or nested tuple of tensors, on device) ->
         ({term: tensor incl. "loss"}, probe_feats [N*k, D] DETACHED, k = label repeats).
         probe_feats MUST be image-major (img0 x k, img1 x k, ...): the trainer aligns labels via

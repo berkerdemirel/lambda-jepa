@@ -1,0 +1,7 @@
+name: in100
+model_name: vit_small_patch16_224
+img_size: 224
+dataset: imagenet100          # CMC split — canonical ~/data/imagenet100 (DECISIONS D-002)
+data_root: ~/data/imagenet100
+epochs: 100                   # M2 budget (ROADMAP; epochs-matched per D-004)
+grad_clip: 1.0                # frame default; method overrides only via DECISIONS row

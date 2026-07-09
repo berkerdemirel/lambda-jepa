@@ -54,7 +54,7 @@ class SimCLR(SSLMethod):
         return house_scheduler(optimizer, steps_per_epoch, total_steps,
                                self.cfg.warmup_ep, self.cfg.eta_min)
 
-    def training_step(self, modules, views, device):
+    def training_step(self, modules, views, device, y=None):
         N, V = views.shape[:2]
         h = modules["backbone"].forward_features(views.flatten(0, 1))
         z = modules["projector"](h[:, 0]).reshape(N, V, -1)               # loss input: CLS (trained)

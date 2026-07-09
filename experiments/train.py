@@ -112,7 +112,7 @@ def main(cfg: DictConfig):
             batch_x = to_device(batch_x)
             y = y.to(frame.device, non_blocking=True)
             with autocast(frame.device, dtype=torch.bfloat16):
-                terms, probe_feats, k = method.training_step(modules, batch_x, frame.device)
+                terms, probe_feats, k = method.training_step(modules, batch_x, frame.device, y=y)
                 y_rep = y.repeat_interleave(k) if k > 1 else y
                 probe_loss = F.cross_entropy(probe(probe_feats), y_rep)
                 loss = terms["loss"] + probe_loss

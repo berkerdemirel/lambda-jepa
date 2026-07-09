@@ -1,5 +1,7 @@
-"""Probe driver: frozen probes (linear_house_v1 for parity, linear_l2_v1 primary, knn_v1) on every
-space present in both train and val manifests of a run.
+"""Probe driver: frozen probes on every space present in both train and val manifests of a run.
+Each linear family runs twice: v1 (fixed 30 ep — continuity with pre-D-020 tables and the M0
+parity anchor) and v2 (patience-converged headline, D-020; best_ep/epochs_run land in the CSV
+so boundary-censoring is visible). kNN is optimizer-free and unversioned by D-020.
 
   sbatch slurm/probe.sbatch run_id=in100.dino-ctrl.ep100.ext
 """
@@ -12,7 +14,12 @@ import torch
 from omegaconf import DictConfig
 
 from sslgap.extract import FeatureStore
-from sslgap.probes import knn_self_test, knn_topk_acc, linear_house_v1, linear_l2_v1, linear_raw_v1
+from sslgap.probes import (knn_self_test, knn_topk_acc, linear_house_v1, linear_house_v2,
+                           linear_l2_v1, linear_l2_v2, linear_raw_v1, linear_raw_v2)
+
+LINEAR = {"raw": [("linear_raw_v1", linear_raw_v1), ("linear_raw_v2", linear_raw_v2)],
+          "house": [("linear_house_v1", linear_house_v1), ("linear_house_v2", linear_house_v2)],
+          "l2": [("linear_l2_v1", linear_l2_v1), ("linear_l2_v2", linear_l2_v2)]}
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="probe")
@@ -34,25 +41,24 @@ def main(cfg: DictConfig):
         Xtr = np.asarray(store.get(cfg.run_id, man_tr, space), dtype=np.float32)
         Xva = np.asarray(store.get(cfg.run_id, man_va, space), dtype=np.float32)
         res = {}
-        if "raw" in cfg.probes:
-            res["linear_raw_v1"] = linear_raw_v1(Xtr, ytr, Xva, yva, num_classes,
-                                                 device=device, seed=cfg.seed)["val_acc"]
-        if "house" in cfg.probes:
-            res["linear_house_v1"] = linear_house_v1(Xtr, ytr, Xva, yva, num_classes,
-                                                     device=device, seed=cfg.seed)["val_acc"]
-        if "l2" in cfg.probes:
-            res["linear_l2_v1"] = linear_l2_v1(Xtr, ytr, Xva, yva, num_classes,
-                                               device=device, seed=cfg.seed)["val_acc"]
+        for family, versions in LINEAR.items():
+            if family in cfg.probes:
+                for name, fn in versions:
+                    r = fn(Xtr, ytr, Xva, yva, num_classes, device=device, seed=cfg.seed)
+                    res[name] = {"val_acc": r["val_acc"], "best_ep": r["best_ep"],
+                                 "epochs_run": r["epochs_run"]}
         if "knn" in cfg.probes:
-            res["knn_v1_k200"] = knn_topk_acc(Xtr, ytr, Xva, yva, num_classes,
-                                              knn_k=200, knn_t=0.1, device=device)
-            res["knn_v1_k20"] = knn_topk_acc(Xtr, ytr, Xva, yva, num_classes,
-                                             knn_k=20, knn_t=0.1, device=device)
+            res["knn_v1_k200"] = {"val_acc": knn_topk_acc(Xtr, ytr, Xva, yva, num_classes,
+                                                          knn_k=200, knn_t=0.1, device=device)}
+            res["knn_v1_k20"] = {"val_acc": knn_topk_acc(Xtr, ytr, Xva, yva, num_classes,
+                                                         knn_k=20, knn_t=0.1, device=device)}
         print(f"[probe] {cfg.run_id} {space}: " +
-              " ".join(f"{k}={v:.4f}" for k, v in res.items()))
+              " ".join(f"{k}={v['val_acc']:.4f}" for k, v in res.items()), flush=True)
         rows += [{"run_id": cfg.run_id, "train_manifest": man_tr, "val_manifest": man_va,
-                  "space": space, "probe": k, "val_acc": v, "n_train": len(ytr),
-                  "n_val": len(yva), "num_classes": num_classes} for k, v in res.items()]
+                  "space": space, "probe": k, "val_acc": v["val_acc"], "n_train": len(ytr),
+                  "n_val": len(yva), "num_classes": num_classes,
+                  "best_ep": v.get("best_ep"), "epochs_run": v.get("epochs_run")}
+                 for k, v in res.items()]
     out_dir = os.path.join(cfg.results_root, "probes")
     os.makedirs(out_dir, exist_ok=True)
     pd.DataFrame(rows).to_csv(os.path.join(out_dir, f"{cfg.run_id}.csv"), index=False)
