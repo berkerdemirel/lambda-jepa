@@ -1,0 +1,5 @@
+cell,space,K,T_actual,T_cov_matched_gauss,floor_N01,moment_part,shape_degen_residue
+A,proj,16,3.803,1.488,1.053,0.435,2.315
+Blr_best,embed,512,7.067,7.286,1.053,6.233,-0.22
+D0,embed,512,16.582,17.064,1.053,16.011,-0.481
+Dr,embed,512,71.687,70.738,1.053,69.685,0.949

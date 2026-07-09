@@ -4,6 +4,10 @@
 > shakedown, NOT locked interpretation (D-012 pending). Predicted glyphs = AUDIT_MATRIX
 > v1 (LOCKED); bold = the method's own desideratum. τ = value(h)/value(z) (E01).
 > Dim-sensitive metrics: raw|full shown; raw|pca64 in the appendix blocks (§6.2).
+> Null columns = RANDOM-INIT-NET null; the moment-matched Gaussian null (null_gauss)
+> lives in results/battery/*.csv — several cells flip verdict between the two.
+> Pair rows (alignment/invariance) are interpretable only against the within-space
+> random-pair baseline: results/M1/PAIR_MARGIN.md (METRICS.md coupling caveat).
 
 
 ## Alignment — `alignment` (pairs)
@@ -34,17 +38,31 @@
 
 
 
-## Variance floor — `variance_floor.hinge` (raw|full)
+## Variance floor (scale-free) — `variance_floor.min_over_mean_std` (raw|full)
+
+| method   | h_space         | z_final                   |   value_h |   value_z |      tau |   null_h |   null_z | predicted h/z   |
+|:---------|:----------------|:--------------------------|----------:|----------:|---------:|---------:|---------:|:----------------|
+| simclr   | student.h.gap   | student.z.proj.out        |    0.5294 |    0.5481 |   0.9658 |   0.3249 |   0.4805 | ?/✓             |
+| byol     | student.h.gap   | student.z.pred.out        |    0.3655 |    0.342  |   1.069  |   0.3249 |   0.5229 | ?/~             |
+| vicreg   | student.h.gap   | student.z.proj.out        |    0.5191 |    0.9731 |   0.5335 |   0.3249 |   0.496  | **~/✓**         |
+| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.5175 |    0.4818 |   1.074  |   0.3815 |   0.4466 | ?/?             |
+| mae      | student.h.gap   | —                         |    0.4271 |  nan      | nan      |   0.3249 | nan      | ?/—             |
+| ijepa    | teacher.h.gap   | student.z.pred.out        |    0.4102 |    0.3735 |   1.098  |   0.3249 |   0.3156 | ?/?             |
+| lejepa   | student.z.embed | student.z.proj.out        |    0.4813 |    0.9131 |   0.5271 |   0.3808 |   0.7348 | ?/✓             |
+
+
+
+## Var. floor (hinge, paired) — `variance_floor.hinge` (raw|full)
 
 | method   | h_space         | z_final                   |   value_h |   value_z |     tau |   null_h |   null_z | predicted h/z   |
 |:---------|:----------------|:--------------------------|----------:|----------:|--------:|---------:|---------:|:----------------|
-| simclr   | student.h.gap   | student.z.proj.out        |    0.7626 |   0       | nan     |   0.5243 |   0.8443 | ?/✓             |
-| byol     | student.h.gap   | student.z.pred.out        |    0.7806 |   0       | nan     |   0.5243 |   0.9659 | ?/~             |
-| vicreg   | student.h.gap   | student.z.proj.out        |    0.7337 |   0.3076  |   2.385 |   0.5243 |   0.9449 | **~/✓**         |
-| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.4556 |   0       | nan     |   0.2539 |   0.9569 | ?/?             |
-| mae      | student.h.gap   | —                         |    0.8416 | nan       | nan     |   0.5243 | nan      | ?/—             |
-| ijepa    | teacher.h.gap   | student.z.pred.out        |    0.77   |   0.7195  |   1.07  |   0.5243 |   0.8264 | ?/?             |
-| lejepa   | student.z.embed | student.z.proj.out        |    0.6931 |   0.02843 |  24.38  |   0.6925 |   0.9784 | ?/✓             |
+| simclr   | student.h.gap   | student.z.proj.out        |    0.7626 |   0       | nan     |   0.5243 |   0.8443 |                 |
+| byol     | student.h.gap   | student.z.pred.out        |    0.7806 |   0       | nan     |   0.5243 |   0.9659 |                 |
+| vicreg   | student.h.gap   | student.z.proj.out        |    0.7337 |   0.3076  |   2.385 |   0.5243 |   0.9449 |                 |
+| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.4556 |   0       | nan     |   0.2539 |   0.9569 |                 |
+| mae      | student.h.gap   | —                         |    0.8416 | nan       | nan     |   0.5243 | nan      |                 |
+| ijepa    | teacher.h.gap   | student.z.pred.out        |    0.77   |   0.7195  |   1.07  |   0.5243 |   0.8264 |                 |
+| lejepa   | student.z.embed | student.z.proj.out        |    0.6931 |   0.02843 |  24.38  |   0.6925 |   0.9784 |                 |
 
 
 
@@ -156,7 +174,7 @@
 - **simclr**: results/battery/toy.simclr.s0.ext.csv — 12 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.proj.out, student.z.proj.tap1
 - **byol**: results/battery/toy.byol.s0.ext.csv — 26 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.pred.out, student.z.pred.tap1, student.z.proj.out, student.z.proj.tap1, teacher.h.cls, teacher.h.cls.L03, teacher.h.cls.L06, teacher.h.cls.L09, teacher.h.cls.L12, teacher.h.gap, teacher.h.gap.L03, teacher.h.gap.L06, teacher.h.gap.L09, teacher.h.gap.L12, teacher.z.proj.out, teacher.z.proj.tap1
 - **vicreg**: results/battery/toy.vicreg.s0.ext.csv — 13 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.proj.out, student.z.proj.tap1, student.z.proj.tap2
-- **dino**: results/battery/toy.dino.s0.ext.csv — 26 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.dino.bottleneck, student.z.dino.tap1, student.z.dino.tap2, teacher.h.cls, teacher.h.cls.L03, teacher.h.cls.L06, teacher.h.cls.L09, teacher.h.cls.L12, teacher.h.gap, teacher.h.gap.L03, teacher.h.gap.L06, teacher.h.gap.L09, teacher.h.gap.L12, teacher.z.dino.bottleneck, teacher.z.dino.tap1, teacher.z.dino.tap2
+- **dino**: results/battery/toy.dino.s0.probefix.ext.csv — 26 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.dino.bottleneck, student.z.dino.tap1, student.z.dino.tap2, teacher.h.cls, teacher.h.cls.L03, teacher.h.cls.L06, teacher.h.cls.L09, teacher.h.cls.L12, teacher.h.gap, teacher.h.gap.L03, teacher.h.gap.L06, teacher.h.gap.L09, teacher.h.gap.L12, teacher.z.dino.bottleneck, teacher.z.dino.tap1, teacher.z.dino.tap2
 - **mae**: results/battery/toy.mae.s0.ext.csv — 13 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.dec.tap2, student.z.dec.tap5, student.z.dec.tap8
 - **ijepa**: results/battery/toy.ijepa.s0.ext.csv — 21 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.pred.out, teacher.h.cls, teacher.h.cls.L03, teacher.h.cls.L06, teacher.h.cls.L09, teacher.h.cls.L12, teacher.h.gap, teacher.h.gap.L03, teacher.h.gap.L06, teacher.h.gap.L09, teacher.h.gap.L12
 - **lejepa**: results/battery/toy.lejepa.s0.ext.csv — 14 spaces: student.h.cls, student.h.cls.L03, student.h.cls.L06, student.h.cls.L09, student.h.cls.L12, student.h.gap, student.h.gap.L03, student.h.gap.L06, student.h.gap.L09, student.h.gap.L12, student.z.embed, student.z.proj.out, student.z.proj.tap1, student.z.proj.tap2
