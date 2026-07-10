@@ -1,0 +1,57 @@
+family,method,pred,gh,gz,verdict_h,verdict_z
+Alignment,simclr,**?/✓**,~,✓,NEW:~,MATCH
+Alignment,byol,**?/✓**,~,✓,NEW:~,MATCH
+Alignment,vicreg,?/✓,~,✓,NEW:~,MATCH
+Alignment,dino,?/✓,✓,✓,NEW:✓,MATCH
+Alignment,mae,✗/—,✗,—,MATCH,n/a
+Alignment,ijepa,?/✓,✗,✗,NEW:✗,SURPRISE
+Alignment,lejepa,?/✓,~,✓,NEW:~,MATCH
+Uniformity,simclr,✗/✓,~,✓,soft,MATCH
+Uniformity,byol,✗/~,✗,~,MATCH,MATCH
+Uniformity,vicreg,✗/~,✗,✓,MATCH,soft
+Uniformity,dino,**✗/~**,✓,✓,SURPRISE,soft
+Uniformity,mae,✗/—,✗,—,MATCH,n/a
+Uniformity,ijepa,✗/✗,~,~,soft,soft
+Uniformity,lejepa,?/✓,✗,✓,NEW:✗,MATCH
+Variance floor (scale-free),simclr,?/✓,✓,✓,NEW:✓,MATCH
+Variance floor (scale-free),byol,?/~,~,✓,NEW:~,soft
+Variance floor (scale-free),vicreg,**~/✓**,✓,✓,soft,MATCH
+Variance floor (scale-free),dino,?/?,~,✓,NEW:~,NEW:✓
+Variance floor (scale-free),mae,?/—,~,—,NEW:~,n/a
+Variance floor (scale-free),ijepa,?/?,~,~,NEW:~,NEW:~
+Variance floor (scale-free),lejepa,?/✓,~,✓,NEW:~,MATCH
+Decorrelation,simclr,✗/~,~,~,soft,MATCH
+Decorrelation,byol,✗/~,~,~,soft,MATCH
+Decorrelation,vicreg,**✗/✓**,~,✓,soft,MATCH
+Decorrelation,dino,✗/?,~,~,soft,NEW:~
+Decorrelation,mae,✗/—,✗,—,MATCH,n/a
+Decorrelation,ijepa,✗/?,~,~,soft,NEW:~
+Decorrelation,lejepa,?/~,✗,✓,NEW:✗,soft
+Eff. rank,simclr,~/✗,~,✗,MATCH,MATCH
+Eff. rank,byol,~/~,~,✗,MATCH,soft
+Eff. rank,vicreg,~/✓,~,~,MATCH,soft
+Eff. rank,dino,~/?,✓,~,soft,NEW:~
+Eff. rank,mae,**✗**/—,~,—,soft,n/a
+Eff. rank,ijepa,?/?,~,~,NEW:~,NEW:~
+Eff. rank,lejepa,?/✓,✗,✓,NEW:✗,MATCH
+Isotropy/Gauss.,simclr,✗/~,✗,✗,MATCH,soft
+Isotropy/Gauss.,byol,✗/✗,✗,✗,MATCH,MATCH
+Isotropy/Gauss.,vicreg,✗/~,✗,✗,MATCH,soft
+Isotropy/Gauss.,dino,✗/✗,✗,✗,MATCH,MATCH
+Isotropy/Gauss.,mae,✗/—,✗,—,MATCH,n/a
+Isotropy/Gauss.,ijepa,✗/✗,✗,✗,MATCH,MATCH
+Isotropy/Gauss.,lejepa,**?/✓**,✗,✗,NEW:✗,SURPRISE
+Aug.-invariance,simclr,**✗/✓**,~,✓,soft,MATCH
+Aug.-invariance,byol,✗/✓,~,✓,soft,MATCH
+Aug.-invariance,vicreg,✗/✓,~,✓,soft,MATCH
+Aug.-invariance,dino,✗/✓,✓,✓,SURPRISE,MATCH
+Aug.-invariance,mae,✗/—,✗,—,MATCH,n/a
+Aug.-invariance,ijepa,✗ (no augs),✗,✗,MATCH,n/a
+Aug.-invariance,lejepa,? (mild stack),~,✓,NEW:~,n/a
+View-predictability,simclr,?/—,,,n/a,n/a
+View-predictability,byol,?/✓,,,n/a,n/a
+View-predictability,vicreg,?/—,,,n/a,n/a
+View-predictability,dino,?/—,,,n/a,n/a
+View-predictability,mae,**?/—**,,,n/a,n/a
+View-predictability,ijepa,**?/✓**,,,n/a,n/a
+View-predictability,lejepa,**?/✓**,,,n/a,n/a

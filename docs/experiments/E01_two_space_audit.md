@@ -159,6 +159,14 @@ replicate for now"); mirrored to DECISIONS as E01-T10…T15. Figures:
 results/figures/m2/e1_{battery_hz,kurt_signs,probes,pair_margins,kurt_variants}.png; matrix
 results/M2/E1_IN100_MATRIX.md.**
 
+**D-024 mechanical glyph pass (delegated one-time, Berker 2026-07-10; EVERY CELL VETO-OPEN):
+results/M2/E1_IN100_SCORED.md + e1_in100_scored.csv** — glyphs are fixed-rule outputs laid
+beside their inputs (rule block in the artifact), NOT agreed interpretation. Verdicts: 39 MATCH,
+22 soft, 4 SURPRISE (ijepa/Alignment-z; dino/Uniformity-h; lejepa/Isotropy-z — its own bold
+desideratum; dino/Aug.-invariance-h), 19 NEW (the h-side `?` cells' first readings). Surprise
+cells are flagged for discussion before any narrative (AUDIT_MATRIX rule); Berker's veto pass
+pending.
+
 - **T10 · E01-T2 sign scoring.** Cluster-sharpening trio CONFIRMED at z (kurt-worst 66–245 vs
   h 0.84–2.98, all far above matched nulls); I-JEPA "flat" CONFIRMED battery-wide (h≈z, τ≈1 on
   every row); MAE vacuous as locked. The two Gaussian-smoothing predictions MISS: byol z 7.34 >
