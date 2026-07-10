@@ -17,6 +17,9 @@ from sslgap.methods.lejepa import SIGReg
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CELLS = [("A", "toy.lejepa.s0.e10A_ep150.pt", "proj"),
+         # A's embed = the same trained net read at the UNCONSTRAINED 512-d space — the twin cell
+         # to Dlr@embed for "what does free vs constrained embed geometry cost in sigreg terms"
+         ("A_embed", "toy.lejepa.s0.e10A_ep150.pt", "embed"),
          ("Blr_best", "toy.lejepa.s0.e10Blr_best.pt", "embed"),
          ("D0", "toy.lejepa.s0.e10D0_ep150.pt", "embed"),
          ("Dr", "toy.lejepa.s0.e10Dr_ep150.pt", "embed"),

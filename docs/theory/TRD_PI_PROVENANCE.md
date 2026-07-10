@@ -1,6 +1,6 @@
 # TRD-π — Provenance, corrections record, and review lineage
 
-Companion to `TRD_PI_FRAMEWORK_v1_3.md`. This document carries everything the paper does not need to argue: version history, the corrections record, the declined-changes register, name maps, and the pre-submission checklist. The framework document states claims; this document states how they got there.
+Companion to `trd_pi_theory_framework_v1_3.md` (v2.0 draft: `trd_pi_theory_framework_v2_0_draft.md`). This document carries everything the paper does not need to argue: version history, the corrections record, the declined-changes register, name maps, and the pre-submission checklist. The framework document states claims; this document states how they got there.
 
 ---
 
@@ -35,7 +35,7 @@ Companion to `TRD_PI_FRAMEWORK_v1_3.md`. This document carries everything the pa
 
 **Declined after v1.2's round, with reasons on record**: gutting §0's M0/BYOL hook (the cell check is already gated in the submission list); repeating the R6(d) qualifier in E-cards; canonical-basis machinery (learnable frames, pre-whitening+Varimax before the prior); demoting the fork below its conditional status.
 
-**v1.3** (2026-07-05; structural revision — restore ambition, keep every correction). No mathematical claim, claim class, number, assumption, or citation changed. The full sentence-level record is in `TRD_PI_EDIT_MANIFEST_v1_2_to_v1_3.md`. Summary:
+**v1.3** (2026-07-05; structural revision — restore ambition, keep every correction). No mathematical claim, claim class, number, assumption, or citation changed. The sentence-level edit manifest was not carried into the repo (noted 2026-07-08); this summary is the surviving record. Summary:
 1. Provenance split: §10 and all version narration moved to this document; the framework no longer argues with its own history.
 2. One-hedge rule: every caveat is stated once, at the claim that owns it; §8 became an index of one-liners with pointers. R8(a)'s [PS] status now has a single home (R8a itself); R3, R8(d), and §8 point to it instead of restating it.
 3. Desiderata restructured as want + carrier: each D states the unqualified want, then names the R that carries it. Operationalization caveats moved to their R-sections.
@@ -66,6 +66,13 @@ Companion to `TRD_PI_FRAMEWORK_v1_3.md`. This document carries everything the pa
 - **File/label offset**: the PDF named v1_3 carried internal label v1.2; from v1.3 onward filename and internal label coincide.
 
 ## 4 · Pre-submission checklist (carried forward, unchanged in substance)
+
+> STATUS (2026-07-10, Berker-approved corrections pass): items 1–3 DISCHARGED as recorded in
+> the v2.0 draft Appendix D — R8(a) folded back as [F-verified, scoped] with the three
+> amendments (Fisher-functional naming; fixed-design/second-moment scoping; kNN/kernel-only
+> tier-2 classes) plus the new R8(a′) random-design lemma; BYOL cell wording corrected with
+> exact cells; R7(b) and R4's signal reading proven. Items 4–6 remain open (4 = ours to run;
+> 6 = thresholds locked per-card as cards launch).
 
 1. Re-derive R8's constant against the reference ISB functional; quote their lemma forms in an appendix. This discharges the [PS] on R8(a) — and with it the conditionality of R8(d) — or forces its demotion. Decide by the math, not by additional hedging.
 2. Verify the exact BYOL ablation cell (collapse-to-near-chance is robust across sources; the specific figure needs one primary-source check).

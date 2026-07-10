@@ -146,9 +146,10 @@ MAE = pixel-sufficiency, no invariance tier. The audit measures which corner pro
 
 ## 6 · Agreed next steps
 
-1. Quote-verification pass on the anchors (Dubois '21/'22; Xu '20; Achille–Soatto '18;
-   Zimmermann '21; Tschannen '20; + LDM/LeJEPA re-reads) — then this note's §3 table gets
-   citation-grade.
+1. Quote-verification pass on the anchors (Dubois '21/'22; Dubois–Hashimoto–Liang '23
+   arXiv 2302.03068 — added 2026-07-10, the OP-4 quote's true home and the nearest empirical
+   neighbor; Xu '20; Achille–Soatto '18; Zimmermann '21; Tschannen '20; + LDM/LeJEPA
+   re-reads) — then this note's §3 table gets citation-grade.
 2. Discussion over this note: attack §4's formalization; have the §5.4 prior-fork argument.
 3. Only after that: decide whether the composed program becomes the project's framework paper
    angle (the E-cards already generate its empirical section).
