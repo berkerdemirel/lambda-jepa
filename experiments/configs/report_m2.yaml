@@ -1,6 +1,16 @@
 methods: [simclr, byol, vicreg, dino, mae, ijepa, lejepa]
 run_id_pattern: "in100.{method}.s0.ext"
 null_run: in100.randinit-s0.ext      # SHARED anchor (h-side spaces only at this rung)
+method_null_runs:                    # own-arch nulls (z-side included) — override the shared one
+  lejepa: in100.lejepa.s0.null.ext
+anchors:                             # D-007/D-022 reference rows (own section, never comparison cells)
+  deitlite:
+    run_id: in100.deitlite.s0.ext
+    spaces: {h.cls: student.h.cls, h.gap: student.h.gap, z.logits: student.z.logits}
+  randinit:
+    run_id: in100.randinit-s0.ext
+    spaces: {h.cls: student.h.cls, h.gap: student.h.gap}
+anchor_note: "0.6182 val @ training best (wandb in100.deitlite.s0)"
 results_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/results
 
 hydra:

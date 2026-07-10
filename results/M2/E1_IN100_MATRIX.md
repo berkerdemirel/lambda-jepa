@@ -5,7 +5,8 @@
 > 2026-07-02); bold = the method's own desideratum. tau = value(h)/value(z).
 > Probes = D-020 v2 family (patience-converged; `capped` marks best_ep within
 > patience-reach of the 1000-ep cap). Null columns = shared in100.randinit-s0.ext
-> (h-side only at this rung; z-side nulls not extracted — NaN by construction).
+> (h-side only) EXCEPT methods with an own-arch null in cfg.method_null_runs
+> (z-side included); remaining z-nulls NaN by construction, not by failure.
 > Pair rows are margin-scored per D-013/E01-T8: results/M2/PAIR_MARGIN.md.
 > Seed-1 replication pending (G-M2 requirement) — nothing here is a headline cell.
 
@@ -169,6 +170,34 @@
 | ijepa    | z.final | student.z.pred.out        |          0.4614 |        0.336  |          0.4388 |            0.4628 |
 | lejepa   | h       | student.z.embed           |          0.6022 |        0.524  |          0.588  |            0.61   |
 | lejepa   | z.final | student.z.proj.out        |          0.5008 |        0.4632 |          0.4864 |            0.4924 |
+
+
+## Anchor rows (D-007/D-022) — supervised deitlite + shared randinit
+
+> Reference rows, never comparison cells (provenance stays separate). deitlite = minimal supervised anchor (CE on CLS, RRC+flip only; its own classifier hit 0.6182 val @ training best (wandb in100.deitlite.s0)). randinit = the shared untrained floor. Battery values at anchor spaces; probes same family as above.
+
+| desideratum                 |   deitlite h.cls |   deitlite h.gap |   deitlite z.logits |   randinit h.cls |   randinit h.gap |
+|:----------------------------|-----------------:|-----------------:|--------------------:|-----------------:|-----------------:|
+| Alignment                   |        1.474     |         0.717    |              1.287  |           1.23   |           1.254  |
+| Uniformity                  |       -3.825     |        -1.809    |             -3.545  |          -1.884  |          -1.678  |
+| Variance floor (scale-free) |        0.0009494 |         0.002239 |              0.8741 |           0.3796 |           0.2555 |
+| Var. floor (hinge, paired)  |        0.3174    |         0.8149   |              0      |           0.2294 |           0.5105 |
+| Decorrelation               |        0.05749   |         0.09307  |              0.153  |           0.3766 |           0.4748 |
+| Eff. rank                   |      254         |       217.2      |             86.49   |          91.52   |          53.05   |
+| Isotropy/Gauss.             |        0.9978    |         1.181    |              0.9977 |           1.512  |           5.934  |
+| Isotropy (EP, paired)       |       79.39      |       248.9      |            421.5    |        3005      |        3408      |
+| Aug.-invariance             |        0.263     |         0.6415   |              0.3563 |           0.3851 |           0.373  |
+
+
+### Anchor probes
+
+| anchor   | at       | space            |   linear_raw_v2 |   knn_v1_k200 |   linear_raw_v1 |   linear_house_v2 |
+|:---------|:---------|:-----------------|----------------:|--------------:|----------------:|------------------:|
+| deitlite | h.cls    | student.h.cls    |          0.6236 |        0.6158 |          0.6236 |            0.621  |
+| deitlite | h.gap    | student.h.gap    |          0.5388 |        0.3664 |          0.5248 |            0.533  |
+| deitlite | z.logits | student.z.logits |          0.6146 |        0.6052 |          0.614  |            0.6094 |
+| randinit | h.cls    | student.h.cls    |          0.1168 |        0.0622 |          0.0894 |            0.1204 |
+| randinit | h.gap    | student.h.gap    |          0.1518 |        0.0712 |          0.1102 |            0.153  |
 
 
 ## AGREED TAKEAWAY
