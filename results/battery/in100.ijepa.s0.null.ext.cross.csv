@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.ijepa.s0.null.ext,in100.train500.v1,teacher.h.gap~student.z.pred.out,cka_linear,cross,0.849273702815383,,,50000,384x384,none
+in100.ijepa.s0.null.ext,in100.train500.v1,teacher.h.gap~student.z.pred.out,neighbor_jaccard,cross,0.09511526335721382,,,50000,384x384,none
+in100.ijepa.s0.null.ext,in100.train500.v1,teacher.h.gap~student.z.pred.out,procrustes_distance,cross,0.41090180561627593,,,50000,384x384,none
+in100.ijepa.s0.null.ext,in100.train500.v1,teacher.h.gap~student.z.pred.out,knn_label_agreement,cross,0.1242,,,50000,384x384,none
