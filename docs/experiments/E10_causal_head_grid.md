@@ -385,7 +385,12 @@ resolved to semantics. Control (2026-07-10): unsupervised mode metrics alone do 
 discriminate — a 10-component GMM beats one Gaussian on untrained features even more strongly
 than on Dlr's (per-sample ΔBIC excess over covariance-matched twin: randinit −27.6, Dlr −17.5;
 twins ≈ +1.1) — the discriminating evidence is the CLASS-ALIGNMENT of the shape carriers, not
-mode presence. Evidence: results/figures/e10/{dlr_embed_structure,a_vs_dlr_embed}.png;
+mode presence. Follow-up (2026-07-10, approved): the modes are REAL in all spaces including
+untrained — fitted densities ~10-modal with distinct basins (component separations 2.7–3.2σ;
+randinit 10 modes / D0 9 / Dlr 10 / A 10); NMI of the density's own modes vs labels .086
+untrained → .014 post-storm → .194 Dlr → .559 A — multimodality is generic in real feature
+spaces; only its class-alignment discriminates. Evidence:
+results/figures/e10/{dlr_embed_structure,a_vs_dlr_embed}.png;
 results/diag/{e10_dlr_cluster_check,sigreg_ref,e10_multimodality_twin}.csv.
 
 **E10-T4 — semantic geometry and the isotropic-Gaussian target are incompatible at the probed

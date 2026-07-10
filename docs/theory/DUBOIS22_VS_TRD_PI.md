@@ -231,3 +231,35 @@ solved problem we shouldn't start?
   2302.03068 — the nearest empirical neighbor, so far mined for one quote only; (5) optional
   belt-and-braces: citation sweep of 2209.06235's descendants before locking a novelty
   paragraph (risk rated low — the report's survey is a week old).
+
+---
+
+## 8 · Discussion record — scoping ruling on the '22 two-space claims (AGREED, Berker ⊕ Claude 2026-07-10)
+
+Prompted by Berker: "without knowing the exact loss mechanism around the defined augmentation
+family G, you cannot really know employing the loss on h would result in imperfect linear
+probe… the conclusions they have should land in the specific setting they studied." Ruling:
+
+1. **The positive direction does not transfer.** "Loss compared on raw φ ⇒ perfect linear
+   probes at φ" is a property of CISSL's engineered objective under their exact-orbit ∼ (the
+   inner-product-with-critic form makes loss minimization coincide with orbit separation at φ).
+   Nothing follows for other losses placed at h. E10's lejepa arm is the demonstration: a
+   mechanism outside their family (invariance + marginal constraint, no critic branch) placed
+   at the representation produced a semantics tax plus an optimization fuse — predicted by
+   nothing in '22.
+2. **The negative direction transfers only as DE-CERTIFICATION.** "A loss that sees only g∘φ
+   cannot distinguish encoders differing upstream of g" is loss-agnostic under-constraint (the
+   projector-gap skeleton) — but it yields only "the loss stops certifying h", never "h will
+   be bad". Outcome claims stay empirical (our matrix: simclr's h probes fine).
+3. **G is load-bearing.** "Perfect" means perfect on T∼, the tasks invariant under the
+   G-induced equivalence; changing G changes the maximal invariant, the task family, and the
+   dimension floor. Their ∼ is an exact equivalence on finite X; real augmentations induce
+   none (§5a).
+4. **Usage rule.** '22 §4.1 enters our prediction discipline as a directional prior for the
+   contrastive-with-heads family in the clean-room limit ONLY; all other (loss, G) pairs are
+   measured, never imported. Any quotation of the asymmetry claim carries the scoping:
+   "symmetric projection de-certifies h for the analyzed objective (a minimizer-set
+   statement); asymmetric use restores the certificate for CISSL's engineered objective under
+   their ∼."
+
+Mirrored as DECISIONS D-023.
