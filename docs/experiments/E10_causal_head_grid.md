@@ -359,4 +359,42 @@ disk. UNSCORED; joint analysis next session.
 
 ## AGREED TAKEAWAY
 
-*(empty)*
+Agreed Berker ⊕ Claude 2026-07-10 (E10-T1, agreed 2026-07-09, lives in DECISIONS.md with the
+campaign mechanics). Toy-pilot scope throughout; **IN-100 replication required before any of
+this travels** (explicit Berker condition on T4). Mirrored to DECISIONS.md as E10-T2/T3/T4.
+
+**E10-T2 — the no-projector placement trains (the D-story realized).** With both loss terms on
+the 512-d embedding (proj_depth=0, λ=0.02, data-calibrated init, peak lr 3e-4), e10Dlr runs
+150 ep with zero gradient storms — the quietest run in the family including arm A — online
+probe monotone to best .5432 / final .5383, both terms co-descending to the end (sigreg ≈7.7,
+inv ≈.25), and the SIGReg moment part descending MONOTONICALLY 9.22→5.31 over ep38→150.
+Prediction 1 resolves on its survival branch; the fuse-scaling storm branch is falsified for
+this arm. Evidence: rescue live-log above; results/diag/sigreg_ref.csv;
+results/figures/e10/dfamily_forensics.png.
+
+**E10-T3 — the shape residue is class structure; excess kurtosis is class-aligned.** At the
+probed 512-d space the directions carrying shape deviation are the class-separating directions
+(corr(η², |excess kurt|) = .43; battery kurt_worst 2.31 IS eigendirection 2 at η² .46; 10/16
+top eigendirections platykurtic), k-means(10) NMI .246 vs .079 untrained / .013 post-storm,
+between-class/total variance .188 vs .105 untrained. SIGReg placed at that space suppresses
+the structure relative to arm A's unconstrained embed (NMI .568, between/total .350, sigreg
+shape residue 11.6 vs Dlr's 1.67; the two recipes differ in lr/init — single-factor
+confirmation is the IN-100 grid's job). Locked prediction 2's "<1" residue bar mis-priced
+shape deviation as constraint failure; prediction 3 stands numerically with its meaning
+resolved to semantics. Control (2026-07-10): unsupervised mode metrics alone do NOT
+discriminate — a 10-component GMM beats one Gaussian on untrained features even more strongly
+than on Dlr's (per-sample ΔBIC excess over covariance-matched twin: randinit −27.6, Dlr −17.5;
+twins ≈ +1.1) — the discriminating evidence is the CLASS-ALIGNMENT of the shape carriers, not
+mode presence. Evidence: results/figures/e10/{dlr_embed_structure,a_vs_dlr_embed}.png;
+results/diag/{e10_dlr_cluster_check,sigreg_ref,e10_multimodality_twin}.csv.
+
+**E10-T4 — semantic geometry and the isotropic-Gaussian target are incompatible at the probed
+space, and the shipped method already sides with semantics.** Beyond low separation a
+class-clustered marginal cannot be isotropic-Gaussian, so a Gaussian-target regularizer at the
+probed space taxes exactly what probes read (between/total held at .19 vs .35 free). LeJEPA's
+minimax-optimality argument survives as an unknown-task statement; its practice resolves the
+conflict via the projector (constraint satisfied at proj.out, T=3.80, while the probed embed
+reads T=185) — the Gaussian target functions as an anti-degeneracy meter, not a destination.
+Motivates declared non-Gaussian priors (TRD-π R8 fork). **IN-100 replication necessary**
+before this claim travels (M4 grid). Evidence: results/figures/e10/a_vs_dlr_embed.png;
+results/diag/sigreg_ref.csv (A_embed cell).
