@@ -148,6 +148,13 @@ UNCHANGED and remain locked.
 
 ## Pre-registered expectations (report)
 
+> **REGISTERED-LATE annotation (2026-07-10, Berker-approved).** Dubois '22 §4.1 — symmetric
+> projection de-certifies the representation for their contrastive objective; asymmetric use
+> restores the certificate for CISSL under their exact-orbit ∼ (scoping per DECISIONS D-023) —
+> was identified as an external directional prior AFTER arms A–D0 had run. It therefore counts
+> as a prior only for arms not yet run at that date (the rescue/Dlr family and the M4 grid),
+> never as a pre-registration for A–D0. Bookkeeping only; predictions above unchanged.
+
 Desiderata-at-h variants: higher metric satisfaction at h, lower augmentation-info retention,
 equal-or-better aligned-task accuracy, worse misaligned-task transfer — the Guillotine alignment
 story, made causal. **LeJEPA decision cell**: if standard (projector) LeJEPA beats SIGReg-on-backbone,

@@ -47,6 +47,7 @@ ckpt paths, wandb id, git sha, validation-vs-donor status)*
 | BYOL | deepmind-research/byol | JAX pickle w/ projector+predictor | JAX→PyTorch conversion friction |
 | DINOv2 | facebookresearch/dinov2 | **backbone only — no public heads** | z-space impossible publicly; h-only rows, flagged |
 | LeJEPA | rbalestr-lab/lejepa | training code; we have own toy ckpts | retrain-only at IN-1k |
+| DISSL (M5+ candidate, Berker 2026-07-10) | YannDubs/Invariant-Self-Supervised-Learning (Dubois '22) | code + released ckpts — verify | POSITIVE CONTROL: engineered so its optimum is provably linear-probe-optimal — a calibration standard for the audit (prediction: small tier gap Δ at h where SimCLR inflates it); port via PORT_NOTES process |
 
 Covariates recorded per public row: pretrain data (IN-1k vs LVD-142M etc.), epochs, backbone,
 resolution, license. Published linear/kNN numbers must be reproduced within ~1 pt under the paper's

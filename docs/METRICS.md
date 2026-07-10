@@ -124,6 +124,17 @@ EP-competitive slices but `worst` ≈ 45 — wildly non-Gaussian where it matter
 Mean |excess kurtosis| over random slices — kept to *demonstrate* the Diaconis–Freedman washout
 (expect ≈ 0 even when kurt_topeig explodes), not as evidence of Gaussianity.
 
+**Class-count caveat (E01-T11, agreed 2026-07-10).** All fourth-moment cells lose sensitivity to
+CLASS-driven structure as class count grows: each direction's 1-d marginal mixes many class
+means and Gaussianizes (slice-CLT), even while class geometry strengthens in second order
+(IN-100 h: between-class/total variance .18–.51 and per-direction η² .23–.55, yet mean |kurt|
+only .37–.69 — results/diag/e1_class_variance_h.csv). Kurtosis magnitudes are therefore NOT
+comparable across class counts (toy 10-class vs IN-100), and small |excess| at many classes
+does not mean "no class structure". For class-driven structure use label-aware cells
+(between/total, per-direction η², the E10-T3 cluster-alignment battery-v2 candidate); also
+kurtosis is a shape-deviation flag, never a mode counter (E10-T3 control: real feature spaces
+are ~10-modal from random init on).
+
 ## Cross-space / cross-model structure
 
 ### `neighbor_jaccard` (+ `knn_consistency`)

@@ -263,3 +263,38 @@ probe… the conclusions they have should land in the specific setting they stud
    their ∼."
 
 Mirrored as DECISIONS D-023.
+
+---
+
+## 9 · Positioning — AGREED AS AMENDED (Berker ⊕ Claude 2026-07-10)
+
+§5(b)'s "two halves" synthesis is adopted with Berker's amendments:
+
+1. **Dubois '21 is demoted from positioning anchor to lemma supplier.** Its optimum is
+   bijection-blind — "any zipping method would be a candidate" (Berker) — and we care about the
+   ORGANIZATION of what is kept (linear usability), which '21 deliberately does not constrain.
+   Its maximal-invariant machinery (Lemma 5/6, Rate(0) = H[M(X)]) remains load-bearing as
+   imported lemmas (R7a), not as a program we extend.
+2. **Dubois '22 is the interesting half, with the loss side missing.** Its guarantees say
+   nothing about how much information the encoder spends or discards — and the accounting must
+   be carried alongside usability. Boundary case (Berker): if the declared task family is
+   pushed to the extreme (probing at the pixel level / reconstruction-type tasks), linear
+   usability of everything forces (near-)losslessness — compression is licensed exactly and
+   only by what the task family exempts.
+3. **The finite task family is DEFINED BY the augmentation group G** — "which is where we will
+   stand" (Berker). G declares the nuisance; the tasks invariant to G form the family; the
+   family sets both the compression budget (what may be discarded) and the accessibility
+   demand (what must be linearly readable). This replaces '22's all-labelings quantifier with
+   a declared, G-derived one — the move that makes rate and usability composable at all
+   (§5(b)).
+4. **The composed frame — a rate/retention account AND probe-tier linear usability, both over
+   a G-defined task family, measured at both spaces — is the project's positioning.** Neither
+   '21 ('unconstrained readout, rate only), '22 (linear characterization, no rate), nor '23
+   (empirical risk decomposition, no rate term) composes these; adjacent lines hold one side
+   each (MDL/IB: rate without tiers; Xu '20: tiers without rate). Claim held at
+   "to-our-knowledge" strength pending the citation sweep
+   (verification/citation_sweep_dubois22.md, agent-run launched 2026-07-10).
+
+Consequences filed the same day: E10 card REGISTERED-LATE annotation ('22 §4.1 as
+directional prior post-A–D0); DISSL onto the M5+ roster (MODELS.md) as the audit's positive
+control; 2302.03068 deep-read queued.

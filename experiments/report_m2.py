@@ -42,7 +42,8 @@ def main(cfg: DictConfig):
           "> (h-side only) EXCEPT methods with an own-arch null in cfg.method_null_runs",
           "> (z-side included); remaining z-nulls NaN by construction, not by failure.",
           "> Pair rows are margin-scored per D-013/E01-T8: results/M2/PAIR_MARGIN.md.",
-          "> Seed-1 replication pending (G-M2 requirement) — nothing here is a headline cell.\n"]
+          "> Scored SINGLE-SEED per D-024 (Berker 2026-07-10; seed replicates deferred);",
+          "> agreed takeaways live on the E01 card (§IN-100, T10-T15) + DECISIONS.\n"]
 
     def _load_run(rid):
         d = {}
@@ -180,7 +181,9 @@ def main(cfg: DictConfig):
             rows.append(row)
     md.append(pd.DataFrame(rows).to_markdown(index=False))
 
-    md.append("\n\n## AGREED TAKEAWAY\n\n*(empty — filled only after discussion; see CLAUDE.md)*\n")
+    md.append("\n\n## AGREED TAKEAWAY\n\n*(lives on the E01 card §IN-100 rung, T10–T15, agreed"
+              " 2026-07-10 — this generated file never holds takeaway text; glyph scoring per"
+              " D-024 lands on the card once all own-arch nulls are in)*\n")
     out = os.path.join(out_dir, "E1_IN100_MATRIX.md")
     with open(out, "w") as f:
         f.write("\n".join(md))

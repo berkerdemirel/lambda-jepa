@@ -150,3 +150,45 @@ evidential rung.**
 - **Deferred, flagged for discussion:** decorrelation Pattern-B candidate (VICReg h most
   decorrelated among student-GAP h's, .170 vs .218–.290 — partial transfer of its own
   desideratum; 1 seed, needs M2 seed-1).
+
+---
+
+**IN-100 rung (M2, seed 0) — agreed 2026-07-10 (Berker + Claude). Scored single-seed per D-024
+(Berker: "cross seed variability of these well known methods are not that high; no seed
+replicate for now"); mirrored to DECISIONS as E01-T10…T15. Figures:
+results/figures/m2/e1_{battery_hz,kurt_signs,probes,pair_margins,kurt_variants}.png; matrix
+results/M2/E1_IN100_MATRIX.md.**
+
+- **T10 · E01-T2 sign scoring.** Cluster-sharpening trio CONFIRMED at z (kurt-worst 66–245 vs
+  h 0.84–2.98, all far above matched nulls); I-JEPA "flat" CONFIRMED battery-wide (h≈z, τ≈1 on
+  every row); MAE vacuous as locked. The two Gaussian-smoothing predictions MISS: byol z 7.34 >
+  h 1.40 and lejepa z 2.06 > h 1.50 (toy had z < h for both) — kept as an observation WITHOUT
+  interpretation (Berker: no story unless it later links to something else); T14's bookkeeping
+  shows h-side kurt orderings are globally rung-unstable, so no method-specific reading is
+  warranted. Net: 4 confirm / 2 miss / 1 vacuous.
+- **T11 · Slice-CLT: fourth-moment cells lose class-structure sensitivity as class count
+  grows.** At 100 classes every top eigendirection mixes dozens of class means, so 1-d marginals
+  Gaussianize (mean |kurt| over top-10: .37–.69) while class geometry strengthens
+  (between-class/total variance .18–.51; per-direction η² .23–.55;
+  results/diag/e1_class_variance_h.csv). Filed as an estimator caveat in METRICS.md (kurt
+  family); class-alignment cells (E10-T3 control; battery-v2 candidate) are the instrument for
+  class-driven structure.
+- **T12 · Pair-margin discipline replicates.** View methods: z margins .68–.91, h margins
+  .11–.54 above the untrained tick; MAE and I-JEPA h at the untrained level (locked ✗ lands);
+  align_rel ordering rung-stable (ρ .96–1.0).
+- **T13 · Probes (converged v2, censoring caveat removed).** The headline pair still disagrees
+  on h-vs-z for the contrastive pair — linear h≈z, kNN z≫h (+13/+17 pts, simclr/vicreg); h>z
+  for byol/dino/lejepa under both; dino h .686 = grid best, above the minimal supervised anchor
+  .624.
+- **T14 · Ordering bookkeeping toy↔IN-100** (results/diag/toy_in100_ordering.csv). z-side
+  method orderings are rung-stable (uniformity/align_rel ρ=1.0; EP/var-floor .94; decorr .89) —
+  the loss dictates its own space's geometry the same way at both scales. h-side SHAPE
+  orderings reshuffle (kurt .11, EP .32); the rung-stable h properties are relative
+  view-invariance (.96) and kNN neighborhood structure (.93).
+- **T15 · Metric-vs-performance orderings (exploratory per D-010; n=6–7; E3 owns the
+  evidential version;** results/diag/metric_vs_probe_ordering.csv**).** At IN-100 NO h-side
+  battery metric tracks the probe ordering (all |ρ| ≤ .39). At z, uniformity tracks z-probe
+  ordering at ρ=−1.0, kurt-worst +.94, var-floor +.83 (the spread/variance family). The two
+  headline probes rank the METHODS identically within each space at IN-100 (they disagree only
+  on h-vs-z within methods, T13). The metric↔performance correlations are themselves
+  rung-unstable at h (e.g. kurt_slices_mean_abs: −.96 toy → −.29 IN-100).
