@@ -47,23 +47,34 @@ def style(ax, logy=False):
 
 
 def fig_battery():
-    metrics = [("uniformity", "uniformity", False), ("variance_floor.min_over_mean_std", "var floor (min/mean std)", False),
-               ("offdiag_redundancy.mean_abs_corr", "decorrelation (mean |corr|)", False),
-               ("rankme", "eff. rank (RankMe)", True), ("kurt_topeig.worst", "isotropy (kurt worst, top-10 eig)", True),
-               ("epps_pulley", "Epps-Pulley (paired)", True)]
+    metrics = [("uniformity", "uniformity", False, False),
+               ("variance_floor.min_over_mean_std", "var floor (min/mean std)", False, False),
+               ("offdiag_redundancy.mean_abs_corr", "decorrelation (mean |corr|)", False, False),
+               ("rankme", "eff. rank fraction (RankMe / dim)", False, True),
+               ("kurt_topeig.worst", "isotropy (kurt worst, top-10 eig)", True, False),
+               ("epps_pulley", "Epps-Pulley (paired)", True, False)]
     data = {m: bat(f"in100.{m}.s0.ext") for m in ORDER}
-    null = bat("in100.randinit-s0.ext")
+    shared_null = bat("in100.randinit-s0.ext")
+    own_null = {"lejepa": bat("in100.lejepa.s0.null.ext")}   # own-arch null (D-007 gap closed)
+
+    def celld(df, space, met):
+        r = df[(df.space == space) & (df.metric == met) & (df.variant == "raw|full")]
+        return (float(r.value.iloc[0]), float(r.d.iloc[0])) if len(r) else (float("nan"), float("nan"))
+
     fig, axes = plt.subplots(2, 3, figsize=(13.5, 7.2), facecolor="white")
-    for ax, (met, title, logy) in zip(axes.flat, metrics):
+    for ax, (met, title, logy, frac) in zip(axes.flat, metrics):
         for i, m in enumerate(ORDER):
             h, z = H_SPACE[m], Z_FINAL[m]
-            vh = cell(data[m], h, met)
-            vz = cell(data[m], z, met) if z else float("nan")
-            nh = cell(null, h.replace("teacher.", "student."), met)
+            vh, dh = celld(data[m], h, met)
+            vz, dz = celld(data[m], z, met) if z else ((float("nan"),) * 2)
+            nh, dn = (celld(own_null[m], h, met) if m in own_null
+                      else celld(shared_null, h.replace("teacher.", "student."), met))
+            if frac:
+                vh, vz, nh = vh / dh, vz / dz, nh / dn
             c = COLOR[m]
             if vz == vz:
                 ax.plot([i, i], [vh, vz], color=c, lw=1.6, alpha=0.7, zorder=2)
-                ax.plot(i, vz, "o", ms=7, mfc="white", mec=c, mew=1.6, zorder=3)
+                ax.plot(i, vz, "o", ms=11, mfc="none", mec=c, mew=1.7, zorder=4)
             ax.plot(i, vh, "o", ms=7, mfc=c, mec=c, zorder=3)
             if nh == nh:
                 ax.plot(i, nh, "_", ms=11, color="#8a8a85", mew=1.8, zorder=2)
@@ -71,13 +82,15 @@ def fig_battery():
         ax.set_xticklabels(ORDER, rotation=45, ha="right", fontsize=8)
         ax.set_title(title, fontsize=10, color=INK)
         style(ax, logy)
-    axes[0, 0].plot([], [], "o", mfc=INK, mec=INK, label="h (filled)")
-    axes[0, 0].plot([], [], "o", mfc="white", mec=INK, label="z.final (open)")
-    axes[0, 0].plot([], [], "_", color="#8a8a85", ms=11, mew=1.8, label="randinit null (h-arch)")
-    axes[0, 0].legend(fontsize=8, frameon=False, loc="lower left")
+    handles = [plt.Line2D([], [], marker="o", ls="", mfc=INK, mec=INK, label="h (filled)"),
+               plt.Line2D([], [], marker="o", ls="", ms=9, mfc="none", mec=INK, label="z.final (open ring)"),
+               plt.Line2D([], [], marker="_", ls="", color="#8a8a85", ms=11, mew=1.8,
+                          label="randinit null at h (own-arch for lejepa)")]
+    fig.legend(handles=handles, loc="upper center", ncol=3, fontsize=9, frameon=False,
+               bbox_to_anchor=(0.5, 0.955))
     fig.suptitle("E1 IN-100 seed-0 battery: every desideratum at h (filled) and z.final (open) - unscored",
                  fontsize=12, color=INK)
-    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    fig.tight_layout(rect=(0, 0, 1, 0.91))
     fig.savefig(f"{OUT}/e1_battery_hz.png", dpi=150)
 
 
@@ -125,6 +138,11 @@ def fig_probes():
         r = df[(df.space == space) & (df.probe == probe)]
         return float(r.val_acc.iloc[0]) if len(r) else float("nan")
 
+    # the non-headline trunk readout per method (CLS if h=GAP, GAP if h=CLS; lejepa = the raw
+    # CLS one Linear upstream of its official h=z.embed - the F4 tension cell)
+    ALT = {"simclr": "student.h.cls", "byol": "student.h.cls", "vicreg": "student.h.cls",
+           "mae": "student.h.cls", "dino": "teacher.h.gap", "ijepa": "teacher.h.cls",
+           "lejepa": "student.h.cls"}
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 5.2), facecolor="white", sharey=True)
     for ax, probe, title in zip(axes, ["linear_raw_v2", "knn_v1_k200"],
                                 ["linear_raw_v2 (converged linear)", "kNN k=200 (weighted cosine)"]):
@@ -134,11 +152,11 @@ def fig_probes():
             if z:
                 vz = acc(probes[m], z, probe)
                 ax.plot([vz, vh], [y, y], color=c, lw=1.6, alpha=0.7)
-                ax.plot(vz, y, "o", ms=7, mfc="white", mec=c, mew=1.6, zorder=3)
+                ax.plot(vz, y, "o", ms=11, mfc="none", mec=c, mew=1.7, zorder=4)
             ax.plot(vh, y, "o", ms=8, mfc=c, mec=c, zorder=3)
-            if m == "lejepa":  # its raw CLS (one Linear upstream of official h) - the F4 tension cell
-                ax.plot(acc(probes[m], "student.h.cls", probe), y, "D", ms=5, mfc="white",
-                        mec=c, mew=1.3, zorder=3)
+            va = acc(probes[m], ALT[m], probe)
+            if va == va:
+                ax.plot(va, y, "s", ms=5, mfc="none", mec=c, mew=1.3, zorder=3)
         for v, lab, ls in [(acc(deit, "student.h.cls", probe), "deitlite h.cls", "--"),
                            (acc(rnd, "student.h.gap", probe), "randinit h.gap", ":")]:
             ax.axvline(v, color="#8a8a85", ls=ls, lw=1.3)
@@ -152,8 +170,8 @@ def fig_probes():
         ax.set_ylim(-0.5, 6.6)
         style(ax)
     axes[0].plot([], [], "o", mfc=INK, mec=INK, label="h (filled)")
-    axes[0].plot([], [], "o", mfc="white", mec=INK, label="z.final (open)")
-    axes[0].plot([], [], "D", mfc="white", mec=INK, label="lejepa raw CLS (pre-embed)")
+    axes[0].plot([], [], "o", ms=9, mfc="none", mec=INK, label="z.final (open ring)")
+    axes[0].plot([], [], "s", ms=5, mfc="none", mec=INK, label="alt trunk readout (CLS<->GAP; lejepa: raw CLS)")
     axes[0].legend(fontsize=8, frameon=False, loc="upper left", bbox_to_anchor=(0.01, 0.98))
     fig.suptitle("E1 IN-100 seed-0 headline probes (D-020 v2) at h vs z.final, with anchors - unscored",
                  fontsize=12, color=INK)
@@ -181,7 +199,7 @@ def fig_pair_margins():
             if rz is not None:
                 vz = float(rz[col])
                 ax.plot([vz, vh], [y, y], color=c, lw=1.6, alpha=0.7)
-                ax.plot(vz, y, "o", ms=7, mfc="white", mec=c, mew=1.6, zorder=3)
+                ax.plot(vz, y, "o", ms=11, mfc="none", mec=c, mew=1.7, zorder=4)
             ax.plot(vh, y, "o", ms=8, mfc=c, mec=c, zorder=3)
             rn = row("in100.randinit-s0.ext", H_SPACE[m].replace("teacher.", "student."))
             if rn is not None:
@@ -190,14 +208,57 @@ def fig_pair_margins():
         ax.set_yticklabels(ORDER, fontsize=9)
         ax.set_title(title, fontsize=9.5, color=INK)
         style(ax)
-    axes[1].plot([], [], "o", mfc=INK, mec=INK, label="h (filled)")
-    axes[1].plot([], [], "o", mfc="white", mec=INK, label="z.final (open)")
-    axes[1].plot([], [], "_", color="#8a8a85", ms=11, mew=1.8, label="randinit null")
-    axes[1].legend(fontsize=8, frameon=False, loc="center")
+    handles = [plt.Line2D([], [], marker="o", ls="", mfc=INK, mec=INK, label="h (filled)"),
+               plt.Line2D([], [], marker="o", ls="", ms=9, mfc="none", mec=INK, label="z.final (open ring)"),
+               plt.Line2D([], [], marker="_", ls="", color="#8a8a85", ms=11, mew=1.8, label="randinit null")]
+    fig.legend(handles=handles, loc="upper center", ncol=3, fontsize=8.5, frameon=False,
+               bbox_to_anchor=(0.5, 0.92))
     fig.suptitle("E1 IN-100 seed-0 pair margins (D-013): alignment scored on margins, never raw - unscored",
                  fontsize=12, color=INK)
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    fig.tight_layout(rect=(0, 0, 1, 0.87))
     fig.savefig(f"{OUT}/e1_pair_margins.png", dpi=150)
+
+
+def fig_kurt_variants():
+    """Berker 2026-07-10: is `worst` the right kurt cell at IN-100 — show the three estimator
+    variants side by side, each against its own matched-Gaussian null."""
+    variants = [("kurt_topeig.worst", "worst |excess| of top-10 eigendirections", "log"),
+                ("kurt_topeig.mean", "signed mean of top-10 eigendirections", "symlog"),
+                ("kurt_slices_mean_abs", "mean |excess| over 256 random slices", "log")]
+    data = {m: bat(f"in100.{m}.s0.ext") for m in ORDER}
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.8), facecolor="white")
+    for ax, (met, title, sc) in zip(axes, variants):
+        for i, m in enumerate(ORDER):
+            for space, dx, filled in ((H_SPACE[m], -0.18, True), (Z_FINAL[m], 0.18, False)):
+                if space is None:
+                    continue
+                r = data[m][(data[m].space == space) & (data[m].metric == met)
+                            & (data[m].variant == "raw|full")]
+                if not len(r):
+                    continue
+                v, ng = float(r.value.iloc[0]), float(r.null_gauss.iloc[0])
+                c = COLOR[m]
+                ax.plot(i + dx, v, "o", ms=7, mfc=(c if filled else "none"), mec=c, mew=1.6, zorder=3)
+                ax.plot(i + dx, ng, "_", ms=9, color="#8a8a85", mew=1.6, zorder=2)
+        if sc == "log":
+            ax.set_yscale("log")
+        elif sc == "symlog":
+            ax.set_yscale("symlog", linthresh=1)
+            ax.axhline(0, color=GRID, lw=1)
+        ax.set_xticks(range(len(ORDER)))
+        ax.set_xticklabels(ORDER, rotation=45, ha="right", fontsize=8)
+        ax.set_title(title, fontsize=9.5, color=INK)
+        style(ax)
+    handles = [plt.Line2D([], [], marker="o", ls="", mfc=INK, mec=INK, label="h (filled)"),
+               plt.Line2D([], [], marker="o", ls="", mfc="none", mec=INK, label="z.final (open)"),
+               plt.Line2D([], [], marker="_", ls="", color="#8a8a85", ms=9, mew=1.6,
+                          label="matched-Gaussian null (per space)")]
+    fig.legend(handles=handles, loc="upper center", ncol=3, fontsize=9, frameon=False,
+               bbox_to_anchor=(0.5, 0.93))
+    fig.suptitle("Excess-kurtosis estimator variants at IN-100, each vs its own matched-Gaussian null - unscored",
+                 fontsize=12, color=INK)
+    fig.tight_layout(rect=(0, 0, 1, 0.86))
+    fig.savefig(f"{OUT}/e1_kurt_variants.png", dpi=150)
 
 
 if __name__ == "__main__":
@@ -206,4 +267,5 @@ if __name__ == "__main__":
     fig_kurt_signs()
     fig_probes()
     fig_pair_margins()
-    print(f"[e1figs] wrote 4 figures to {OUT}")
+    fig_kurt_variants()
+    print(f"[e1figs] wrote 5 figures to {OUT}")

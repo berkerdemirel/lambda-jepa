@@ -15,13 +15,13 @@
 
 | method   | h_space         | z_final                   |   value_h |   value_z |      tau |   null_h(randinit) |   null_z(randinit) | predicted h/z   |
 |:---------|:----------------|:--------------------------|----------:|----------:|---------:|-------------------:|-------------------:|:----------------|
-| simclr   | student.h.gap   | student.z.proj.out        |   0.2815  |    0.4281 |   0.6577 |              1.254 |            nan     | **?/✓**         |
-| byol     | student.h.gap   | student.z.pred.out        |   0.1731  |    0.2768 |   0.6255 |              1.254 |            nan     | **?/✓**         |
-| vicreg   | student.h.gap   | student.z.proj.out        |   0.1274  |    0.5999 |   0.2123 |              1.254 |            nan     | ?/✓             |
-| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |   0.6391  |    0.4436 |   1.441  |              1.23  |              1.005 | ?/✓             |
-| mae      | student.h.gap   | —                         |   0.5628  |  nan      | nan      |              1.254 |            nan     | ✗/—             |
-| ijepa    | teacher.h.gap   | student.z.pred.out        |   1.089   |    1.108  |   0.9827 |              1.254 |            nan     | ?/✓             |
-| lejepa   | student.z.embed | student.z.proj.out        |   0.09018 |    0.1831 |   0.4925 |            nan     |            nan     | ?/✓             |
+| simclr   | student.h.gap   | student.z.proj.out        |   0.2815  |    0.4281 |   0.6577 |              1.254 |           nan      | **?/✓**         |
+| byol     | student.h.gap   | student.z.pred.out        |   0.1731  |    0.2768 |   0.6255 |              1.254 |           nan      | **?/✓**         |
+| vicreg   | student.h.gap   | student.z.proj.out        |   0.1274  |    0.5999 |   0.2123 |              1.254 |           nan      | ?/✓             |
+| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |   0.6391  |    0.4436 |   1.441  |              1.23  |             1.005  | ?/✓             |
+| mae      | student.h.gap   | —                         |   0.5628  |  nan      | nan      |              1.254 |           nan      | ✗/—             |
+| ijepa    | teacher.h.gap   | student.z.pred.out        |   1.089   |    1.108  |   0.9827 |              1.254 |           nan      | ?/✓             |
+| lejepa   | student.z.embed | student.z.proj.out        |   0.09018 |    0.1831 |   0.4925 |              1.179 |             0.6612 | ?/✓             |
 
 
 
@@ -35,7 +35,7 @@
 | dino     | teacher.h.cls   | teacher.z.dino.bottleneck |   -3.245  |    -3.53  |   0.9192 |             -1.884 |             -1.799 | **✗/~**         |
 | mae      | student.h.gap   | —                         |   -1.363  |   nan     | nan      |             -1.678 |            nan     | ✗/—             |
 | ijepa    | teacher.h.gap   | student.z.pred.out        |   -2.49   |    -2.405 |   1.035  |             -1.678 |            nan     | ✗/✗             |
-| lejepa   | student.z.embed | student.z.proj.out        |   -1.435  |    -3.319 |   0.4325 |            nan     |            nan     | ?/✓             |
+| lejepa   | student.z.embed | student.z.proj.out        |   -1.435  |    -3.319 |   0.4325 |             -1.879 |             -1.276 | ?/✓             |
 
 
 
@@ -49,7 +49,7 @@
 | dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.1551 |    0.8319 |   0.1864 |             0.3796 |             0.4938 | ?/?             |
 | mae      | student.h.gap   | —                         |    0.3154 |  nan      | nan      |             0.2555 |           nan      | ?/—             |
 | ijepa    | teacher.h.gap   | student.z.pred.out        |    0.3775 |    0.3806 |   0.9917 |             0.2555 |           nan      | ?/?             |
-| lejepa   | student.z.embed | student.z.proj.out        |    0.3856 |    0.945  |   0.408  |           nan      |           nan      | ?/✓             |
+| lejepa   | student.z.embed | student.z.proj.out        |    0.3856 |    0.945  |   0.408  |             0.3747 |             0.5775 | ?/✓             |
 
 
 
@@ -57,13 +57,13 @@
 
 | method   | h_space         | z_final                   |   value_h |   value_z |     tau |   null_h(randinit) |   null_z(randinit) | predicted h/z   |
 |:---------|:----------------|:--------------------------|----------:|----------:|--------:|-------------------:|-------------------:|:----------------|
-| simclr   | student.h.gap   | student.z.proj.out        |    0.8752 |   0       | nan     |             0.5105 |            nan     |                 |
-| byol     | student.h.gap   | student.z.pred.out        |    0.8925 |   0       | nan     |             0.5105 |            nan     |                 |
-| vicreg   | student.h.gap   | student.z.proj.out        |    0.9054 |   0.1908  |   4.746 |             0.5105 |            nan     |                 |
-| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.6297 |   0       | nan     |             0.2294 |              0.953 |                 |
-| mae      | student.h.gap   | —                         |    0.8991 | nan       | nan     |             0.5105 |            nan     |                 |
-| ijepa    | teacher.h.gap   | student.z.pred.out        |    0.8565 |   0.5735  |   1.493 |             0.5105 |            nan     |                 |
-| lejepa   | student.z.embed | student.z.proj.out        |    0.7328 |   0.02468 |  29.69  |           nan      |            nan     |                 |
+| simclr   | student.h.gap   | student.z.proj.out        |    0.8752 |   0       | nan     |             0.5105 |           nan      |                 |
+| byol     | student.h.gap   | student.z.pred.out        |    0.8925 |   0       | nan     |             0.5105 |           nan      |                 |
+| vicreg   | student.h.gap   | student.z.proj.out        |    0.9054 |   0.1908  |   4.746 |             0.5105 |           nan      |                 |
+| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.6297 |   0       | nan     |             0.2294 |             0.953  |                 |
+| mae      | student.h.gap   | —                         |    0.8991 | nan       | nan     |             0.5105 |           nan      |                 |
+| ijepa    | teacher.h.gap   | student.z.pred.out        |    0.8565 |   0.5735  |   1.493 |             0.5105 |           nan      |                 |
+| lejepa   | student.z.embed | student.z.proj.out        |    0.7328 |   0.02468 |  29.69  |             0.6886 |             0.9801 |                 |
 
 
 
@@ -71,13 +71,13 @@
 
 | method   | h_space         | z_final                   |   value_h |   value_z |      tau |   null_h(randinit) |   null_z(randinit) | predicted h/z   |
 |:---------|:----------------|:--------------------------|----------:|----------:|---------:|-------------------:|-------------------:|:----------------|
-| simclr   | student.h.gap   | student.z.proj.out        |   0.1298  |   0.08695 |   1.493  |             0.4748 |            nan     | ✗/~             |
-| byol     | student.h.gap   | student.z.pred.out        |   0.1208  |   0.1498  |   0.8061 |             0.4748 |            nan     | ✗/~             |
-| vicreg   | student.h.gap   | student.z.proj.out        |   0.1288  |   0.03649 |   3.53   |             0.4748 |            nan     | **✗/✓**         |
-| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |   0.08485 |   0.08735 |   0.9715 |             0.3766 |              0.333 | ✗/?             |
-| mae      | student.h.gap   | —                         |   0.1525  | nan       | nan      |             0.4748 |            nan     | ✗/—             |
-| ijepa    | teacher.h.gap   | student.z.pred.out        |   0.09999 |   0.1027  |   0.9735 |             0.4748 |            nan     | ✗/?             |
-| lejepa   | student.z.embed | student.z.proj.out        |   0.1504  |   0.0239  |   6.294  |           nan      |            nan     | ?/~             |
+| simclr   | student.h.gap   | student.z.proj.out        |   0.1298  |   0.08695 |   1.493  |             0.4748 |           nan      | ✗/~             |
+| byol     | student.h.gap   | student.z.pred.out        |   0.1208  |   0.1498  |   0.8061 |             0.4748 |           nan      | ✗/~             |
+| vicreg   | student.h.gap   | student.z.proj.out        |   0.1288  |   0.03649 |   3.53   |             0.4748 |           nan      | **✗/✓**         |
+| dino     | teacher.h.cls   | teacher.z.dino.bottleneck |   0.08485 |   0.08735 |   0.9715 |             0.3766 |             0.333  | ✗/?             |
+| mae      | student.h.gap   | —                         |   0.1525  | nan       | nan      |             0.4748 |           nan      | ✗/—             |
+| ijepa    | teacher.h.gap   | student.z.pred.out        |   0.09999 |   0.1027  |   0.9735 |             0.4748 |           nan      | ✗/?             |
+| lejepa   | student.z.embed | student.z.proj.out        |   0.1504  |   0.0239  |   6.294  |             0.3712 |             0.2637 | ?/~             |
 
 
 
@@ -91,7 +91,7 @@
 | dino     | teacher.h.cls   | teacher.z.dino.bottleneck |     203.6 |    117.8  |   1.728  |              91.52 |              82.12 | ~/?             |
 | mae      | student.h.gap   | —                         |     103   |    nan    | nan      |              53.05 |             nan    | **✗**/—         |
 | ijepa    | teacher.h.gap   | student.z.pred.out        |     158.6 |    135.3  |   1.172  |              53.05 |             nan    | ?/?             |
-| lejepa   | student.z.embed | student.z.proj.out        |      35   |     15.97 |   2.192  |             nan    |             nan    | ?/✓             |
+| lejepa   | student.z.embed | student.z.proj.out        |      35   |     15.97 |   2.192  |              79.52 |              11.05 | ?/✓             |
 
 
 
@@ -105,7 +105,7 @@
 | dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.8932 |    66.23  |   0.01349  |              1.512 |              1.546 | ✗/✗             |
 | mae      | student.h.gap   | —                         |    2.429  |   nan     | nan        |              5.934 |            nan     | ✗/—             |
 | ijepa    | teacher.h.gap   | student.z.pred.out        |    1.74   |     1.688 |   1.031    |              5.934 |            nan     | ✗/✗             |
-| lejepa   | student.z.embed | student.z.proj.out        |    1.497  |     2.061 |   0.7265   |            nan     |            nan     | **?/✓**         |
+| lejepa   | student.z.embed | student.z.proj.out        |    1.497  |     2.061 |   0.7265   |              2.11  |              1.305 | **?/✓**         |
 
 
 
@@ -119,7 +119,7 @@
 | dino     | teacher.h.cls   | teacher.z.dino.bottleneck |     159.6 |     776.9 |   0.2055 |               3005 |               2331 |                 |
 | mae      | student.h.gap   | —                         |     537.9 |     nan   | nan      |               3408 |                nan |                 |
 | ijepa    | teacher.h.gap   | student.z.pred.out        |     267.8 |     284.1 |   0.9426 |               3408 |                nan |                 |
-| lejepa   | student.z.embed | student.z.proj.out        |     651.9 |     152.3 |   4.281  |                nan |                nan |                 |
+| lejepa   | student.z.embed | student.z.proj.out        |     651.9 |     152.3 |   4.281  |               3011 |               1571 |                 |
 
 
 
@@ -133,7 +133,7 @@
 | dino     | teacher.h.cls   | teacher.z.dino.bottleneck |    0.6804 |    0.7782 |   0.8743 |             0.3851 |             0.4976 | ✗/✓             |
 | mae      | student.h.gap   | —                         |    0.7186 |  nan      | nan      |             0.373  |           nan      | ✗/—             |
 | ijepa    | teacher.h.gap   | student.z.pred.out        |    0.4556 |    0.446  |   1.021  |             0.373  |           nan      | ✗ (no augs)     |
-| lejepa   | student.z.embed | student.z.proj.out        |    0.9549 |    0.9084 |   1.051  |           nan      |           nan      | ? (mild stack)  |
+| lejepa   | student.z.embed | student.z.proj.out        |    0.9549 |    0.9084 |   1.051  |             0.4104 |             0.6694 | ? (mild stack)  |
 
 
 
