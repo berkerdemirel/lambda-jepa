@@ -35,6 +35,14 @@ Token spaces (patch tokens, final layer, probed branch — D-005 budget) enter f
 3. **Minimal stabilizing probe set:** smallest probe subset whose mean ranking (rank-average)
    reaches τ_b ≥ 0.9 against the full-grid mean ranking — the empirical basis for the four-class
    reporting standard (report §7.4).
+4. **Worst-of-probes column (ADDED POST-LOCK 2026-07-10, Berker-approved import; not part of the
+   2026-07-08 pre-registration).** For every cell, report the worst probe across seeds beside the
+   mean — the finite-V empirical shadow of Dubois '22's sup over the ERM argmin set (W_n); the
+   mean−worst spread estimates probe non-identifiability per (space, method). Citation
+   obligations when Δ/tier results are written: DCI-ES (2210.00364, capacity-tiered explicitness),
+   the named accuracy "probe gap" (2604.15557), tier-dependent speech rankings (2306.00452) —
+   our Δ claims only the V-information formalization + budget-matched protocol inside the audit
+   (citation sweep 2026-07-10, §Claim-3).
 
 ## Pre-registered directional predictions (PROPOSED; signs only, magnitudes are new measurements)
 

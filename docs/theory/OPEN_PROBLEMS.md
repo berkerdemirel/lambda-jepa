@@ -177,3 +177,19 @@ found as of the report's compile date.
   (would extend RankMe beyond rank). (E1 → E3.)
 - No independent I-JEPA autopsy — every published critique is a method paper justifying its fix
   (§4.4); our two-space, layer-resolved audit of I-JEPA is the direct response (E1/E2 + E9).
+
+### OP-18 · An approximate Dubois '22 — ε-invariance under stochastic augmentations (added 2026-07-10, import approved)
+- **Problem:** Dubois '22's characterization (probe-family predictability + exact orbit
+  invariance + dimension floor, with sample-optimality as a worst case over the full ERM argmin
+  set) lives on an exact equivalence relation over finite X. Real augmentations are stochastic,
+  lossy, and non-transitive. Does an ε-version exist — ε-invariance + δ-predictability with
+  graceful degradation of the W_n machinery — or is it open? Citation sweep 2026-07-10
+  (verification/citation_sweep_dubois22.md §Claim-4): nobody extends THIS machinery; the
+  neighboring problem is solved with different tools (HaoChen et al.'s augmentation graph,
+  2106.04156; RKHS augmentation-complexity bounds, 2306.00788; augmentation-aware risk bounds,
+  2505.22196) — any ε-extension must be positioned against those lines, not claimed as the
+  first stochastic-augmentation theory.
+- **Why it matters:** it is exactly our regime — the audit measures ε-invariance (align_rel)
+  and tiered decodability on real augmentation stacks; an ε-theorem would make those cells
+  the estimated quantities of a guarantee rather than descriptive statistics.
+- **Ours:** measurement side exists (pair margins, probe tiers, E11); theory work unassigned.

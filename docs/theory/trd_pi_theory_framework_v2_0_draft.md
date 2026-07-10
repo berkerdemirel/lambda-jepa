@@ -608,7 +608,10 @@ budget matching, imported [F-verified]: Dubois et al. '22's sample-optimality is
 worst case over the **full ERM argmin set** (their W_n := sup_t E_{D_t} sup_{f̂ ∈ ERM set}
 R_t(φ, f̂)) — unmatched probe capacity measures the spread of that argmin set, not the encoder;
 budget-matched, seeded probes are the finite-V shadow of controlling it (E11 additionally reports
-worst-of-probes alongside mean-of-probes for exactly this reason).
+worst-of-probes alongside mean-of-probes for exactly this reason). Practice caveat, one line:
+SGD-trained probes carry implicit bias that narrows the realized ERM set below W_n's sup — real,
+helpful, and unlicensed by any of the above; it is why tier-2 numbers are reported only under the
+seeded, budget-matched protocol, never as free-floating accuracies.
 
 **(d) [T for the linear-Gaussian case]** D3′'s estimator: the prefix-nested program equals PCA
 ordering under linear-Gaussian assumptions (Eckart–Young; recovered exactly by nested dropout,

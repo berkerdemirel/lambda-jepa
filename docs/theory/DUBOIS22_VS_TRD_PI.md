@@ -168,7 +168,13 @@ declared battery, invariance level at h vs z, Δ).
 general position — no π, no isotropy, no calibration, no D0/D3′/D5 counterpart. The entire
 marginal/prior axis of TRD-π (and the LeJEPA fork) is orthogonal to this line.
 
-## 6 · Import candidates and seams (for discussion — nothing filed)
+## 6 · Import candidates and seams — ALL FIVE APPROVED (Berker 2026-07-10: "take all 5")
+
+> Filed: (1) W_n budget-matching rationale — framework v2.0 §Δ-protocol (c) [already drafted
+> there, now standing]; (2) D2 second grounding — framework v2.0 D2 [same]; (3) worst-of-probes —
+> E11 card Deliverable 4 (POST-LOCK-flagged) + framework Rule-3 delta; (4) approximate-'22 —
+> OPEN_PROBLEMS OP-18 (positioned against the augmentation-graph/RKHS lines per the citation
+> sweep); (5) SGD-implicit-bias caveat — framework v2.0 §Δ-protocol (c), one line.
 
 1. **Anchor import:** sample-optimality/W_n as the formal home of probe non-identifiability —
    attach to R7c (tier discipline) and protocol Rule 3 (budget-matching) in the next framework
