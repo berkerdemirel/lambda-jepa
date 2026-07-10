@@ -304,3 +304,16 @@ Mirrored as DECISIONS D-023.
 Consequences filed the same day: E10 card REGISTERED-LATE annotation ('22 §4.1 as
 directional prior post-A–D0); DISSL onto the M5+ roster (MODELS.md) as the audit's positive
 control; 2302.03068 deep-read queued.
+
+**§9 item 5 — precedent scoping after the citation sweep + spot-verification (2026-07-10).**
+The two-space-measurement idea has fragmentary precedents that any novelty paragraph names:
+2301.12189 (alignment/uniformity/robustness/entropy at both spaces, 3 sibling methods, CIFAR,
+correlational, arXiv-only), Guillotine's Fig. 2 (invariance-per-layer), RankMe (z-rank ↔
+h-performance link), AdaDim. None is a matched-frame, cross-family, full-battery audit with
+nulls, and none has causal placement evidence — that composition, plus the E10/M4 intervention
+arms, is the gap we fill (Berker: "we should fill the gap in the deciphering [paper] as well" —
+its RED shortcut is an uncontrolled cousin of our E10 placement arms). Differentiation
+obligations for Claim-1: LeJEPA (declared prior across probe tiers, no rate/no audit), DIB
+2009.12789 (V-family minimality, supervised, no marginal prior), Readout Model Switching
+2302.09579. Δ's precedents (DCI-ES; 2604.15557's logit-lens gap; speech tier-sensitivity) are
+supporting, not threatening — recorded on the E11 card.

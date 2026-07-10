@@ -185,3 +185,23 @@ One line each; all were fetched or context-checked and rejected for the stated r
 - **Claim 3 (Δ = I_{V2} − I_{V1} as quality metric): THREATENED in its raw form; stands as V-information object inside the audit.** The accuracy version of the exact gap object is published (probe gap Δ(ℓ)=Amlp−Alin, arXiv 2604.15557, LLM steering, 2026 preprint), probe-tier ranking-sensitivity is established (speech benchmarking line, explicitly crediting Dubois '22), and DCI-ES already sells probe-capacity curves as a quality axis. Claim only: the V-information formalization + G-tied tiers + per-space Δ within an SSL audit.
 - **Claim 4 (ε-invariance extension of Dubois '22): NOVELTY STANDS, narrowly.** No one extends the probe-family/worst-case-ERM machinery to stochastic non-equivalence augmentations. But the augmentation-graph/RKHS lines (HaoChen '21; Zhai '23; 2505.22196) already deliver graceful-degradation bounds under stochastic augmentations by *other* machinery — the contribution must be framed as "ε-extension of the probe-family characterization and sample-optimality results specifically", and compared against those bounds.
 - **Claim 5 (testing the asymmetric-head prescription): NOVELTY STANDS.** Verified verbatim that Dubois '23 itself reports no "gains from using one-linear projection head as suggested by (Dubois et al., 2022)". Since then: two third-party papers adopt the prescription without ablation (2305.10229 + sibling), PESTO nods in related work, and no paper tests it systematically. A careful test would be the first.
+
+---
+
+## §5 Review annotations (Berker ⊕ Claude, 2026-07-10 — after spot-verification)
+
+The two load-bearing findings were independently verified (anchors_projhead_probegap.md; both
+papers are arXiv-only):
+
+- **Claim 2 (2301.12189):** quotes CONFIRMED; scale/depth as reported (CIFAR, 3 sibling methods,
+  4 statistics, correlational mechanism evidence only; RED = a loss-reweighting heuristic, not a
+  mechanism-grounded fix; unpublished since 2023). Berker's ruling: the paper's "deciphering" is
+  not earned — cite it as the closest fragmentary precedent AND treat its gap (battery breadth
+  with matched nulls across families + CAUSAL placement interventions) as explicitly ours to
+  fill (E1 battery + E10/M4 arms). Claim-2 verdict stands as "re-scope, then stands", with the
+  re-scoped wording recorded in DUBOIS22_VS_TRD_PI §9 item 5.
+- **Claim 3 (2604.15557):** definition quote CONFIRMED, but A_lin is the untrained LOGIT LENS,
+  not a trained linear probe — the object is trained-MLP-minus-untrained-readout, LLM-only, no
+  V-information, no Xu/Dubois citations. Verdict DOWNGRADED from "THREATENED (raw form)" to
+  ADJACENT/supporting precedent (Berker: different context, supporting work if we gain
+  something from it). Citation obligations already on the E11 card (Deliverable 4).
