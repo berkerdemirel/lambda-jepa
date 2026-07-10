@@ -1,0 +1,12 @@
+cell,d,m,pp_band,top|k|_eig,top|k|_pp,eig>0.5,pp>0.5,eig>1.0,pp>1.0,eig>2.0,pp>2.0,eig>5.0,pp>5.0,known
+lejepa proj.out (K=16),16,16,0.38,2.05,9.62,10,15,2,14,1,11,0,6,87-94% shape work (E01-T9)
+lejepa embed,512,47,1.1,3.62,30.91,14,20,3,20,1,20,0,13,"rank 9.4/512, kurt 3.62 (E01-T4)"
+lejepa h.cls,384,64,1.28,3.45,32.78,16,20,2,20,1,20,0,19,kurt 3.45
+A embed (free),512,64,1.28,6.71,49.5,12,20,5,20,3,20,1,20,"strong class clusters, NMI .57"
+Dlr embed (constrained),512,64,1.28,2.31,21.97,10,20,2,20,1,20,0,20,"partial clusters, NMI .25, ~15-17d"
+D0 embed (post-storm),512,24,0.4,29.24,251.95,19,20,16,19,10,15,5,7,"structure destroyed, NMI .01"
+randinit embed,512,64,1.28,5.54,67.37,56,20,40,20,8,20,1,20,"10 modes, class-unaligned"
+simclr z.proj,512,59,1.31,26.62,111.89,59,20,51,20,21,20,6,20,kurt_worst 26.6 (sharpening)
+vicreg z.proj,2048,64,1.28,23.98,82.8,48,20,29,20,18,20,7,20,kurt_worst 24.0
+dino z.bottleneck,256,64,1.28,20.36,140.75,63,20,51,20,19,20,4,20,kurt_worst 20.4
+byol z.pred,256,15,0.33,0.95,16.14,5,13,0,12,0,9,0,5,kurt_worst 0.76 (tame)
