@@ -1386,6 +1386,118 @@ found under the declared search budget", "+25% in the matched Fisher-information
 
 ---
 
+## Appendix E · The assembled method, as pseudocode
+
+*(Added at Berker's request, 2026-07-09. This is §4 + §5 + §6 assembled into one runnable shape —
+the constructive arm. Status: proposal for the Q6/M5+ decision; nothing here is scheduled or
+approved. The method is the PIPELINE — the loss alone, stripped of Stages 0/1/3/4, is just
+another corner of §2's table.)*
+
+```
+# =====================================================================
+# TRD-π — declare → select → train → estimate → audit
+# F-labels touch ONLY Stage 1 (selection) and evaluation/audit — never L.
+# =====================================================================
+
+# ---- Stage 0 · DECLARE (frozen and versioned before anything runs) ----
+DECLARE:
+  G           # nuisance mechanism = the augmentation/view stack (inherited from deployment)
+  F           # factor battery: m tasks; labels exist on eval splits only
+  PI_FAMILY   # ∏_k t_ν, unit variance, ν ∈ (4, ∞]; ν = ∞ is the isotropic-Gaussian corner
+  NU_GRID     # finite selection grid ⊂ (4, ∞], e.g. {5, 6, 8, 12, 20, ∞}
+  V1 ⊂ V2     # probe tiers with a SHARED ∅-predictor class (the Δ-sign condition, R7c)
+  B           # budget chain (m1 < m2 < …) or None — D3′ active iff declared
+  sigma       # dither resolution; every rate/marginal number carries it
+  BUDGETS     # search budgets + estimator settings for Stages 3–4 and §6.0
+  TRAIN / EST / AUDIT   # three disjoint splits; AUDIT sub-split A/B for directions (Rule 1)
+
+# ---- §6.0 · CALIBRATE THE INSTRUMENT (once per (K, N, budget); CPU, synthetic) ----
+power = defect_injection_ROC(PI_FAMILY, K, N_audit, BUDGETS)   # min-detectable amplitude per (k, r)
+# R4c supplies the analytic targets; no audited claim is quoted before this exists.
+
+# ---- Stage 1 · SELECT ν_train (pilot-based; pre-registered) ----
+pilot = STAGE2_TRAIN(nu = ∞)                    # the corner needs no estimate; doubles as baseline
+W  = linear_probes(pilot.h[EST], F)             # tier-1 probe-weight matrix on the battery
+R  = varimax(W)
+sparse = sparsity_gain(R) > random_rotation_null
+lepto  = coordwise_excess_kurtosis(pilot.h[EST] @ R) > 0       # read in the Varimax basis
+nu_train = ∞  if not (sparse or lepto)  else  nearest(NU_GRID, 4 + 6/kappa4_hat)
+hsic_gate = (k_active(pilot.h[EST]) <= width)   # §6.1 regime check — complete regime only (R3)
+freeze(nu_train)                                # a function of the pilot ONLY
+
+# ---- Stage 2 · TRAIN (the objective of §4, under the stability premises of R6f) ----
+f = trunk();  g = head(spectral_norm = True)                   # (p1)
+calibrate_init(f, first_batch)                                 # (p2) h starts unit-scale/zero-mean
+lam_marg = equal_pull_at_init(f)                               # (p3) λ‖∇_tr L_marg‖ = (1−λ)‖∇_tr L_align‖
+lr_peak  = declared_per_placement                              # (p4) a stability parameter, not folklore
+bank = DirectionBank(n_bank, momentum, restarts)               # persistent adversarial slices (R5)
+REF  = sample(PI_FAMILY[nu_train], N_ref)                      # finite-ν slices have no closed-form CF:
+                                                               # the slice term is TWO-SAMPLE vs REF;
+                                                               # at ν = ∞ it reduces to the analytic
+                                                               # e^{−t²/2} target (the SIGReg form)
+for step, batch in TRAIN:
+    views  = G(batch)                                          # V views per image
+    h      = f(views);   z = g(h)
+    h_d    = h + sigma * randn_like(h)                         # dither: rate/marginal terms only
+
+    L_align = align(z)                                         # tier-1 surrogate, AT z; form per
+                                                               # family (predictive MSE default) —
+                                                               # the framework fixes placement, not form
+    L_rate  = mean( -log pi[nu_train](h_d) )                   # ν=∞: ‖h̃‖²/2
+                                                               # finite ν: ((ν+1)/2)Σ log(1+h̃²/(ν−2))
+    Θr, Θb  = fresh_slices(M), bank.directions()
+    L_marg  = mean_θ∈Θr cf_dist(h_d@θ, REF@θ)  +  eta * softmax_θ∈Θb cf_dist(h_d@θ, REF@θ)
+    L_hsic  = pairwise_HSIC(h_d)              if hsic_gate else 0
+    L_mrl   = Σ_{m∈B} same_terms(h[:, :m])    if B         else 0     # Matryoshka rider
+
+    (L_align + lam_rate*L_rate + lam_marg*L_marg + beta*L_hsic + L_mrl).backward()
+    log(per-term losses, grad_norm, trunk grad shares)         # R6f monitor, from birth
+    bank.ascend(cf_dist)                                       # the adversary lives IN L (R5);
+                                                               # the AUDIT never does
+    if epoch_median(grad_norm) > 10 for 3 epochs \
+       or step_grad_norm > 100 * running_median: INCIDENT()    # (p4) fuse rule — stop and read
+    optimizer.step()                                           # ckpts ep{25,50,75,100}+best+last
+
+# ---- Stage 3 · ESTIMATE ν̂ (EST split; loss-independent statistics ONLY) ----
+S = fit_diag_standardization(h[EST]); freeze(S)                # nuisance scales → reported diagnostics
+nu_hat = fit_nu(worst_direction_stats(S(h[EST])), probe_anchored_bases)   # never mean-slice stats
+report(1/nu_hat vs 1/nu_train, CI)                             # did training land where it aimed
+
+# ---- Stage 4 · AUDIT (AUDIT split; outside L; never reports "passed") ----
+theta_star = adversarial_search(S(h[AUDIT.A]), BUDGETS)        # worst witness found on sub-split A
+T_obs      = statistic(S(h[AUDIT.B]) @ theta_star)             # reported on sub-split B
+null = [ statistic( S_b(X_aud) @ adversarial_search(S_b(X_aud), BUDGETS) )
+         for b in 1..N_boot
+         for X_est, X_aud in [sample(PI_FAMILY[nu_hat], |EST|), sample(PI_FAMILY[nu_hat], |AUDIT|)]
+         for S_b, nu_b in [refit(X_est)] ]                     # per-draw re-estimation (Lilliefors)
+report(T_obs vs null; which_null ∈ {simple: ν declared, composite: ν̂ estimated};
+       battery = worst-dir EP & κ₄ + CIs · k̂ · min-detectable amplitude (§6.0) ·
+                 moment-part / shape-residue decomposition (three references, Rule 8) ·
+                 RankMe/α-ReQ/LIDAR · Δ(t, space) over V1⊂V2 (budget-matched, converged,
+                 worst-of-probes) · σ_min(g), eff-rank(g) · standardization scales ·
+                 BOTH spaces h and z)
+
+# ---- §6.3 · SEED NULL (≥ 5 seeds at ν = ∞): implicit-bias vs explicit symmetry break ----
+# ---- E6: the selection stage is itself falsifiable — finite ν must buy an identifiability
+#          gain at matched tier-1 accuracy, else it bought nothing. ----
+```
+
+**Graceful degradation.** Every conditional element switches off cleanly: no pilot symptoms →
+ν_train = ∞ (the objective is then alignment-at-z + Gaussian rate + sliced-CF-with-bank at h̃);
+no declared B → no Matryoshka; incomplete regime → no HSIC. The minimal instantiation is
+therefore "a JEPA-style method with its statistic moved to h̃ under the stability premises plus
+an adversarial bank and a held-out audit" — which is why E10's placement family is the
+constructive arm's de-risking experiment: arm Dlr ≈ this method's ν = ∞ corner minus the bank,
+rate term, and spectral norm, and it is the one healthy no-buffer datum on record (raw,
+UNSCORED).
+
+**What the pseudocode leaves open (deliberately):** the alignment form (placement is fixed, the
+surrogate is the family's choice); λ_rate; whether the bank supplies enough worst-direction
+pressure in practice (OP-g; §6.0 measures it); and the per-slice-standardized variant of the
+slice term, which is a different declared loss (E7's arm).
+
+---
+
 ## References (anchor list)
 
 Achille & Soatto, JMLR 19(50), 2018 (1706.01350) · Alemi et al., ICLR 2017 (1612.00410); ICML
