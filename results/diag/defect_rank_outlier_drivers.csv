@@ -1,0 +1,51 @@
+idx,label,slots,n_cells,cells
+1224,0,6,6,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+1440,0,6,6,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+1747,0,6,6,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+1596,0,6,6,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+9409,5,5,5,A embed (free);byol z.pred;lejepa proj.out (K=16);simclr z.proj
+8562,5,5,5,A embed (free);Dlr embed (constrained);byol z.pred;lejepa proj.out (K=16)
+8684,5,5,5,A embed (free);lejepa h.cls;lejepa proj.out (K=16);simclr z.proj
+7317,8,5,5,byol z.pred;dino z.bottleneck;lejepa embed;lejepa h.cls
+7472,8,5,5,byol z.pred;dino z.bottleneck;lejepa embed;lejepa h.cls
+8970,5,5,5,Dlr embed (constrained);byol z.pred;dino z.bottleneck;simclr z.proj
+9277,5,5,5,byol z.pred;dino z.bottleneck;lejepa h.cls;simclr z.proj
+1508,0,5,5,Dlr embed (constrained);dino z.bottleneck;lejepa embed;lejepa h.cls
+9272,5,5,5,Dlr embed (constrained);byol z.pred;dino z.bottleneck;simclr z.proj
+4329,9,5,5,A embed (free);D0 embed (post-storm);byol z.pred;simclr z.proj
+3847,9,5,5,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+9093,5,5,5,Dlr embed (constrained);byol z.pred;lejepa proj.out (K=16);simclr z.proj
+4348,9,5,5,A embed (free);Dlr embed (constrained);lejepa embed;lejepa h.cls
+1938,0,5,5,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+4694,9,5,5,A embed (free);byol z.pred;lejepa proj.out (K=16);randinit embed
+7518,8,4,4,A embed (free);D0 embed (post-storm);Dlr embed (constrained);simclr z.proj
+4383,9,4,4,A embed (free);Dlr embed (constrained);simclr z.proj;vicreg z.proj
+1916,0,4,4,lejepa embed;lejepa h.cls;lejepa proj.out (K=16);vicreg z.proj
+1095,0,4,4,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+8758,5,4,4,Dlr embed (constrained);lejepa embed;lejepa h.cls;simclr z.proj
+1794,0,4,4,dino z.bottleneck;lejepa embed;lejepa h.cls;vicreg z.proj
+1132,0,4,4,Dlr embed (constrained);dino z.bottleneck;lejepa h.cls;vicreg z.proj
+7162,8,4,4,A embed (free);lejepa embed;lejepa h.cls;randinit embed
+8526,5,4,4,Dlr embed (constrained);dino z.bottleneck;lejepa embed;simclr z.proj
+8926,5,4,4,A embed (free);lejepa embed;lejepa h.cls;lejepa proj.out (K=16)
+1711,0,4,4,Dlr embed (constrained);dino z.bottleneck;lejepa h.cls;vicreg z.proj
+7004,8,4,4,byol z.pred;dino z.bottleneck;lejepa embed;lejepa h.cls
+4598,9,4,4,A embed (free);byol z.pred;lejepa embed;lejepa h.cls
+3775,9,4,4,A embed (free);D0 embed (post-storm);lejepa embed;lejepa h.cls
+4156,9,4,4,lejepa embed;lejepa h.cls;lejepa proj.out (K=16);vicreg z.proj
+4704,9,4,4,A embed (free);lejepa embed;lejepa h.cls;simclr z.proj
+4588,9,4,4,A embed (free);Dlr embed (constrained);lejepa embed;vicreg z.proj
+4286,9,4,4,byol z.pred;lejepa proj.out (K=16);randinit embed;simclr z.proj
+9058,5,4,4,A embed (free);Dlr embed (constrained);lejepa proj.out (K=16);simclr z.proj
+9333,5,4,4,A embed (free);lejepa h.cls;lejepa proj.out (K=16);simclr z.proj
+3910,9,4,4,A embed (free);byol z.pred;lejepa embed;lejepa h.cls
+9110,5,4,4,A embed (free);dino z.bottleneck;lejepa h.cls;simclr z.proj
+3810,9,4,4,A embed (free);byol z.pred;lejepa embed;lejepa h.cls
+4160,9,4,4,A embed (free);Dlr embed (constrained);simclr z.proj;vicreg z.proj
+7399,8,3,3,A embed (free);lejepa embed;lejepa h.cls
+1442,0,3,3,lejepa embed;simclr z.proj;vicreg z.proj
+1622,0,3,3,A embed (free);lejepa proj.out (K=16);vicreg z.proj
+7079,8,3,3,A embed (free);lejepa embed;lejepa h.cls
+1782,0,3,3,byol z.pred;dino z.bottleneck;vicreg z.proj
+7087,8,3,3,A embed (free);lejepa embed;lejepa h.cls
+7322,8,3,3,A embed (free);lejepa embed;lejepa h.cls

@@ -30,6 +30,23 @@ CELLS = [  # (label, run_id, space, what we independently know)
     ("vicreg z.proj", "toy.vicreg.s0.ext", "student.z.proj.out", "kurt_worst 24.0"),
     ("dino z.bottleneck", "toy.dino.s0.probefix.ext", "teacher.z.dino.bottleneck", "kurt_worst 20.4"),
     ("byol z.pred", "toy.byol.s0.ext", "student.z.pred.out", "kurt_worst 0.76 (tame)"),
+    # h-vs-z contrast rows (Berker 2026-07-10; branch conventions follow the E1 matrix)
+    ("lejepa h.gap", "toy.lejepa.s0.ext", "student.h.gap", "—"),
+    ("simclr h.cls", "toy.simclr.s0.ext", "student.h.cls", "—"),
+    ("simclr h.gap", "toy.simclr.s0.ext", "student.h.gap", "—"),
+    ("vicreg h.cls", "toy.vicreg.s0.ext", "student.h.cls", "—"),
+    ("vicreg h.gap", "toy.vicreg.s0.ext", "student.h.gap", "—"),
+    ("byol h.cls", "toy.byol.s0.ext", "student.h.cls", "—"),
+    ("byol h.gap", "toy.byol.s0.ext", "student.h.gap", "—"),
+    ("dino h.cls (teacher)", "toy.dino.s0.probefix.ext", "teacher.h.cls", "—"),
+    ("dino h.gap (teacher)", "toy.dino.s0.probefix.ext", "teacher.h.gap", "—"),
+    ("ijepa h.cls (teacher)", "toy.ijepa.s0.ext", "teacher.h.cls", "—"),
+    ("ijepa h.gap (teacher)", "toy.ijepa.s0.ext", "teacher.h.gap", "—"),
+    ("ijepa z.pred", "toy.ijepa.s0.ext", "student.z.pred.out", "matrix-canonical z"),
+    ("mae h.cls", "toy.mae.s0.ext", "student.h.cls", "—"),
+    ("mae h.gap", "toy.mae.s0.ext", "student.h.gap", "—"),
+    ("randinit h.cls", "toy.randinit-s0.ext", "student.h.cls", "control"),
+    ("randinit h.gap", "toy.randinit-s0.ext", "student.h.gap", "control"),
 ]
 
 
@@ -57,6 +74,9 @@ def main():
         for th in THETAS:
             row[f"eig>{th}"] = int((np.abs(e["eig_kurts"]) > th).sum())
             row[f"pp>{th}"] = int((b["pp_profile"] > max(th, b["pp_null_band"])).sum())
+        sp = khat_spectrum(X, m=64)
+        row["khat_A"] = round(sp["khat_A"], 1) if sp["detect_A"] else float("nan")
+        row["detA"] = sp["detect_A"]
         row["known"] = known
         rows.append(row)
         print(f"[khat] {label}: eig-profile {[row[f'eig>{t}'] for t in THETAS]} "

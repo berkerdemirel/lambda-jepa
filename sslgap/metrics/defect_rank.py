@@ -14,7 +14,9 @@ independent unit-variance components), so with equal kappas:
 
     E[kappa_s]   = kappa * 3r/(m(m+2))
     E[kappa_s^2] = kappa^2 * r(9r+96)/(m(m+2)(m+4)(m+6))
-    ratio A := (E[kappa_s^2]/E[kappa_s]^2) * m(m+2)/((m+4)(m+6)) = 1 + 32/(3r)  =>  r-hat.
+    ratio A := (E[kappa_s^2]/E[kappa_s]^2) * (m+4)(m+6)/(m(m+2)) = 1 + 32/(3r)  =>  r-hat
+    (E[kappa_s^2]/E[kappa_s]^2 = (1+32/(3r)) * m(m+2)/((m+4)(m+6)) from the sphere moments
+    E[u^8] = 105/D4, E[u^4 u'^4] = 9/D4, E[u^4] = 3/(m(m+2)), D4 = m(m+2)(m+4)(m+6)).
 
 Noise correction: subtract the MEASURED null moments of a matched N(0,I_m) spectrum at the same
 (n, m, n_slices) — which-null discipline. Limitation (stated, and why Estimator B exists):
@@ -57,18 +59,18 @@ def slice_kurtosis_spectrum(P, n_slices=2048, seed=0):
 def khat_spectrum(X, m=128, n_slices=2048, seed=0, n_boot=200):
     """Estimator A. Returns khat, kappa_hat, CI, detect flag, and the raw moments."""
     rng = np.random.default_rng(seed)
-    P = top_pca_frame(X, m=m, seed=seed)
+    P = top_pca_frame(X, m=m)
     n, meff = P.shape
     ks = slice_kurtosis_spectrum(P, n_slices=n_slices, seed=seed)
     g = slice_kurtosis_spectrum(rng.standard_normal((n, meff)), n_slices=n_slices, seed=seed + 1)
     m1, m2 = ks.mean() - g.mean(), (ks**2).mean() - (g**2).mean()
     detect = bool(abs(m1) > 4 * g.std() / np.sqrt(len(g)) and m2 > 0)
-    out = {"m_frame": meff, "m1": float(m1), "detect_A": detect,
+    out = {"m_frame": meff, "m1": float(m1), "m2": float(m2), "detect_A": detect,
            "khat_A": float("nan"), "kappa_A": float("nan"), "khat_A_ci": (float("nan"),) * 2}
     if not detect:
         return out
     def invert(mm1, mm2):
-        A = (mm2 / mm1**2) * meff * (meff + 2) / ((meff + 4) * (meff + 6))
+        A = (mm2 / mm1**2) * ((meff + 4) * (meff + 6)) / (meff * (meff + 2))
         return meff if A <= 1 else min(float(32 / (3 * (A - 1))), float(meff))
     r = invert(m1, m2)
     out.update(khat_A=r, kappa_A=float(m1 * meff * (meff + 2) / (3 * r)))
@@ -134,7 +136,7 @@ def _pursuit_profile(P, n_dirs, seed):
     return np.array(ks)
 
 
-def pursuit_null_band(n, meff, n_dirs, reps=6, seed=100, margin=1.15):
+def pursuit_null_band(n, meff, n_dirs, reps=20, seed=100, margin=1.15):
     """Calibrate the pursuit's matched-null band once per (n, meff, n_dirs): the same pursuit on
     `reps` N(0, I_meff) draws; band = margin x the max |excess kurtosis| the procedure ever
     finds on pure Gaussian data (its own selection bias, measured). Cache and share across

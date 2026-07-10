@@ -1,7 +1,8 @@
 # PROTOCOL.md — the fixed experimental frame
 
-**Version: v1-draft.3 (2026-07-09: D-020 convergence-guaranteed linear probes — v2 family is the
-headline; prior: v1-draft.2, 2026-07-02: D-003v2 space definitions, D-006v2 probe proposal, D-009
+**Version: v1-draft.4 (2026-07-10: D-025 k̂ defect-rank estimator spec, §6 item 9; prior:
+v1-draft.3, 2026-07-09: D-020 convergence-guaranteed linear probes — v2 family is the
+headline; v1-draft.2, 2026-07-02: D-003v2 space definitions, D-006v2 probe proposal, D-009
 relrep). Pre-registration lock pending user sign-off.**
 Any change to this file requires a DECISIONS row. Derived from the report's §5.0 fixed frame and §3
 estimator discipline, adapted to this cluster and the binding data ladder (DECISIONS L-004).
@@ -126,6 +127,17 @@ Fixed, versioned, hashed image lists (`features/manifests/*.csv`; sha256 in ever
    (Holm–Bonferroni) for directional-hypothesis tests.
 8. **Provenance separation**: no table mixes controlled-retrain rows with public-checkpoint rows
    (public DINOv2 additionally has no released heads → no z-space claims possible for it).
+9. **k̂ defect rank (D-025, battery v2)** — presented as "structured-direction count", never "the
+   rank". Declared frame: top-64 variance-ordered PCA directions, each standardized, eigenvalue
+   floor λ/λ₁ ≥ 1e-4 (below it stored-fp16 quantization manufactures kurtosis). Report the profile
+   k̂(θ), θ ∈ {0.5, 1, 2, 5}, count-above-max(θ, band) semantics (leading-run stays internal).
+   Counts are lower bounds under rotation-mixing inside equal-variance blocks
+   (`experiments/defect_rank_validate.py`, 10-cluster case). khat_eig (4σ sampling band) is the
+   headline count; kurtosis-pursuit is a separate tail-direction-audit cell — raw κ, NO trimming
+   or outlier removal (trim/top-share stats are forensic disclosure only), matched-null band at
+   reps=20 (reps=6 had a false-positive floor of 3 on the Gaussian control); khat_A (slice-moment
+   fit) is a flagged cross-check only: same-sign domain, ~2× bias, cap failures, and its
+   detect/bootstrap treat correlated slices as independent — declared limitation at audit n.
 
 ## 7 · Standard evals per rung
 

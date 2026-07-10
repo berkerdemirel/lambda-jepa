@@ -1,0 +1,9 @@
+case,r_true,khat_eig,khat_pp,khat_A,khat_A_oldformula,detect_A,eig_top|k|,pp_band
+gaussian control,0,0,0,,,False,0.11,1.73
+spiky r=1,1,1,1,,,False,3.44,1.73
+spiky r=4,4,4,4,7.5,11.8,True,2.41,1.73
+spiky r=8,8,8,8,64.0,64.0,True,1.39,1.73
+spiky r=16,16,16,16,30.4,64.0,True,0.76,1.73
+mixed-sign r=8 (4+4),8,7,4,2.9,3.9,True,1.97,1.73
+10-cluster (9-dim),9,5,2,1.7,2.3,True,1.31,1.73
+spiky r=8 rot45-within,8,8,8,12.6,23.5,True,1.58,1.73
