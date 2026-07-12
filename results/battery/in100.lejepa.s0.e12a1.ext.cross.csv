@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.lejepa.s0.e12a1.ext,in100.train500.v1,student.z.embed~student.z.proj.out,cka_linear,cross,1.0,,,50000,512x512,none
+in100.lejepa.s0.e12a1.ext,in100.train500.v1,student.z.embed~student.z.proj.out,neighbor_jaccard,cross,1.0,,,50000,512x512,none
+in100.lejepa.s0.e12a1.ext,in100.train500.v1,student.z.embed~student.z.proj.out,procrustes_distance,cross,1.5410448510169346e-15,,,50000,512x512,none
+in100.lejepa.s0.e12a1.ext,in100.train500.v1,student.z.embed~student.z.proj.out,knn_label_agreement,cross,1.0,,,50000,512x512,none

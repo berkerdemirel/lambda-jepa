@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import MultiCropDataset
-from sslgap.methods._common import ema_momentum, house_scheduler, trunk_arch
+from sslgap.methods._common import MomentFloor, ema_momentum, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.heads import DINOHead
@@ -41,6 +41,8 @@ class DINO(SSLMethod):
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
         t_head = copy.deepcopy(head).requires_grad_(False)
         self.center = torch.zeros(self.cfg.K)
+        if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
+            self.floor = MomentFloor()
         return nn.ModuleDict({"backbone": trunk, "projector": head,
                               "teacher_backbone": t_trunk, "teacher_projector": t_head})
 
@@ -99,13 +101,21 @@ class DINO(SSLMethod):
                       for s in range(2) if s != t]
             pairs += [dino_ce(t_cls[t], s_cls_l[s], center, self.cfg.t_temp, self.cfg.s_temp)
                       for s in range(nl)]
-        loss = torch.stack(pairs).mean()
+        dino_loss = torch.stack(pairs).mean()
+        loss = dino_loss
+        terms = {"dino": dino_loss}
+        # E12 cross-method arm: additive moment floor at the STUDENT's h (global-crop trunk CLS —
+        # gradients flow only through the student; the audited teacher h follows by EMA).
+        if self.cfg.get("h_reg") == "moment":
+            h_loss = self.floor(s_tok[:, 0])
+            loss = loss + self.cfg.h_lamb * h_loss
+            terms["h_moment_kl"] = h_loss
         self._t_cls = t_cls.detach()
         # probe monitors the AUDITED branch (teacher CLS, PROTOCOL §3) so _best selection aligns
         # with what the audit evaluates; view-major [2N] -> image-major per the base.py contract
         # (the M1 toy.dino.s0 label-misalignment incident — HISTORY 2026-07-02).
         probe_feats = t_tok[:, 0].reshape(2, N, -1).transpose(0, 1).flatten(0, 1).detach()
-        return ({"loss": loss, "dino": loss}, probe_feats, 2)
+        return ({"loss": loss, **terms}, probe_feats, 2)
 
     def post_step(self, modules, step, total_steps):
         m = ema_momentum(step, total_steps, self.cfg.ema_base)

@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.7162052034397924,0.7092270938048156,0.7236786930017679,10000,384,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.6418973982800522,0.6382262266183425,0.645295537265353,10000,384,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.41839598097176006,0.41544172204745844,0.4219190440736045,10000,384,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.7908020095140378,0.7888506376198305,0.7923212439062254,10000,384,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.embed,alignment,pairs,0.9208730376993939,0.9135718882912613,0.9280139508741669,10000,512,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.embed,cos_invariance,pairs,0.5395634811502593,0.5356646866598104,0.543326337840871,10000,512,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.proj.out,alignment,pairs,0.1754800538199271,0.17016298808182762,0.1808705620522958,10000,16,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.9122599730899121,0.9091944273310189,0.9148130015696825,10000,16,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.38772346765843846,0.382278211324705,0.3930169109848998,10000,2048,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.8061382661707422,0.803012017293551,0.8083011415591241,10000,2048,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.proj.tap2,alignment,pairs,0.19566376171050415,0.19142274903452636,0.19979766707518212,10000,2048,cheap
+in100.lejepa.s0.e12f2.ext,in100.pairs100.v1@audit_v1,student.z.proj.tap2,cos_invariance,pairs,0.9021681191447173,0.8994130537156837,0.9040550218831108,10000,2048,cheap

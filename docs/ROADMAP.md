@@ -87,6 +87,8 @@ paper writing.
 | [E09](experiments/E09_masked_ambiguity.md) | Masked-region ambiguity (content) | Q4 | M5+ | stub |
 | [E10](experiments/E10_causal_head_grid.md) | Causal head interventions (move the loss) | Q5 | M4 | draft |
 | [E11](experiments/E11_probe_sensitivity.md) | Probe-protocol sensitivity map | Q2 | M2 | draft |
+| [E12](experiments/E12_moment_floor.md) | OUR METHOD arm 1 — the moment floor at h | Q6 | M4 (one-branch vehicle, D-026) | pre-registered |
+| [E13](experiments/E13_pivot_rung0.md) | PIVOT rung-0 — predictive-state distortion as a zoo ranker | Q2 (staged-merge gate for the PIVOT proposal, D-029) | M2 features, zero training | resolved (T1–T3) |
 
 Pre-registration artifact: [experiments/AUDIT_MATRIX.md](experiments/AUDIT_MATRIX.md) (report §3.1
 predictions — locked before numbers exist).

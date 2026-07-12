@@ -1,0 +1,13 @@
+run,space,between/total_var,eig_top16_var_frac,n_negkurt_top16,mean_eta2_top16,"corr(eta2,|kurt|)",mean_eta2_top100,kmeans100_NMI,kmeans100_ARI,effrank_w
+in100.lejepa.s0.e12a1.ext,student.z.embed,0.4209,0.7734,5,0.4415,-0.0125,0.1842,0.4267,0.1544,22.09
+in100.lejepa.s0.e12a2.ext,student.z.embed,0.1187,0.3122,9,0.1658,0.3278,0.0979,0.3047,0.0825,76.33
+in100.lejepa.s0.e12a3.ext,student.z.embed,0.0426,0.1215,0,0.0587,-0.387,0.0395,0.0529,0.0051,274.84
+in100.lejepa.s0.e12c1.ext,student.z.embed,0.4821,0.7467,5,0.4943,0.2337,0.2148,0.5271,0.2217,21.96
+in100.lejepa.s0.ext,student.z.embed,0.5123,0.7939,4,0.5007,0.1648,0.2038,0.5213,0.2147,17.86
+in100.lejepa.s0.null.ext,student.z.embed,0.1093,0.9552,6,0.0595,0.0093,0.0199,0.0911,0.0098,3.7
+in100.lejepa.s0.e12f1.ext,student.z.embed,0.0963,0.1413,9,0.2009,-0.4604,0.1011,0.4395,0.1911,252.26
+in100.lejepa.s0.e12f2.ext,student.z.embed,0.1572,0.1477,14,0.3759,0.0983,0.2065,0.533,0.2522,217.19
+in100.lejepa.s0.e12f3.ext,student.z.embed,0.4407,0.748,8,0.4398,-0.163,0.2354,0.4798,0.187,9.66
+in100.lejepa.s0.e12f4.ext,student.z.embed,0.3401,0.9864,10,0.3119,0.41,0.1698,0.1613,0.0197,2.25
+in100.lejepa.s0.e12f5.ext,student.z.embed,0.3575,0.8789,3,0.4771,-0.6248,0.2162,0.5037,0.185,6.8
+in100.lejepa.s0.e12f6.ext,student.z.embed,0.04,0.1041,0,0.0655,-0.6462,0.036,0.0722,0.0089,308.01

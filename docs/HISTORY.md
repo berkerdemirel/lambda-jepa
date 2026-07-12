@@ -184,3 +184,75 @@ table, import candidates, and (§7) the novelty/strategy read — recommendation
 prescription), two novelty re-scopes, DISSL-as-positive-control candidate. ALL pending
 discussion; nothing agreed. Lesson (for the ledger): quote-verify anchors BEFORE building on
 them — one misattributed quote had propagated into OP-4 and the founding report.
+
+## 2026-07-11 — INCIDENT (protocol, not stability): house config likely not near-optimal for lejepa at IN-100
+
+Surfaced by the E12 C1 control (Berker: "c1 performs significantly better than our previous
+lejepa run … take a note that we might not be running the best universal config").
+`in100.lejepa.s0.e12c1` = IDENTICAL placement/method/frame/seed as the M2 lane
+`in100.lejepa.s0`; the FULL config diff is three package items (D-026): **lr 1e-3 → 3e-4 ·
+embed_calib off → on · projector spec_norm off → on** (all else byte-equal: bs 128, V=4,
+proj_dim 16, wd 5e-2, warmup 10, eta_min 1e-5, grad_clip 1.0, 100 ep, seed 0; same trainer,
+same online-probe schedule). **Gain (online monitor, epoch-matched, raw):** ep25 .343→.423
+(+8.0) · ep40 .426→.501 (+7.5) · ep52 .475→.556 (+8.1); C1 running max .625 @ ~ep60 already
+exceeds the lane's best-over-100-ep .594 (final C1 number lands on the E12 card). Both runs
+QUIET (grad-norm p99 2.2 vs 2.5, no storms; same sigreg/inv equilibria) — a quality gap, not a
+stability rescue. Attribution 3-way confounded BY DESIGN (C1 is A2/A3's matched control, not an
+ablation); prime suspect lr (1e-3 AdamW is hot for ViT-S/16 @ bs 128 × 989 steps/ep; house value
+was toy-validated at 37 steps/ep, D-018), calib/spec-norm secondary; single-factor decomposition
+arms defined but PARKED (Berker's pull). Consequences: (1) M2 matrix rows carry D-012
+"healthy-not-best" — now QUANTIFIED for one method (~8 pts epoch-matched); read cross-method
+orderings (E01-T13/T15) with this bar. (2) E12-internal comparisons unaffected (all four arms
+share the package). (3) Any future "universal config" claim must cite this entry.
+
+## 2026-07-11/12 — the E12 saga (combined entry, owed): thesis → lazy-projector catch → K4 → f2 → G-wave
+
+E12 ("the moment floor: what shape regularization at h is for", D-026) ran its full arc.
+Pre-registered thesis: the useful part of marginal regularization at the probed space is
+first-two-moment calibration; higher-order shape left free. **Berker's pre-launch catch** (on the
+2-ep smokes): the as-registered moved placement (A2/A3) admits alignment-free minima — the
+projector can zero `inv` by shrinkage once the z-side scale pin is gone; measured (smoke inv
+15–50× below the shipped lane's END value at 20% peak lr; proj.out across-image std
+near-degenerate with within>across ×1.9) → arms amended to ADDITIVE (z-side byte-identical to
+control), the theory-note hole (v2.0 Appendix-E) logged. **Main arms:** P1 held (all quiet), P2
+FALSIFIED (C1 > A1 > A2 ≫ A3), K2+K4 FIRED — full calibration at h achieves its own aim (effrank
+275/512, calibrated) while scrubbing class structure to the randinit null; strong-form thesis
+dead (E12-T1). **F-wave (pre-registered before those numbers):** dose has an INTERIOR OPTIMUM —
+f2 (λ_h=.02) beats control on every converged probe (+1.2 lin/+7.5 kNN200; best lejepa-family h
+measured) with ~93% of achievable constraint satisfaction (saturating dose curve) → marginal
+terms at h are conditioners, not destinations (E12-T2). f6 ≈ A3 (equilibrium damage, T3); f4 =
+rank-collapse attractor under pure shape pressure (effrank 2.8 < null, linear survives at .61;
+framework-E7(i) falsified at scale, T4); f5's own floor UNSATISFIED at the audit frame (diag_kl
+.91, kurt_worst 55.8) despite descending in training — the train-mode vs audit-frame lesson; the
+A3−f5 whitening isolate stays "consistent with" (T3). Instrument dissociations (B/T vs NMI;
+effrank vs linear; sliced floors under-enforce native spectra) = E12-T5. P5 Varimax numbers
+landed raw (fork-gate discussion pending). **G-wave:** cross-method f2 test launched (D-028;
+`e12gv` vicreg trunk-GAP, `e12gd` dino student global-CLS, λ_h=.02 additive) + **matched
+floor-off controls** (D-030, Berker-directed after his recipe-confound concern): `e12gvc`/`e12gdc`
+= the g-commands verbatim minus the floor, same working tree — the single-factor primary
+comparators; launch-line verification found NO lr delta between g-arms and lanes (the real,
+documented lr delta is the lejepa lane vs the E12 package — see the 2026-07-11 INCIDENT entry
+above); what the controls close is pre-refactor lane code, hardware pool, and run epoch.
+
+## 2026-07-12 — PIVOT day: staged merge (D-029), E13 rung-0 built+run+concluded same-session, T1–T3
+
+Berker's D2 verdict: the external PIVOT proposal (Predictive Foveal Isometry,
+`docs/PIVOT_Standalone_Research_Proposal.pdf`) enters via staged checks inside our machinery.
+**E13** pre-registered IN-CONVERSATION (predictions P1–P5, kills K1–K3, primary cell and baseline
+set locked pre-numbers), then run same-session over stored `pairs100` features: 20-checkpoint
+provenance-matched zoo, D_read (ridge → RFF sketch of frozen MAE viewB descriptor) + D_kern
+(raw-Gram alignment), full (D_m, σ) sweep, T=randinit tokenizer control, PIVOT-E0-style target
+audit. The CPU dry-run caught a real estimator bug before launch (missing ridge intercept — a
+shared offset from the sketch's mean-embedding component; card deviation 5). Locked n=20 outcome:
+P2 NOT MET by .015 (D_read −.538 vs battery-best kurt_topeig −.553) with the declared dof-matched
+control clearing everything (−.635). Berker's deitlite catch (supervised probe↔mechanism
+coupling) → REGISTERED-LATE exclusion re-read: **both D_read variants beat every battery baseline
+on both probe columns** (−.62/−.51; dof-matched −.72/−.65), and the family decomposition shows
+the PIVOT meter and the battery's best draw their ρ from DISJOINT zoo halves (within-family vs
+cross-family). D_kern: flat everywhere as a ranker, dose-ordered as a re-metrization flag.
+Takeaways **E13-T1/T2/T3** (information half survives; deployment half fails; instrument lessons
+incl. dof-matched-primary) — substance agreed in discussion, wording delegated veto-open.
+Direction set by Berker: FOLLOW PIVOT next (rung-1 / MVI-training pre-registration discussion)
+while the G-wave lands. Process note: three pre-registered sub-predictions failed informatively
+(P2 photo-finish, P3 affine-forgiveness, P5 D_m-saturation) — the pre-registration discipline is
+what makes those failures data.

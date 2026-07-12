@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.out,cka_linear,cross,0.22033519849747274,,,50000,512x16,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.out,neighbor_jaccard,cross,0.03038469911581367,,,50000,512x16,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.out,procrustes_distance,cross,1.034058218861431,,,50000,512x16,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.out,knn_label_agreement,cross,0.2232,,,50000,512x16,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap1,cka_linear,cross,0.2779845935078494,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap1,neighbor_jaccard,cross,0.04071330891330891,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap1,procrustes_distance,cross,1.1860561647862262,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap1,knn_label_agreement,cross,0.2292,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap2,cka_linear,cross,0.23229189110216503,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap2,neighbor_jaccard,cross,0.032434147775169446,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap2,procrustes_distance,cross,1.1946681265393597,,,50000,512x2048,none
+in100.lejepa.s0.e12f6.ext,in100.train500.v1,student.z.embed~student.z.proj.tap2,knn_label_agreement,cross,0.2266,,,50000,512x2048,none

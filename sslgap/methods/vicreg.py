@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import house_scheduler, trunk_arch
+from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -38,6 +38,8 @@ class VICReg(SSLMethod):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 drop_path_rate=self.cfg.drop_path)
         proj = vicreg_expander(384, self.cfg.expander_hidden, self.cfg.expander_dim)
+        if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
+            self.floor = MomentFloor()
         return nn.ModuleDict({"backbone": trunk, "projector": proj})
 
     def arch(self):
@@ -68,8 +70,15 @@ class VICReg(SSLMethod):
         var = variance_term(za) + variance_term(zb)
         cov = covariance_term(za) + covariance_term(zb)
         loss = self.cfg.w_inv * inv + self.cfg.w_var * var + self.cfg.w_cov * cov
+        terms = {"inv": inv, "var": var, "cov": cov}
+        # E12 cross-method arm: additive moment floor at the audited h (trunk-GAP), dose per the
+        # f2 lesson (E12 card §F-wave) — vicreg's own var/cov terms stay at z untouched.
+        if self.cfg.get("h_reg") == "moment":
+            h_loss = self.floor(tok[:, 1:].mean(1))
+            loss = loss + self.cfg.h_lamb * h_loss
+            terms["h_moment_kl"] = h_loss
         probe_feats = tok[:, 1:].mean(1).detach()    # monitor = audited h (trunk-GAP, F1)
-        return ({"loss": loss, "inv": inv, "var": var, "cov": cov}, probe_feats, V)
+        return ({"loss": loss, **terms}, probe_feats, V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
