@@ -1,0 +1,2 @@
+randinit_d_read_dof,trained_min,trained_max,trained_mean,trained_sd,randinit_margin_sd,n_trained_worse_than_randinit,boot_se_median,dynamic_range_ratio,p3_mono_count,p3_mono_of
+0.82558,0.61591,0.78368,0.68068,0.04269,3.39,0,0.005476,7.8,2,20

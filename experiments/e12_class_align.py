@@ -3,6 +3,7 @@ scratch analysis (results/diag/e10_dlr_cluster_check.csv), same columns for cont
 IN-100-scale additions (top-100 eigendirections, kmeans-100). Space = student.z.embed (LeJEPA's
 h, D-003v2) on the train500 manifest. Pure function over stored arrays; numbers land raw.
 """
+import argparse
 import csv
 import os
 
@@ -17,6 +18,19 @@ RUNS = ["in100.lejepa.s0.e12a1.ext", "in100.lejepa.s0.e12a2.ext", "in100.lejepa.
         "in100.lejepa.s0.e12f4.ext", "in100.lejepa.s0.e12f5.ext", "in100.lejepa.s0.e12f6.ext"]
 MANIFEST, SPACE = "in100.train500.v1", "student.z.embed"
 
+# G-wave (D-028/D-030): per-run space map — vicreg floor trained at student trunk-GAP; dino floor
+# trains student global-crop CLS while the AUDITED h is teacher.h.cls (score both, labeled).
+# Controls e12gvc/e12gdc are the PRIMARY comparators; original lanes demote to reference rows.
+G_RUNS = [("in100.vicreg.s0.e12gv.ext", "student.h.gap"),
+          ("in100.vicreg.s0.e12gvc.ext", "student.h.gap"),
+          ("in100.vicreg.s0.ext", "student.h.gap"),
+          ("in100.dino.s0.e12gd.ext", "teacher.h.cls"),
+          ("in100.dino.s0.e12gd.ext", "student.h.cls"),
+          ("in100.dino.s0.e12gdc.ext", "teacher.h.cls"),
+          ("in100.dino.s0.e12gdc.ext", "student.h.cls"),
+          ("in100.dino.s0.ext", "teacher.h.cls"),
+          ("in100.dino.s0.ext", "student.h.cls")]
+
 
 def eta2(u, y, classes):
     tot = u.var()
@@ -28,10 +42,16 @@ def eta2(u, y, classes):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--gwave", action="store_true")
+    args = ap.parse_args()
+    items = G_RUNS if args.gwave else [(r, SPACE) for r in RUNS]
+    out_name = "e12_class_align_g.csv" if args.gwave else "e12_class_align.csv"
+
     rows = []
-    for rid in RUNS:
+    for rid, space in items:
         d = os.path.join(ROOT, "features", rid, MANIFEST)
-        X = np.load(os.path.join(d, f"{SPACE}.npy")).astype(np.float64)
+        X = np.load(os.path.join(d, f"{space}.npy")).astype(np.float64)
         y = np.load(os.path.join(d, "labels.npy"))
         classes = np.unique(y)
         mu = X.mean(0)
@@ -56,7 +76,7 @@ def main():
         km = KMeans(n_clusters=len(classes), n_init=4, random_state=0).fit_predict(
             P[:, :128].astype(np.float32))
         rows.append({
-            "run": rid, "space": SPACE,
+            "run": rid, "space": space,
             "between/total_var": round(btw / tot_var, 4),
             "eig_top16_var_frac": round(float(w[:16].sum() / w.sum()), 4),
             "n_negkurt_top16": int((k16 < 0).sum()),
@@ -68,7 +88,7 @@ def main():
             "effrank_w": round(float(w.sum() ** 2 / (w ** 2).sum()), 2),
         })
         print(rows[-1], flush=True)
-    out = os.path.join(ROOT, "results", "diag", "e12_class_align.csv")
+    out = os.path.join(ROOT, "results", "diag", out_name)
     with open(out, "w", newline="") as f:
         wcsv = csv.DictWriter(f, fieldnames=list(rows[0]))
         wcsv.writeheader()

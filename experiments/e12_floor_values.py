@@ -5,6 +5,7 @@ eps 1e-4) averaged over 32 fresh draws at n=4096/draw, PLUS the full-dim diagona
 (mean^2 and per-dim var-KL) and the full-cov KL with shrinkage — so constraint satisfaction is
 comparable across arms including those that never trained the term (C1, lane, null). Raw numbers.
 """
+import argparse
 import csv
 import os
 
@@ -13,6 +14,18 @@ import numpy as np
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 RUNS = ["e12c1", "e12f2", "e12f1", "e12a3", "e12f6", "e12f5", "e12f3", "e12f4", "e12a2", "e12a1"]
 REFS = {"lane": "in100.lejepa.s0.ext", "null": "in100.lejepa.s0.null.ext"}
+
+# G-wave (D-028/D-030): (label, run, space) — the floor's satisfaction is read AT THE SPACE IT
+# TRAINED ON (vicreg student.h.gap; dino student.h.cls) plus dino's audited teacher.h.cls.
+G_RUNS = [("e12gv", "in100.vicreg.s0.e12gv.ext", "student.h.gap"),
+          ("e12gvc(ctrl)", "in100.vicreg.s0.e12gvc.ext", "student.h.gap"),
+          ("vicreg-lane(ref)", "in100.vicreg.s0.ext", "student.h.gap"),
+          ("e12gd@floor-space", "in100.dino.s0.e12gd.ext", "student.h.cls"),
+          ("e12gd@audited-h", "in100.dino.s0.e12gd.ext", "teacher.h.cls"),
+          ("e12gdc(ctrl)@floor-space", "in100.dino.s0.e12gdc.ext", "student.h.cls"),
+          ("e12gdc(ctrl)@audited-h", "in100.dino.s0.e12gdc.ext", "teacher.h.cls"),
+          ("dino-lane(ref)@floor-space", "in100.dino.s0.ext", "student.h.cls"),
+          ("dino-lane(ref)@audited-h", "in100.dino.s0.ext", "teacher.h.cls")]
 
 
 def sliced_kl(X, draws=32, d=128, eps=1e-4, n=4096, seed=0):
@@ -37,16 +50,24 @@ def diag_read(X):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--gwave", action="store_true")
+    args = ap.parse_args()
+    items = G_RUNS if args.gwave else \
+        [(a, f"in100.lejepa.s0.{a}.ext", "student.z.embed") for a in RUNS] + \
+        [(k, r, "student.z.embed") for k, r in REFS.items()]
+
     rows = []
-    for label, rid in [(a, f"in100.lejepa.s0.{a}.ext") for a in RUNS] + list(REFS.items()):
-        X = np.load(f"{ROOT}/features/{rid}/in100.train500.v1/student.z.embed.npy").astype(np.float64)
+    for label, rid, space in items:
+        X = np.load(f"{ROOT}/features/{rid}/in100.train500.v1/{space}.npy").astype(np.float64)
         m, s = sliced_kl(X)
-        rows.append({"arm": label, "moment_kl_sliced(mean±sd,32draws)": f"{m:.4f}±{s:.4f}",
+        rows.append({"arm": label, **({"run": rid, "space": space} if args.gwave else {}),
+                     "moment_kl_sliced(mean±sd,32draws)": f"{m:.4f}±{s:.4f}",
                      "moment_kl_sliced": round(m, 4), "diag_kl": round(diag_read(X), 4),
                      "feat_mean_norm2/d": round(float((X.mean(0) ** 2).mean()), 4),
                      "feat_var_mean": round(float(X.var(0).mean()), 4)})
         print(rows[-1], flush=True)
-    out = f"{ROOT}/results/diag/e12_floor_values.csv"
+    out = f"{ROOT}/results/diag/e12_floor_values" + ("_g.csv" if args.gwave else ".csv")
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()

@@ -113,3 +113,56 @@ both, isolated `in100.e14dry.*` run_ids (purged after), then fleet via singleton
 `h100-slotA/B`. Store: ~30 MB/member fp16 — negligible (D-005 fine).
 
 ## Numbers land below this line as they arrive; AGREED TAKEAWAY only after joint discussion.
+
+### Full pass — 2026-07-13 (scoring 62246451; dry 62246318; fleet 62246002–023, 22/22 done)
+
+CSVs: `results/diag/e14_{distortion,rank_corr,target_audit,gate,levels,strata}.csv`.
+
+**Gates (P1, far/mae primary):** randinit member +3.39 sd above trained mean, 0 inversions
+(E13: +6.35); dynamic range 7.8× median bootstrap se (bar 3×); T=mae target NMI .372/.377 (A2B/
+B2A; E13 aug-view was .24). Gates pass; margins thinner than rung-0.
+
+**Ranking, dof-matched d_read (full19, lin/knn):**
+
+| cell | rho lin | p | rho knn | p |
+|---|---|---|---|---|
+| T=mae far (PRIMARY) | −.253 | .30 | −.193 | .43 |
+| T=mae near | −.404 | .09 | −.335 | .16 |
+| T=mae copy | **−.526** | .022 | **−.546** | .017 |
+| T=randinit far (control) | +.154 | .52 | +.109 | .65 |
+| T=dino far (control, n=18) | **−.794** | .0005 | **−.664** | .0033 |
+| battery best (kurt_topeig) | −.546 | .016 | −.426 | .068 |
+
+T=mae far sweep is FLAT and dead everywhere (best |ρ| .288 across all 6 RFF cells + raw arm; raw
+= −.268/−.210 ≈ RFF). Paired n=18 subset: T=mae −.226 vs T=dino −.794 on identical members.
+Sub-zoos at far/mae: lejepa11 −.654 lin (p=.033) / −.291 knn; nonlejepa8 +.333/+.667 (wrong-signed,
+n=8). Target audit: sketch effrank mae ~32.5, dino ~102, randinit ~5.3; NMI mae .37 / dino .47 /
+randinit .31.
+
+**Levels (`e14_levels.csv`):** per-member far < near for 18/20 and copy < near for 17/20 (levels,
+not ranking power); ALL members read LOWER distortion on foveal-far than on E13's aug-view primary
+(mean −.19; the deterministic, photometrically clean channel is more predictable than heavy-aug
+views). Instrument note (mechanical): cross-stratum LEVEL comparisons carry unequal per-stratum
+n_tr (2982/1754/1147) — pre-registration did not equalize; within-stratum rankings unaffected.
+
+**Pre-registered verdict mechanics (interpretation = joint discussion, not here):**
+- **P1 PASS** (all three gate conditions; margins noted above).
+- **P2 NOT MET** — primary cell −.253 (n.s.), loses to battery best on both columns.
+- **P3 NOT MET** — full monotone 2/20 (copy<near 17/20 holds; near<far 2/20 fails; see instrument
+  note).
+- **P4 NOT MET and its DOWNGRADE TRIGGER FIRES** — far fails P2 while copy ranks at −.53/−.55
+  (≥.44, p<.03 both): per the locked wording, "E13-T1 was re-encoding-driven, premise reading
+  downgrades" — scoped by the T=dino control below.
+- **P5 PARTIAL** — e12-family far/mae ranks on linear (−.654, p=.033), not knn (−.291).
+- **P6 LEAN FALSIFIED (inverted)** — T=dino does not merely match T=mae, it dominates
+  (−.794/−.664 vs −.253/−.193; paired n=18 −.79 vs −.23) and beats E13's aug-view primary
+  (−.72/−.65) and every battery statistic — the strongest zoo ranker measured in this project,
+  on the far channel, while T=randinit is dead (+.15). Semantic flag fires mechanically
+  (NMI .47 vs .37; effrank 102 vs 32).
+- **P7 NOT MET** — RFF ≈ raw again (−.253 vs −.268).
+- **K1 not fired** (gates pass). **K3 not fired** (randinit control dead → content is the trained
+  descriptor). **K2: fires for the DECLARED construction** — no T=mae far cell (the pre-registered
+  reduced sweep) reaches |ρ| ≥ .44 on either column ⇒ the premise as PIVOT declares it
+  (reconstruction-based target) does not transfer to the declared channel; the T=dino far control
+  clears the bar (−.79) but sits outside the declared sweep. Per K2: E15's case reopens for
+  discussion before any training spend.
