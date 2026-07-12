@@ -253,3 +253,9 @@ E14-T1…T3.)*
   edge-adjacent boxes — zero-overlap ≠ distant; center-distance recomputable as covariate.
   (d) dof-matched readout again ≈ val-selected (median R² .325 vs .327): capacity not binding;
   E13-T3(b) promotion held.
+
+*Addendum amendments APPROVED (Berker 2026-07-13: "add the addendum :)") and appended to the
+DECISIONS rows: T1 — the foveal event construction is inert at this rung (B1 null; within-family
+cell identical under full blur); E14's channel is operationally low-pass-scene→sharp-context
+prediction. T2 — the dino-target cross-family ranking survives without the fovea (−.71 vs −.79,
+between the locked B2 thresholds): the semantic rank signal is substantially scene-gist-carried.*
