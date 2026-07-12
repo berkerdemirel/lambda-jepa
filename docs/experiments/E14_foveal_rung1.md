@@ -132,6 +132,29 @@ dead) read descriptively. Frozen-model caveat declared: zoo members never traine
 sharp+degraded inputs, so a null here does NOT establish that the fovea is useless for
 PIVOT-TRAINED models — it bounds what rung-1 can claim about the event construction.
 
+### Addendum results — 2026-07-13 (blur fleet 62248967+21; scoring 62248985)
+
+CSVs: `results/diag/e14_{distortion,rank_corr}_blur.csv`. Far primary cell, blur_v1 events
+(no fovea, A=B), foveal ctx targets/folds reused.
+
+- **B1 — Berker's null HOLDS.** Median trained far D_read_dof rise (blur − foveal), T=mae:
+  **+.0010** (rule threshold .0110; 1/19 members above); T=dino median rise **−.0160** (removing
+  the fovea makes the far semantic target slightly EASIER to predict); randinit −.0011. The sharp
+  fovea contributes nothing measurable to far-context prediction for frozen non-PIVOT checkpoints.
+  My registered lean (a real rise) was WRONG.
+- **B2 — between the locked thresholds, deflation-side.** T=dino far ρ_lin −.707 (p=.0016) vs
+  foveal −.794: |ρ| drop .087 — neither the ≤.05 "gist" criterion nor the ≥.10 "load-bearing"
+  criterion fires; the ranking substantially survives with no fovea at all (still above every
+  battery statistic; knn −.630). T=mae far stays dead (−.270 vs −.253). Bonus fact: the
+  within-family cell is IDENTICAL under blur (lejepa11 mae lin −.654 = foveal) — the family
+  dose-response signal is carried entirely by the low-pass scene encoding.
+- **Mechanical rescope (verdicts, interpretation joint):** at rung-1, the foveal event
+  construction is INERT — every E14 result (mae cross-family failure, dino cross-family success,
+  within-family signal) is reproduced by "predict sharp-context descriptors from the ×4 low-pass
+  scene". The declared frozen-model caveat shields PIVOT-trained models (they are trained to use
+  the fovea); rung-1 simply cannot see the event channel. The E15 input-design argument now rests
+  on theory alone, with zero rung-1 empirical support.
+
 ## Numbers land below this line as they arrive; AGREED TAKEAWAY only after joint discussion.
 
 ### Full pass — 2026-07-13 (scoring 62246451; dry 62246318; fleet 62246002–023, 22/22 done)
