@@ -80,12 +80,12 @@ def main(cfg: DictConfig):
                                    num_workers=cfg.num_workers, device=cfg.device, seed=cfg.seed)
             print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
 
-    if cfg.get("foveal"):        # E14 (D-031): event = zoo members, ctx = tokenizer runs
-        name, csv_path, info, source = mans["pairs"]
+    if cfg.get("foveal"):        # E14 (D-031): event = zoo members, ctx = tokenizer runs,
+        name, csv_path, info, source = mans["pairs"]   # blur = no-fovea null (addendum)
         for mode in (("event", "ctx") if cfg.foveal == "both" else (cfg.foveal,)):
-            stack = "foveal_v1" if mode == "event" else "foveal_v1_ctx"
+            stack = {"event": "foveal_v1", "ctx": "foveal_v1_ctx", "blur": "blur_v1"}[mode]
+            ds = FovealPairDataset(csv_path, source, img, stack, "ctx" if mode == "ctx" else "event")
             key = f"{name}@{stack}"
-            ds = FovealPairDataset(csv_path, source, img, "foveal_v1", mode)
             spaces = extract_pairs(loaded, ds, store, manifest_key=key, manifest_info=info,
                                    stack=stack, bs=cfg.bs, num_workers=cfg.num_workers,
                                    device=cfg.device, seed=cfg.seed)

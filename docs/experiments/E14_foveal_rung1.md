@@ -112,6 +112,26 @@ lives at the input level). Dry-run: pairs1 manifest (100 images), one member eve
 both, isolated `in100.e14dry.*` run_ids (purged after), then fleet via singleton slots
 `h100-slotA/B`. Store: ~30 MB/member fp16 — negligible (D-005 fine).
 
+## Addendum — no-fovea null (REGISTERED-LATE, Berker-required 2026-07-13; locked pre-numbers)
+
+Berker's challenge on the far stratum: "far becomes almost predict-sharp-from-blurred — I don't
+understand the contribution of keeping a non-intersecting fovea; predicting the sharp mae from
+fully blurred would be as hard." Control: **`blur_v1`** events — the same deterministic base
+scene fully ×4 down/up, NO sharp fovea (A = B by construction, location-free); ctx targets,
+strata, and folds byte-identical reuse of the foveal run. Far primary cell only, T=mae + T=dino,
+dof-matched primary, same n19/n18 zoos. Fleet 62248967+21 (blur events for all 22 members);
+scoring `e14_foveal_rung1.py --blur` → `results/diag/e14_{distortion,rank_corr}_blur.csv`.
+
+Decision rules (locked): **B1 (levels)** — if median trained far D_read_dof(blur) − (foveal)
+< 2× median bootstrap se (.0055), the fovea contributes nothing measurable to far prediction for
+frozen non-PIVOT checkpoints (Berker's null); my registered lean: it rises by more than that.
+**B2 (ranking)** — if T=dino far ρ_lin under blur stays within .05 of −.794, the far ranking
+signal is low-frequency scene gist, event construction irrelevant at this rung (deflationary);
+if |ρ| drops ≥ .1, the foveal event is load-bearing for the ranking. T=mae far ρ (−.253, already
+dead) read descriptively. Frozen-model caveat declared: zoo members never trained to integrate
+sharp+degraded inputs, so a null here does NOT establish that the fovea is useless for
+PIVOT-TRAINED models — it bounds what rung-1 can claim about the event construction.
+
 ## Numbers land below this line as they arrive; AGREED TAKEAWAY only after joint discussion.
 
 ### Full pass — 2026-07-13 (scoring 62246451; dry 62246318; fleet 62246002–023, 22/22 done)
@@ -166,3 +186,47 @@ n_tr (2982/1754/1147) — pre-registration did not equalize; within-stratum rank
   (reconstruction-based target) does not transfer to the declared channel; the T=dino far control
   clears the bar (−.79) but sits outside the declared sweep. Per K2: E15's case reopens for
   discussion before any training spend.
+
+## AGREED TAKEAWAY
+
+*(Substance agreed in the 2026-07-13 discussion — Berker: "i think we already discussed and i am
+satisfied with your explanations (apart from the null experiment i required), you can fill the
+takeaways as we already discussed"; wording delegated, veto open. Scoped PRE-addendum: the
+registered no-fovea null (B1/B2 above) can amend T1/T2 when it lands. Full row texts in DECISIONS
+E14-T1…T3.)*
+
+- **E14-T1 — the cross-family information claim does not transfer to the declared channel with
+  the declared target class; E13-T1's cross-family support was substantially overlap-carried.**
+  On the overlap-controlled foveal channel, D_read with the reconstruction tokenizer has no
+  cross-family ranking power in any far cell (best |ρ| .29, n.s.; loses to kurt_topeig
+  −.55/−.43), and ranking power is overlap-graded — copy −.53/−.55 (p<.03) > near −.40 > far
+  −.25 — firing the pre-registered downgrade trigger: E13-T1's "beats every battery statistic"
+  clause is now scoped as aug-view/overlap-assisted and does not extend to the declared channel.
+  WITHIN family (e12 dose arms + lane, method/affinity constant) far/mae still ranks converged
+  linear (−.65, p=.03; knn n.s.) — the family-internal dose-response signal survives its third
+  instrument. Gates clean (randinit member +3.4 sd / 0 inversions; range 7.8×; T=randinit
+  tokenizer dead ⇒ content = trained descriptor). K2 fired for the declared construction ⇒ per
+  D-029 staging, E15 requires an explicit new decision. Scope: n=19, IN-100 probes, seed 0, one
+  frozen mae, f96/×4, pre-blur-control.
+- **E14-T2 — cross-family, reconstruction-target proximity reads as method affinity, not
+  quality; a semantic target restores ranking but is mechanism-capped (agreed reading).** ijepa
+  (masked-prediction training) is the BEST mae-far predictor (R² .384) while second-worst on
+  probe; byol/vicreg/simclr shift the same way; under T=dino ijepa returns to mid-pack and the
+  ranking straightens to −.79/−.66 (n=18) — the strongest label-free zoo ranker measured in this
+  project — with the dino target PREDICTED WORSE (median R² .24 vs .33, smaller spread):
+  predictability level and ranking power dissociate. Agreed position (Berker): the dino cell is
+  expected and neither rehabilitates E1-style selection nor indicts the mechanism — proximity to
+  a strong teacher correlates with quality but is capped as a training signal; PIVOT's mechanism
+  bet (reconstruction-flavored target + augmentation/sufficiency pressure) is not tested by
+  frozen-model ranking. What the contrast establishes: at zero overlap, the cross-family rank
+  signal lives in semantic context content, not reconstruction-flavored content.
+- **E14-T3 — instrument lessons.** (a) The deterministic declared channel is the
+  better-conditioned instrument: E13's aug-view target carried an irreducible independent-draw
+  noise floor (trained held-out R² 8–14%, level sd .016) vs E14 far R² 22–38%, sd .043 (2.6×),
+  dynamic range 7.8× vs 6.3× — aug-view D_read was noise-dominated, which also compressed its
+  scatter axis. (b) Per-member cross-stratum levels are not a channel-difficulty meter: P3
+  monotonicity 2/20 (near carries the smallest-n_tr confound, declared post-hoc; randinit shows
+  the opposite gradient); within-stratum rankings unaffected. (c) "far" = IoU 0 INCLUDES
+  edge-adjacent boxes — zero-overlap ≠ distant; center-distance recomputable as covariate.
+  (d) dof-matched readout again ≈ val-selected (median R² .325 vs .327): capacity not binding;
+  E13-T3(b) promotion held.

@@ -128,10 +128,13 @@ def foveal_boxes(ref, stack, img_size=224):
 
 
 def foveal_event(base, box, f):
-    """PIL 224 base scene -> foveal composite: ×4 bilinear down/up surround, sharp fovea."""
+    """PIL 224 base scene -> foveal composite: ×4 bilinear down/up surround, sharp fovea.
+    box=None -> no fovea (the E14-addendum no-fovea null: fully degraded event, `blur_v1`)."""
     from PIL import Image
     s = base.size[0]
     low = base.resize((s // _FOVEAL_DOWN,) * 2, Image.BILINEAR).resize((s,) * 2, Image.BILINEAR)
+    if box is None:
+        return low
     ev = low.copy()
     ev.paste(base.crop((box[0], box[1], box[0] + f, box[1] + f)), (box[0], box[1]))
     return ev
@@ -264,7 +267,7 @@ class FovealPairDataset(torch.utils.data.Dataset):
         self.source, self.stack, self.mode = source, stack, mode
         self.base = v2.Compose([v2.Resize(img_size), v2.CenterCrop(img_size)])
         self.tail = v2.Compose(_TAIL)
-        self.f = FOVEAL_SIZES[stack]
+        self.f = FOVEAL_SIZES.get(stack)     # None for blur_v1 (no-fovea null, E14 addendum)
 
     def __len__(self):
         return len(self.items)
@@ -272,6 +275,9 @@ class FovealPairDataset(torch.utils.data.Dataset):
     def __getitem__(self, i):
         ref, y = self.items[i]
         base = self.base(self.source(ref))
+        if self.stack == "blur_v1":          # location-free event; A == B by construction
+            v = self.tail(foveal_event(base, None, None))
+            return v, v.clone(), y
         _, a, b = foveal_boxes(ref, self.stack)
         make = foveal_event if self.mode == "event" else foveal_ctx
         return self.tail(make(base, a, self.f)), self.tail(make(base, b, self.f)), y

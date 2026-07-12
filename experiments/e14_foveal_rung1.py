@@ -69,11 +69,17 @@ def fit_eval_dof(S, Phi, folds, n_tr):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--blur", action="store_true", help="E14 addendum: no-fovea null events")
     args = ap.parse_args()
+    sfx = "_blur" if args.blur else ""
+    if args.blur:
+        e13.PAIRS = "in100.pairs100.v1@blur_v1"    # events only; ctx targets reused from foveal
 
     ranked = dict(RANKED) if not args.dry else \
         {r: RANKED[r] for r in ("in100.dino.s0.ext", "in100.lejepa.s0.e12c1.ext")}
     tokenizers = TOKENIZERS if not args.dry else {"mae": TOKENIZERS["mae"]}
+    if args.blur:
+        tokenizers = {k: TOKENIZERS[k] for k in ("mae", "dino") if k in tokenizers or not args.dry}
 
     # ---- strata from the deterministic channel (single source of truth: foveal_boxes) ----
     refs = [r for r, _ in read_manifest(MANIFEST)]
@@ -100,7 +106,9 @@ def main():
 
     cells_for = {"mae": {"far": CELLS_FAR, "near": [PRIMARY], "copy": [PRIMARY]},
                  "randinit": {"far": [PRIMARY]}, "dino": {"far": [PRIMARY]}}
-    if args.dry:
+    if args.blur:                                   # addendum: far primary cell only
+        cells_for = {"mae": {"far": [PRIMARY]}, "dino": {"far": [PRIMARY]}}
+    if args.dry and not args.blur:
         cells_for["mae"] = {"far": [PRIMARY, (0, -1.0)], "near": [PRIMARY], "copy": [PRIMARY]}
 
     dist_rows, audit_rows, gate_boot = [], [], {}
@@ -175,7 +183,8 @@ def main():
         return
 
     os.makedirs(f"{ROOT}/results/diag", exist_ok=True)
-    for name, rows in (("e14_distortion", dist_rows), ("e14_target_audit", audit_rows), ("e14_strata", srows)):
+    for name, rows in ((f"e14_distortion{sfx}", dist_rows), (f"e14_target_audit{sfx}", audit_rows),
+                       ("e14_strata", srows)):
         with open(f"{ROOT}/results/diag/{name}.csv", "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(rows[0]))
             w.writeheader(); w.writerows(rows)
@@ -184,7 +193,8 @@ def main():
     # ---- rank-correlation stage (n19 primary per E13-T3a; deitlite descriptive) ----
     probe = {rid: e13.probe_rows(rid, h) for rid, h in RANKED.items()}
     probe[RANDINIT] = e13.probe_rows(RANDINIT, GATE[RANDINIT])
-    base, bkeys = e13.read_baselines({r: h for r, h in ranked.items() if r != DEITLITE})
+    base, bkeys = ({}, []) if args.blur else \
+        e13.read_baselines({r: h for r, h in ranked.items() if r != DEITLITE})
     sym = {}
     for r in dist_rows:
         sym.setdefault((r["tokenizer"], r["stratum"], r["D_m"], r["sig_mult"], r["run"]), []).append(r)
@@ -242,10 +252,12 @@ def main():
             add_corr(f"d_read_dof@primary|subset:{bk}", "pairing",
                      {r: v for r, v in prim.items() if v is not None})
 
-    with open(f"{ROOT}/results/diag/e14_rank_corr.csv", "w", newline="") as f:
+    with open(f"{ROOT}/results/diag/e14_rank_corr{sfx}.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(corr_rows[0]))
         w.writeheader(); w.writerows(corr_rows)
-    print(f"wrote results/diag/e14_rank_corr.csv ({len(corr_rows)} rows)", flush=True)
+    print(f"wrote results/diag/e14_rank_corr{sfx}.csv ({len(corr_rows)} rows)", flush=True)
+    if args.blur:            # levels/gate comparison vs the foveal run happens in analysis
+        return
 
     # ---- gates (P1/K1) + strata ordering (P3) + levels vs E13 (shift cost) ----
     prim_read = {r: symval("mae", "far", *PRIMARY, r, "d_read_dof") for r in list(ranked) + [RANDINIT]}
