@@ -84,6 +84,65 @@ STACKS = {
 }
 
 
+# ---- E14 foveal channel (PIVOT rung-1) --------------------------------------------------------
+# Declared event channel per PIVOT §6.1: deterministic base scene (house eval geometry,
+# Resize+CenterCrop 224), sharp fovea pasted into a ×4 down/up-sampled surround (all bilinear).
+# Context = the sharp fovea-sized window at the partner's fovea, resized to 224 for the tokenizer.
+# Everything is keyed by manifest ref: every extraction pass yields byte-identical views, so the
+# target array is shared zoo-wide and no member has a same-pass draw advantage (E13 card §Constr).
+
+FOVEAL_SIZES = {"foveal_v1": 96}   # fovea side px, 16-token-aligned @224 (f96-only per Berker)
+_FOVEAL_DOWN = 4
+_FOVEAL_GRID = 16
+
+def _foveal_rng(ref, tag):
+    h = hashlib.md5(f"{tag}:{ref}".encode()).digest()
+    return np.random.default_rng(int.from_bytes(h[:8], "little"))
+
+
+def foveal_iou(a, b, f):
+    ox = max(0, f - abs(a[0] - b[0]))
+    oy = max(0, f - abs(a[1] - b[1]))
+    return ox * oy / (2 * f * f - ox * oy)
+
+
+def foveal_boxes(ref, stack, img_size=224):
+    """Deterministic (stratum, boxA, boxB) for one manifest ref; boxes are (x, y) top-lefts on the
+    16-px grid. Stratum is keyed by ref ONLY (shared across fovea sizes → the f96/f64 contrast
+    compares identical image splits); positions are keyed by (ref, stack). far = IoU 0 (A resampled
+    until a disjoint partner exists — centered 96² foveas admit none on 224); near = IoU in (0,.5];
+    copy = identical box (re-encoding contrast cell)."""
+    f = FOVEAL_SIZES[stack]
+    grid = list(range(0, img_size - f + 1, _FOVEAL_GRID))
+    u = _foveal_rng(ref, "strata_v1").random()
+    stratum = "far" if u < 0.5 else ("near" if u < 0.8 else "copy")
+    rng = _foveal_rng(ref, stack)
+    while True:
+        a = (int(rng.choice(grid)), int(rng.choice(grid)))
+        if stratum == "copy":
+            return stratum, a, a
+        lo, hi = (0.0, 0.0) if stratum == "far" else (1e-9, 0.5)
+        cands = [(x, y) for x in grid for y in grid if lo <= foveal_iou(a, (x, y), f) <= hi]
+        if cands:
+            return stratum, a, cands[int(rng.integers(len(cands)))]
+
+
+def foveal_event(base, box, f):
+    """PIL 224 base scene -> foveal composite: ×4 bilinear down/up surround, sharp fovea."""
+    from PIL import Image
+    s = base.size[0]
+    low = base.resize((s // _FOVEAL_DOWN,) * 2, Image.BILINEAR).resize((s,) * 2, Image.BILINEAR)
+    ev = low.copy()
+    ev.paste(base.crop((box[0], box[1], box[0] + f, box[1] + f)), (box[0], box[1]))
+    return ev
+
+
+def foveal_ctx(base, box, f):
+    """Sharp fovea-sized window, resized to the frame for the tokenizer (bilinear, declared)."""
+    from PIL import Image
+    return base.crop((box[0], box[1], box[0] + f, box[1] + f)).resize(base.size, Image.BILINEAR)
+
+
 # ---- manifests -------------------------------------------------------------------------------
 
 def build_manifest_imagenette(split, out_csv):
@@ -190,6 +249,32 @@ class PairDataset(torch.utils.data.Dataset):
         ref, y = self.items[i]
         img = self.source(ref)
         return self.ta(img), self.tb(img), y
+
+
+class FovealPairDataset(torch.utils.data.Dataset):
+    """E14 pairs: mode='event' -> (event_A, event_B) for zoo members; mode='ctx' -> (ctx_A, ctx_B)
+    for tokenizer runs. Slot convention matches PairDataset (viewA, viewB): D_read A→B pairs the
+    member's slot-0 with the tokenizer's slot-1, as in E13. Scoring recomputes strata/boxes via
+    foveal_boxes (single source of truth — no side-channel CSV)."""
+
+    def __init__(self, manifest_csv, source: _Source, img_size, stack, mode):
+        assert img_size == 224, "foveal_v1 geometry is declared on the 224 frame only"
+        assert mode in ("event", "ctx")
+        self.items = read_manifest(manifest_csv)
+        self.source, self.stack, self.mode = source, stack, mode
+        self.base = v2.Compose([v2.Resize(img_size), v2.CenterCrop(img_size)])
+        self.tail = v2.Compose(_TAIL)
+        self.f = FOVEAL_SIZES[stack]
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getitem__(self, i):
+        ref, y = self.items[i]
+        base = self.base(self.source(ref))
+        _, a, b = foveal_boxes(ref, self.stack)
+        make = foveal_event if self.mode == "event" else foveal_ctx
+        return self.tail(make(base, a, self.f)), self.tail(make(base, b, self.f)), y
 
 
 def make_source(frame):

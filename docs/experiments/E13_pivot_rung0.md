@@ -252,7 +252,8 @@ D_kern conclusion unchanged (flag, not ranker).
 ## AGREED TAKEAWAY
 
 *(Substance agreed in the 2026-07-12 discussion — Berker: "i think takeaways upon our discussion
-is clear"; exact wording delegated, veto open. Full row texts in DECISIONS E13-T1…T3.)*
+is clear"; exact wording delegated, veto open; wording CONFIRMED by Berker 2026-07-12 next
+session: "takeaways are fine". Full row texts in DECISIONS E13-T1…T3.)*
 
 - **E13-T1 — the information half of PIVOT survives rung-0.** Held-out predictive-state
   distortion at h (ridge from viewA h onto the RFF sketch of the frozen MAE descriptor of viewB)

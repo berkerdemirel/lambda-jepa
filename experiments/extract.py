@@ -12,8 +12,8 @@ import hydra
 from omegaconf import DictConfig
 
 from sslgap.ckpt import adapters
-from sslgap.data import (EvalDataset, PairDataset, STACKS, _Source, build_manifest_imagefolder, seed_everything,
-                         build_manifest_imagenette)
+from sslgap.data import (EvalDataset, FovealPairDataset, PairDataset, STACKS, _Source,
+                         build_manifest_imagefolder, seed_everything, build_manifest_imagenette)
 from sslgap.extract import FeatureStore, extract_eval, extract_pairs
 
 
@@ -78,6 +78,17 @@ def main(cfg: DictConfig):
             spaces = extract_pairs(loaded, PairDataset(csv_path, source, img, stack=stack), store,
                                    manifest_key=key, manifest_info=info, stack=stack, bs=cfg.bs,
                                    num_workers=cfg.num_workers, device=cfg.device, seed=cfg.seed)
+            print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
+
+    if cfg.get("foveal"):        # E14 (D-031): event = zoo members, ctx = tokenizer runs
+        name, csv_path, info, source = mans["pairs"]
+        for mode in (("event", "ctx") if cfg.foveal == "both" else (cfg.foveal,)):
+            stack = "foveal_v1" if mode == "event" else "foveal_v1_ctx"
+            key = f"{name}@{stack}"
+            ds = FovealPairDataset(csv_path, source, img, "foveal_v1", mode)
+            spaces = extract_pairs(loaded, ds, store, manifest_key=key, manifest_info=info,
+                                   stack=stack, bs=cfg.bs, num_workers=cfg.num_workers,
+                                   device=cfg.device, seed=cfg.seed)
             print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
     print(f"[extract] done: {cfg.run_id}")
 
