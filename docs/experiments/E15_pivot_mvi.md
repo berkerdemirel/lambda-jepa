@@ -104,3 +104,20 @@ prep (CPU, stored arrays) → ceiling extraction+probe (H100 + gpu) → pull mea
 launch (3×8h links per slot). Numbers land raw; AGREED TAKEAWAY only after joint discussion.
 
 ## Numbers land below this line as they arrive.
+
+### Pre-launch measurements — 2026-07-13
+
+- **Target freeze** (`outputs/e15_target_v1.npz`, sha256[:16] d613544ceeb25dec, prep run local
+  CPU over stored ctx arrays): σ_med 26.440 (E14's independent per-direction estimates: 26.51 /
+  26.30 — consistent); γ = .01645; Var(z) = .001446; target per-dim std min/med/max
+  .0057/.0329/.0691.
+- **Equal-pull at init** (job 62249062, A40, bs 128 real batch): grad norms pred 1.145 / view
+  1.516 / transport 0.682 / var 0 (floor inactive as constructed) ⇒ **λ_view = .7554,
+  λ_T = 1.6804** (frozen into `configs/method/pivot.yaml`). Init readings: pred .460 (= 318× the
+  constant-h floor — the first learning signal is scale-shrink onto the sketch, expected for the
+  head-less design), view .382, transport .157, init h-std .585.
+- **THE BAR — C (ceiling probe, jobs 62249061 extract + 62249073 probe):**
+  **C = .3780 linear_raw_v2 / .2376 knn_v1_k200** (φ-marginal over 2 uniform ctx draws,
+  train500/val, pseudo-run `in100.mae.s0.e15phi`). C < raw mae h.gap (.434/.240): position
+  marginalization + RFF compression cost linear content. P2/K2 read against C; mae raw is the
+  secondary reference.

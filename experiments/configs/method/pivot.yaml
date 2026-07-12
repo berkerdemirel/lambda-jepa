@@ -4,10 +4,10 @@ name: pivot
 fovea: 96
 tokenizer_ckpt: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/in100.mae.s0_ep100.pt
 target_prep: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/e15_target_v1.npz
-lamb_view: 1.0
+lamb_view: 0.7554   # equal-pull at init, job 62249062 (D-032)
 lamb_var: 1.0
 transport: false
-lamb_t: 1.0
+lamb_t: 1.6804      # equal-pull at init, job 62249062 (D-032)
 drop_path: 0.1
 lr: 1e-3
 wd: 5e-2
