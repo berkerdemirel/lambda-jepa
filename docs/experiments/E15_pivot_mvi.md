@@ -121,3 +121,16 @@ launch (3×8h links per slot). Numbers land raw; AGREED TAKEAWAY only after join
   train500/val, pseudo-run `in100.mae.s0.e15phi`). C < raw mae h.gap (.434/.240): position
   marginalization + RFF compression cost linear content. P2/K2 read against C; mae raw is the
   secondary reference.
+
+### Smoke read (2 ep, jobs 62249071 A / 62249072 B) — PASS; chains launched
+
+wandb 20o8hc6h (A) / fsa608i2 (B). Per-term zeroing-path read: **no gaming signature on any
+term.** pred .460 → .0064 (A, 4.4× constant-h floor, still falling) / .0017 (B, 1.19× floor);
+h_std .585 → .0335 (A, ≈ target scale) / .020 (B, 20% above γ — floor armed, never fired,
+var ≡ 0 both); view → ~.004/.0003 via photometric invariance, not collapse (std ≫ 0); transport
+(B) .157 → .0006; grad_norm smooth, max excursion 16× median (A), well under the 100× trigger.
+Raw observation (no reading): the transport arm optimizes visibly faster at fixed step count.
+`pred_over_varz` (1.0 = constant-h floor; <1 = image-specific prediction) is the primary
+training-time mechanism dial — at smoke end neither arm is below 1 yet (warmup regime, lr at 20%).
+**Chains: e15a = 62249105/6/7 (h100-slotA), e15b = 62249108/9/10 (h100-slotB), 3×8h links,
+~13h to ep100.**
