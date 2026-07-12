@@ -146,6 +146,41 @@ def foveal_ctx(base, box, f):
     return base.crop((box[0], box[1], box[0] + f, box[1] + f)).resize(base.size, Image.BILINEAR)
 
 
+class PivotTrainDataset(torch.utils.data.Dataset):
+    """E15 (D-032) MVI training items over the FULL train split: one fovea position per image per
+    step (uniform over the 16-px grid), two light-photometric event views of the SAME event (§5.4
+    equivalent-event condition), and a CLEAN sharp context crop at an independent uniform c_B
+    (position-marginal target, §5.3). Shared hflip on the base BEFORE position sampling keeps
+    views+ctx in one frame. Worker RNG per house seeding. Returns ((v1, v2, ctx), y)."""
+
+    def __init__(self, dataset, split, img_size, data_root=None, f=96):
+        assert img_size == 224
+        self.split_src = _FullSplit(dataset, split, data_root)
+        self.f, self.img = f, img_size
+        self.base = v2.Compose([v2.Resize(img_size), v2.CenterCrop(img_size)])
+        self.photo = v2.Compose([
+            v2.RandomApply([v2.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+            v2.RandomGrayscale(p=0.2)])
+        self.tail = v2.Compose(_TAIL)
+        self.slots = list(range(0, img_size - f + 1, _FOVEAL_GRID))
+
+    def __len__(self):
+        return self.split_src.n
+
+    def __getitem__(self, i):
+        img, y = self.split_src(i)
+        base = self.base(img)
+        if random.random() < 0.5:
+            from PIL import Image
+            base = base.transpose(Image.FLIP_LEFT_RIGHT)
+        c = (random.choice(self.slots), random.choice(self.slots))
+        cb = (random.choice(self.slots), random.choice(self.slots))
+        v1 = self.tail(foveal_event(self.photo(base), c, self.f))
+        v2_ = self.tail(foveal_event(self.photo(base), c, self.f))
+        ctx = self.tail(foveal_ctx(base, cb, self.f))
+        return (v1, v2_, ctx), y
+
+
 # ---- manifests -------------------------------------------------------------------------------
 
 def build_manifest_imagenette(split, out_csv):

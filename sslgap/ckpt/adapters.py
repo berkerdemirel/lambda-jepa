@@ -197,6 +197,11 @@ def _asm_ijepa(mods, ck):
             "teacher", "teacher.h.gap")         # F2: teacher last-layer avgpooled patches
 
 
+def _asm_pivot(mods, ck):
+    """E15 head-less MVI: single branch, no heads — the trained block IS h (D-032)."""
+    return ({"student": Branch(mods["backbone"])}, "student", "student.h.gap")
+
+
 def _asm_deitlite(mods, ck):
     """Supervised anchor: single branch; h = last-layer CLS (classifier input, D-003v2);
     z.logits = the CE loss space."""
@@ -215,7 +220,7 @@ def _asm_lejepa(mods, ck):
 
 
 _NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "byol": _asm_byol,
-               "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa, "deitlite": _asm_deitlite}
+               "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa, "deitlite": _asm_deitlite, "pivot": _asm_pivot}
 
 
 def _resolve(dotted):
