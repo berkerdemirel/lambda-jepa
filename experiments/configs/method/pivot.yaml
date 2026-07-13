@@ -13,3 +13,9 @@ lr: 1e-3
 wd: 5e-2
 warmup_ep: 10
 eta_min: 1e-5
+# --- E16 (D-033) dense mode: position-conditioned K-query prediction; E15 pooled mode = dense:false (VOID) ---
+dense: true
+k_queries: 4
+global_channel: false
+global_prep: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/e16_global_v1.npz
+lamb_g: 1.0

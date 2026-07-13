@@ -20,9 +20,10 @@ from sslgap.models.backbones import build_vit_trunk
 
 class TargetSketch(nn.Module):
     """Frozen tokenizer trunk + standardization + fixed RFF blocks -> z [B, 384]. Everything is
-    buffers/frozen params; forward runs under no_grad (stopgrad is structural, §5.2 step 4)."""
+    buffers/frozen params; forward runs under no_grad (stopgrad is structural, §5.2 step 4).
+    Optional second channel (E16b global anchor) carries its own stats/RFF (`global_prep`)."""
 
-    def __init__(self, tokenizer_trunk, prep_path):
+    def __init__(self, tokenizer_trunk, prep_path, global_prep=None):
         super().__init__()
         self.trunk = tokenizer_trunk.eval()
         for p in self.trunk.parameters():
@@ -34,11 +35,19 @@ class TargetSketch(nn.Module):
         self.block = int(d["block"])                     # 192: sqrt(2/block) per-block scale
         self.gamma = float(d["gamma"])                   # var-floor level (0.5x target dim-std)
         self.var_z = float(d["var_z"])                   # constant-h floor of L_pred (audit ref)
+        if global_prep is not None:
+            g = np.load(global_prep)
+            for k in ("mu", "sd", "W", "b"):
+                self.register_buffer(k + "_g", torch.from_numpy(g[k].astype(np.float32)))
+            self.block_g = int(g["block"])
 
     @torch.no_grad()
-    def forward(self, ctx):
+    def forward(self, ctx, channel="local"):
         h = self.trunk.forward_features(ctx)[:, 1:].mean(1)
         with torch.autocast(ctx.device.type, enabled=False):     # RFF in fp32 (target fidelity)
+            if channel == "global":
+                y = (h.float() - self.mu_g) / self.sd_g
+                return np.sqrt(2.0 / self.block_g) * torch.cos(y @ self.W_g + self.b_g)
             y = (h.float() - self.mu) / self.sd
             return np.sqrt(2.0 / self.block) * torch.cos(y @ self.W + self.b)
 
@@ -55,7 +64,8 @@ class Pivot(SSLMethod):
         from sslgap.ckpt.adapters import _resolve
         tok = _resolve(spec["class"])(**spec["kwargs"])
         tok.load_state_dict(ck["modules"]["backbone"])
-        self.sketch = TargetSketch(tok, self.cfg.target_prep)   # device-moved lazily in step
+        gp = self.cfg.get("global_prep") if self.cfg.get("global_channel") else None
+        self.sketch = TargetSketch(tok, self.cfg.target_prep, global_prep=gp)  # lazy device move
         return nn.ModuleDict({"backbone": trunk})
 
     def arch(self):
@@ -63,7 +73,9 @@ class Pivot(SSLMethod):
 
     def build_train_dataset(self):
         return PivotTrainDataset(self.frame.dataset, "train", self.frame.img_size,
-                                 data_root=self.frame.data_root, f=self.cfg.fovea)
+                                 data_root=self.frame.data_root, f=self.cfg.fovea,
+                                 k_queries=self.cfg.get("k_queries", 0) if self.cfg.get("dense") else 0,
+                                 global_ctx=bool(self.cfg.get("global_channel")))
 
     def param_groups(self, modules):
         return [{"params": [p for p in modules["backbone"].parameters()],
@@ -77,6 +89,8 @@ class Pivot(SSLMethod):
         return tok[:, 1:].mean(1)
 
     def training_step(self, modules, batch_x, device, y=None):
+        if self.cfg.get("dense"):
+            return self._step_dense(modules, batch_x)
         v1, v2, ctx = batch_x
         if next(self.sketch.parameters()).device != v1.device:
             self.sketch.to(v1.device).eval()
@@ -100,6 +114,46 @@ class Pivot(SSLMethod):
             tr = F.smooth_l1_loss(patches, tok1[:, 1:])
             loss = loss + self.cfg.lamb_t * tr
             terms["transport"] = tr
+        probe_feats = torch.stack([h1, h2], 1).flatten(0, 1).detach()   # image-major, k=2
+        return ({"loss": loss, **terms}, probe_feats, 2)
+
+    def _step_dense(self, modules, batch_x):
+        """E16 (D-033): K position-conditioned local predictions — the token block at query q
+        (avg_pool2d(6,1) over the patch grid = the 9x9 slot grid, gathered at q) regresses the
+        sketch of the sharp ctx at q. Optional global anchor: CLS regresses the lowres sketch."""
+        v1, v2, ctxs, qidx = batch_x[:4]
+        if next(self.sketch.parameters()).device != v1.device:
+            self.sketch.to(v1.device).eval()
+        B, K = ctxs.shape[:2]
+        g = v1.shape[-1] // 16
+        w = self.cfg.fovea // 16
+        tok1 = modules["backbone"].forward_features(v1)
+        tok2 = modules["backbone"].forward_features(v2)
+        z = self.sketch(ctxs.flatten(0, 1)).reshape(B, K, -1)
+        bidx = torch.arange(B, device=v1.device)[:, None].expand(B, K)
+        pred = tok1.new_zeros(())
+        blocks0 = None
+        for tok in (tok1, tok2):
+            p = tok[:, 1:].reshape(B, g, g, -1).permute(0, 3, 1, 2)
+            pooled = F.avg_pool2d(p, kernel_size=w, stride=1)          # [B, D, 9, 9]
+            blocks = pooled[bidx, :, qidx[..., 0], qidx[..., 1]]       # [B, K, D]
+            blocks0 = blocks if blocks0 is None else blocks0
+            pred = pred + F.smooth_l1_loss(blocks.float(), z)
+        h1, h2 = self._gap(tok1), self._gap(tok2)
+        view = F.mse_loss(h1, h2)
+        hh = torch.cat([h1, h2]).float()
+        std = (hh.var(0) + 1e-6).sqrt()
+        var = F.relu(self.sketch.gamma - std).square().mean()
+        loss = pred + self.cfg.lamb_view * view + self.cfg.lamb_var * var
+        terms = {"pred": pred, "view": view, "var": var,
+                 "h_std_mean": std.mean().detach(),
+                 "block_std_mean": blocks0.float().flatten(0, 1).std(0).mean().detach(),
+                 "pred_over_varz": pred.detach() / self.sketch.var_z}   # 1.0 = constant-h floor
+        if self.cfg.get("global_channel"):
+            zg = self.sketch(batch_x[4], channel="global")
+            pred_g = F.smooth_l1_loss(tok1[:, 0].float(), zg) + F.smooth_l1_loss(tok2[:, 0].float(), zg)
+            loss = loss + self.cfg.lamb_g * pred_g
+            terms["global"] = pred_g
         probe_feats = torch.stack([h1, h2], 1).flatten(0, 1).detach()   # image-major, k=2
         return ({"loss": loss, **terms}, probe_feats, 2)
 

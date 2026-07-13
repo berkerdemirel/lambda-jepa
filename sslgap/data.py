@@ -147,16 +147,19 @@ def foveal_ctx(base, box, f):
 
 
 class PivotTrainDataset(torch.utils.data.Dataset):
-    """E15 (D-032) MVI training items over the FULL train split: one fovea position per image per
-    step (uniform over the 16-px grid), two light-photometric event views of the SAME event (§5.4
-    equivalent-event condition), and a CLEAN sharp context crop at an independent uniform c_B
-    (position-marginal target, §5.3). Shared hflip on the base BEFORE position sampling keeps
-    views+ctx in one frame. Worker RNG per house seeding. Returns ((v1, v2, ctx), y)."""
+    """PIVOT training items over the FULL train split. One fovea position per image per step
+    (uniform over the 16-px grid), two light-photometric event views of the SAME event (§5.4
+    equivalent-event condition), CLEAN sharp context crop(s). Shared hflip on the base BEFORE
+    position sampling keeps views+ctx in one frame. Worker RNG per house seeding.
+    k_queries=0 (E15/D-032, position-marginal, VOID per D-033): one c_B -> ((v1, v2, ctx), y).
+    k_queries=K (E16/D-033 dense): K query positions, each supervising the event token block at
+    q -> ((v1, v2, ctxs [K,C,H,W], qidx [K,2](ty,tx slot units)[, ctx_g lowres]), y)."""
 
-    def __init__(self, dataset, split, img_size, data_root=None, f=96):
+    def __init__(self, dataset, split, img_size, data_root=None, f=96, k_queries=0,
+                 global_ctx=False):
         assert img_size == 224
         self.split_src = _FullSplit(dataset, split, data_root)
-        self.f, self.img = f, img_size
+        self.f, self.K, self.global_ctx = f, k_queries, global_ctx
         self.base = v2.Compose([v2.Resize(img_size), v2.CenterCrop(img_size)])
         self.photo = v2.Compose([
             v2.RandomApply([v2.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
@@ -174,11 +177,18 @@ class PivotTrainDataset(torch.utils.data.Dataset):
             from PIL import Image
             base = base.transpose(Image.FLIP_LEFT_RIGHT)
         c = (random.choice(self.slots), random.choice(self.slots))
-        cb = (random.choice(self.slots), random.choice(self.slots))
         v1 = self.tail(foveal_event(self.photo(base), c, self.f))
         v2_ = self.tail(foveal_event(self.photo(base), c, self.f))
-        ctx = self.tail(foveal_ctx(base, cb, self.f))
-        return (v1, v2_, ctx), y
+        if not self.K:
+            cb = (random.choice(self.slots), random.choice(self.slots))
+            return (v1, v2_, self.tail(foveal_ctx(base, cb, self.f))), y
+        qs = [(random.choice(self.slots), random.choice(self.slots)) for _ in range(self.K)]
+        ctxs = torch.stack([self.tail(foveal_ctx(base, q, self.f)) for q in qs])
+        qidx = torch.tensor([(q[1] // _FOVEAL_GRID, q[0] // _FOVEAL_GRID) for q in qs])
+        out = (v1, v2_, ctxs, qidx)
+        if self.global_ctx:
+            out = out + (self.tail(foveal_event(base, None, None)),)
+        return out, y
 
 
 # ---- manifests -------------------------------------------------------------------------------

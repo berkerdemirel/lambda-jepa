@@ -27,7 +27,7 @@ def main():
     seed_everything(0)
 
     cfg = OmegaConf.load(f"{ROOT}/experiments/configs/method/pivot.yaml")
-    cfg.transport = True                          # measure all four terms in one pass
+    cfg.global_channel = True                     # E16: measure all terms in one pass
     frame = Frame(name="in100", model_name="vit_small_patch16_224", img_size=224,
                   dataset="imagenet100", data_root="~/data/imagenet100", epochs=100, seed=0,
                   grad_clip=1.0, num_workers=4, device=args.device)
@@ -48,7 +48,7 @@ def main():
     assert feats.shape == (args.bs * k, 384), feats.shape
 
     norms = {}
-    for name in ("pred", "view", "var", "transport"):
+    for name in ("pred", "view", "var", "transport", "global"):
         if name not in terms:
             continue
         for p in params:
@@ -57,9 +57,9 @@ def main():
         g = torch.norm(torch.stack([p.grad.norm() for p in params if p.grad is not None]))
         norms[name] = float(g)
     print("grad norms:", {n: round(v, 6) for n, v in norms.items()})
-    for t in ("view", "transport"):
+    for t in ("view", "transport", "global"):
         if norms.get(t, 0) > 0:
-            print(f"lamb_{'t' if t == 'transport' else t} (equal-pull) = "
+            print(f"lamb_{'t' if t == 'transport' else ('g' if t == 'global' else t)} (equal-pull) = "
                   f"{norms['pred'] / norms[t]:.4f}")
     if norms.get("var", 0) == 0:
         print("var floor inactive at init (as constructed) — lamb_var stays 1.0 on the hinge")
