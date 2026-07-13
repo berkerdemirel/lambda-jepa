@@ -16,6 +16,8 @@ h_layers: []                 # e.g. [3,6,9,12] for guillotine (E02) extraction
 
 do_eval: true
 do_pairs: true
+orbit_v: null                # V>2 orbit views per pairs-manifest image (audit_v1 + own stack),
+                             # h_layers ride along -> "@<stack>.o<V>" stores (E02 depth axis)
 foveal: null                 # E14 (D-031): event | ctx | both -> pairs under foveal_v1[_ctx]
 train_per_class: 500         # IN-100 m50k (ignored for imagenette = full split)
 pairs_per_class: 100         # IN-100 pairs10k (ignored for imagenette = full train)

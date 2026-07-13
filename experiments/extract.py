@@ -12,9 +12,10 @@ import hydra
 from omegaconf import DictConfig
 
 from sslgap.ckpt import adapters
-from sslgap.data import (EvalDataset, FovealPairDataset, PairDataset, STACKS, _Source,
-                         build_manifest_imagefolder, seed_everything, build_manifest_imagenette)
-from sslgap.extract import FeatureStore, extract_eval, extract_pairs
+from sslgap.data import (EvalDataset, FovealPairDataset, OrbitDataset, PairDataset, STACKS,
+                         _Source, build_manifest_imagefolder, seed_everything,
+                         build_manifest_imagenette)
+from sslgap.extract import FeatureStore, extract_eval, extract_pairs, extract_views
 
 
 def _manifests(cfg, frame, manifest_dir):
@@ -63,11 +64,12 @@ def main(cfg: DictConfig):
     if cfg.do_eval:
         for key in ("train", "val"):
             name, csv_path, info, source = mans[key]
-            spaces = extract_eval(loaded, EvalDataset(csv_path, source, img), store,
-                                  manifest_key=name, manifest_info=info, bs=cfg.bs,
-                                  num_workers=cfg.num_workers, device=cfg.device,
-                                  h_layers=tuple(cfg.h_layers), seed=cfg.seed)
-            print(f"[extract] {cfg.run_id} {name}: {len(spaces)} spaces")
+            mkey = name + ("L" if cfg.h_layers else "")   # per-layer request -> own store dir;
+            spaces = extract_eval(loaded, EvalDataset(csv_path, source, img), store,   # landed
+                                  manifest_key=mkey, manifest_info=info, bs=cfg.bs,    # plain-eval
+                                  num_workers=cfg.num_workers, device=cfg.device,      # dirs stay
+                                  h_layers=tuple(cfg.h_layers), seed=cfg.seed)         # untouched
+            print(f"[extract] {cfg.run_id} {mkey}: {len(spaces)} spaces")
 
     if cfg.do_pairs:
         name, csv_path, info, source = mans["pairs"]
@@ -78,6 +80,18 @@ def main(cfg: DictConfig):
             spaces = extract_pairs(loaded, PairDataset(csv_path, source, img, stack=stack), store,
                                    manifest_key=key, manifest_info=info, stack=stack, bs=cfg.bs,
                                    num_workers=cfg.num_workers, device=cfg.device, seed=cfg.seed)
+            print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
+
+    if cfg.get("orbit_v"):       # V-view orbit stores for overlap/invariance along the E02 depth
+        name, csv_path, info, source = mans["pairs"]     # axis (HEAD_OVERLAP_LIPSCHITZ.md)
+        own = f"own_{loaded.method}"
+        stacks = ["audit_v1"] + ([own] if own in STACKS and own != "own_lejepa" else [])
+        for stack in stacks:
+            key = f"{name}@{stack}.o{cfg.orbit_v}"
+            ds = OrbitDataset(csv_path, source, img, stack, cfg.orbit_v)
+            spaces = extract_views(loaded, ds, store, manifest_key=key, manifest_info=info,
+                                   stack=stack, bs=cfg.bs, num_workers=cfg.num_workers,
+                                   device=cfg.device, h_layers=tuple(cfg.h_layers), seed=cfg.seed)
             print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
 
     if cfg.get("foveal"):        # E14 (D-031): event = zoo members, ctx = tokenizer runs,

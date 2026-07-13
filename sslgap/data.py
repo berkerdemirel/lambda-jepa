@@ -299,6 +299,28 @@ class PairDataset(torch.utils.data.Dataset):
         return self.ta(img), self.tb(img), y
 
 
+class OrbitDataset(torch.utils.data.Dataset):
+    """V stochastic views per image under a named stack — the per-image augmentation-orbit sample
+    for overlap/invariance estimators along the depth axis (E02; docs/theory/
+    HEAD_OVERLAP_LIPSCHITZ.md). Asymmetric stacks (own_dino) alternate branches — view k draws
+    ta if k is even else tb — so the store samples the method's actual positive-pair mixture;
+    for symmetric stacks this is V iid draws."""
+
+    def __init__(self, manifest_csv, source: _Source, img_size, stack, v):
+        self.items = read_manifest(manifest_csv)
+        self.source = source
+        self.ta, self.tb = STACKS[stack](img_size)
+        self.v = v
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getitem__(self, i):
+        ref, y = self.items[i]
+        img = self.source(ref)
+        return tuple((self.ta if k % 2 == 0 else self.tb)(img) for k in range(self.v)), y
+
+
 class FovealPairDataset(torch.utils.data.Dataset):
     """E14 pairs: mode='event' -> (event_A, event_B) for zoo members; mode='ctx' -> (ctx_A, ctx_B)
     for tokenizer runs. Slot convention matches PairDataset (viewA, viewB): D_read A→B pairs the

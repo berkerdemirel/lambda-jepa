@@ -61,6 +61,34 @@ def extract_eval(loaded, dataset, store, manifest_key, manifest_info, bs=256, nu
 
 
 @torch.inference_mode()
+def extract_views(loaded, orbit_dataset, store, manifest_key, manifest_info, stack, bs=256,
+                  num_workers=8, device="cuda", h_layers=(), seed=0):
+    """V views per image -> "<space>.view<k>": every view file is row-aligned with labels.npy
+    (and with the pair store of the same manifest). Unlike extract_pairs, per-layer trunk taps
+    ride along when h_layers is set — the orbit store carries the E02 depth axis."""
+    loaded.eval_(device)
+    acc, ys = {}, []
+    for views, y in _loader(orbit_dataset, bs, num_workers, seed=seed):
+        for k, xv in enumerate(views):
+            with autocast(device, dtype=torch.bfloat16):
+                b = _batch_spaces(loaded, xv.to(device, non_blocking=True), h_layers=h_layers)
+            for name, v in b.items():
+                acc.setdefault(f"{name}.view{k}", []).append(v)
+        ys.append(torch.as_tensor(y))
+    for space, chunks in acc.items():
+        store.put(loaded.run_id, manifest_key, space, torch.cat(chunks).numpy())
+    store.put_labels(loaded.run_id, manifest_key, torch.cat(ys).numpy())
+    store.put_meta(loaded.run_id, manifest_key, {
+        "kind": "orbits", "stack": stack, "v": orbit_dataset.v,
+        "view_rule": "view k: ta if k even else tb (positive-pair mixture for asymmetric stacks)",
+        "manifest": manifest_info, "n": int(sum(len(y) for y in ys)),
+        "spaces": sorted(acc), "h_layers": list(h_layers),
+        "method": loaded.method, "frame": loaded.frame,
+        "ckpt_provenance": loaded.provenance})
+    return sorted(acc)
+
+
+@torch.inference_mode()
 def extract_pairs(loaded, pair_dataset, store, manifest_key, manifest_info, stack, bs=256,
                   num_workers=8, device="cuda", seed=0):
     """Two views per image -> "<space>.viewA"/"<space>.viewB" (final-layer spaces only)."""
