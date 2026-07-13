@@ -108,8 +108,12 @@ class DINO(SSLMethod):
         # gradients flow only through the student; the audited teacher h follows by EMA).
         if self.cfg.get("h_reg") == "moment":
             h_loss = self.floor(s_tok[:, 0])
-            loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
+            if self.cfg.get("h_taps", "cls") == "clsgap":   # H-wave (D-035): floor BOTH trunk
+                g_loss = self.floor(s_tok[:, 1:].mean(1))   # readouts, per-tap dose h_lamb each
+                terms["h_moment_kl_gap"] = g_loss
+                h_loss = h_loss + g_loss
+            loss = loss + self.cfg.h_lamb * h_loss
         self._t_cls = t_cls.detach()
         # probe monitors the AUDITED branch (teacher CLS, PROTOCOL §3) so _best selection aligns
         # with what the audit evaluates; view-major [2N] -> image-major per the base.py contract

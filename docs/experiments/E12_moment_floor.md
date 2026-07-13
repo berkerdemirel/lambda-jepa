@@ -484,8 +484,9 @@ Artifacts: h-vs-z figures `results/figures/e12g/e12g_hz_{battery,invariance,prob
 `in100.pairs100.v1@<stack>.o8` + per-layer clean stores `in100.{train500,val}.v1L` under the six
 `.ext` run_ids (h_layers 3/6/9; HEAD_OVERLAP_LIPSCHITZ.md extraction record).
 
-**PARKED — floor placement (Berker 2026-07-13: "are we sure we employed calibration at the
-correct part? maybe we should add it to gap + cls overall").** Angle (Claude, endorsed as worth
+**Floor placement — UNPARKED same day (H-wave below). Original note (Berker 2026-07-13: "are we
+sure we employed calibration at the correct part? maybe we should add it to gap + cls
+overall").** Angle (Claude, endorsed as worth
 an arm): in BOTH g-methods the un-floored sibling trunk tap gets a linear BENEFIT while the
 floored tap pays the tax (dino: gap +0.7/+0.8 lin vs floored cls −0.7; vicreg: cls +0.5 vs
 floored gap −1.6) — pinning one readout while its sibling floats may be exactly what localizes
@@ -493,3 +494,41 @@ the tax. Candidate arms: (a) joint {CLS, GAP} floor; (b) token-level floor (pool
 stats) so every readout inherits calibration. Either would also probe whether dino's deep-head
 pocket (T8) is a placement artifact, and feeds H3's where-does-the-constraint-bind question.
 New training runs → user gate before launch.
+
+## H-WAVE — floor-placement + inv-assist arms (Berker-directed 2026-07-13; PRE-REGISTERED before numbers; D-035)
+
+Arms (2-ep smokes precede full launches; H100 slots per Berker "use 2 h100s"):
+
+- **e12gd2** = the e12gd command verbatim + `+method.h_taps=clsgap` — moment-KL floor at BOTH
+  student trunk readouts (CLS and patch-GAP), per-tap dose λ=.02 each (total pressure 2× gd;
+  per-tap dose matched to gd for tap-level comparability — declared choice). Comparisons:
+  e12gdc (no floor), e12gd (CLS-only) = the placement contrast.
+- **e12f7** = the f2 command verbatim + `+method.h_inv=0.01` — tiny ADDITIVE view-invariance
+  pull at the embedding (mean-squared deviation of each view's embed from the per-image
+  view-mean; same functional form as the shipped proj-space inv term), alongside f2's moment
+  floor (h_lamb=.02). h_inv=.01 is a DECLARED first dose, not equal-pull measured; per-term
+  logging watches its actual share. Comparisons: f2 (floor only), c1 (neither).
+
+Pre-registered directional predictions:
+
+- **gd2-P1:** kNN gains over gdc persist at BOTH trunk readouts.
+- **gd2-P2 (placement question):** pinning both taps removes the floored-tap-tax /
+  floating-sibling-gain asymmetry — GAP's linear gain (+0.7/+0.8 in gd) shrinks or flips once
+  GAP is pinned; if instead both taps keep kNN gains at ≈no linear tax, joint flooring is
+  strictly better placement.
+- **gd2-P3:** the deep-head pocket (tap2/bottleneck damage; arm bottleneck diag-KL 1.5 vs .45)
+  PERSISTS — it keys on flooring the head's input (CLS), which gd2 still does. If it shrinks,
+  the pocket was the CLS/GAP imbalance.
+- **gd2-P4 (open, no confident direction):** the mid-trunk linear deficit (gd L03/06/09
+  −2.9/−5.2/−3.5) — record both outcomes; mechanism unknown.
+- **f7-P1:** invariance margin at embed rises vs f2.
+- **f7-P2 (H3):** the invariance JUMP across the projector (margin at proj.out − margin at
+  embed) SHRINKS vs f2 — the head does less invariance work.
+- **f7-P3:** head empirical Lipschitz (instrument: results/diag/e12g_head_lipschitz.csv) reads
+  ≤ f2 on the embed→out segments.
+- **f7-P4:** probes pay no tax at ε dose (knn200/linear within noise of f2 or better). Declared
+  risk: inv-at-h is collapse-flavored pressure; the floor's variance barrier opposes it —
+  grad_norm kill-trigger standing (100× running median).
+
+Frame/discipline: everything else = parent commands verbatim (M2 frame, seed 0, cadence ckpts,
+wandb online). Code: `h_taps` in `sslgap/methods/dino.py`, `h_inv` in `sslgap/methods/lejepa.py`.

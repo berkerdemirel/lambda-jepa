@@ -249,6 +249,15 @@ class LeJEPA(SSLMethod):
                       "spec_floor": lambda: self.spec_floor(emb_in)}[h_reg]()
             loss = loss + self.cfg.h_lamb * h_loss
             terms[H_KEYS[h_reg]] = h_loss
+        # H-wave (D-035): tiny ADDITIVE view-invariance pull at the embedding itself (H3: move
+        # invariance work out of the projector MLP). Same functional form as the proj-space inv
+        # term; weight declared (not equal-pull measured) — per-term logging watches its share.
+        h_inv = self.cfg.get("h_inv", 0.0)
+        if h_inv:
+            emb_v = emb.reshape(N, V, -1).transpose(0, 1)
+            hi_loss = (emb_v.mean(0) - emb_v).square().mean()
+            loss = loss + h_inv * hi_loss
+            terms["h_inv"] = hi_loss
         return ({"loss": loss, **terms}, emb.detach(), V)
 
     @torch.inference_mode()
