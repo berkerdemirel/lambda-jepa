@@ -532,3 +532,22 @@ Pre-registered directional predictions:
 
 Frame/discipline: everything else = parent commands verbatim (M2 frame, seed 0, cadence ckpts,
 wandb online). Code: `h_taps` in `sslgap/methods/dino.py`, `h_inv` in `sslgap/methods/lejepa.py`.
+
+### H-wave λ measurement (2026-07-13; jobs 62288090/91; results/diag/e12h_pull.csv; rules declared in-conversation BEFORE the numbers)
+
+Per-term UNWEIGHTED encoder-grad norms, real first batch, seed 0, training autocast (p3
+convention generalized). lejepa/f7 config: g_sigreg 454.7 · g_inv 4.039 · g_h_moment 4.362 ·
+g_h_inv 0.4669. Context datum: f2's fixed λ=.02 ⇒ the floor ran at a weighted pull of 2.2% of
+the shipped inv pull. dino/gd2 config: g_dino 1.552 · g_cls_floor 6.793 · g_gap_floor 3.389
+(cls/gap pull ratio 2.00 at equal λ — outside the declared 1.5× parity band).
+
+**Launch doses (measured, no further discretion):**
+- **e12f7: `+method.h_inv=0.8478`** — rule: weighted h_inv pull = 10% of the shipped weighted
+  inv pull (0.098·g_inv/g_h_inv). The .01 first guess would have been 0.12% — negligible.
+- **e12gd2: `+method.h_lamb=0.02` (cls, unchanged from gd) + `+method.h_lamb_gap=0.0401`** —
+  rule: gap pull matched to the cls floor's pull (.02·g_cls/g_gap); per-tap weighted pulls
+  0.136 each = 8.8% of the dino-loss pull each.
+
+Fresh 2-ep smokes AT the launch doses precede the chains (collapse risk is dose-dependent;
+the first smokes at .01/.02-gap validated the code paths only). Watch-items: per-term pull
+drift (h_inv is scale-dependent; the floor pins embed scale), grad_norm kill-trigger standing.
