@@ -134,3 +134,23 @@ Raw observation (no reading): the transport arm optimizes visibly faster at fixe
 training-time mechanism dial — at smoke end neither arm is below 1 yet (warmup regime, lr at 20%).
 **Chains: e15a = 62249105/6/7 (h100-slotA), e15b = 62249108/9/10 (h100-slotB), 3×8h links,
 ~13h to ep100.**
+
+### Mid-training forensics — 2026-07-13 ~ep71 (Berker flag: "loss too small, not enough tension")
+
+Raw read (wandb duln2haw / l26e167n): `pred_over_varz` crossed BELOW the constant-h floor (1.0)
+at ~ep10 and is still descending — A .441, B .515 at ep~71 — so the objective is NOT trivially
+satisfied; h carries image-specific predictive content (~56% / ~49% of target variance beyond the
+mean). h_std .0227/.0226 (≈⅔ target std, conditional-mean shrinkage; floor quiet, var ~1e-5).
+Online probe PLATEAUED: A ~.34–.35, B ~.33 since ~ep63 (lr in final decay).
+
+**The tension diagnosis (new number):** the 2-draw estimate from stored ctx pairs gives
+E Var(z|image) = .000434 ⇒ **perfect-image-predictor ratio bound = .300** — 30% of target
+variance is irreducible position-draw noise even with the full sharp image (the event-limited
+bound is HIGHER). Arm A has therefore extracted ≈80% of the maximally extractable signal
+((1−.441)/(1−.300)); remaining headroom ≤ .141 ratio, partly irreducible. Berker's read holds in
+sharpened form: not "objective satisfied trivially" but "target nearly mined out by ep70" — the
+binding constraint is the TARGET'S information content (one frozen mae, single 96² ctx, K=1 draw),
+not optimization. Projection (not a verdict): online ~.35 sits near-below C (.378) and below mae
+raw (.434); converged offline probes on final ckpts decide P2/K2. No mid-flight changes (per
+D-032); levers for the landing discussion (E16-class): K>1 ctx draws per step (§5.3's own
+variance-reduction), multi-channel/larger contexts (§3.2), richer reconstruction tokenizer.
