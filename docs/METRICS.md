@@ -44,6 +44,12 @@ mean random-pair cos (random pairs = cross-view, different images, identical pip
 view-invariance beyond global compactness.** Added 2026-07-08 (M1 dress rehearsal): every trained
 h is cone-compact (uniformity −0.1…−0.45), so raw alignment/cos_invariance read h as *more*
 invariant than z across all view methods — including MAE, which trained on no augmentations.
+
+**Headline convention (E12-T9, USER-APPROVED 2026-07-13):** the two normalized forms themselves
+couple to conditioning — a cone-collapsed space shrinks positive AND random distances together,
+flattering ratio-form `align_rel` (E12 G-wave: the vicreg control reads *better* on align_rel at
+h while its rand-pair cosine is .84). **`cos_margin`, read with the rand-cos panel as referee, is
+the project's headline invariance readout**; `align_rel` stays recorded in CSVs, not headlined.
 Alignment/invariance glyphs are scored on the margin, never on the raw pair value alone.
 
 ## Spread / anti-collapse

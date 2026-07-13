@@ -414,6 +414,41 @@ the next-session discussion.
   linear separability dissociate; sliced floors under-enforce native spectra (k̂ lower-bound
   caveat, loss-side).
 - T6 (E10-T4 travel scope) deferred — more exploration first. Full row texts in DECISIONS.
+- **E12-T7** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **the moment-KL floor at
+  h is a method-general kNN-favoring conditioner.** Transplanted verbatim from lejepa (λ=.02,
+  untuned per method, enforcement only partial: moment-KL 2.46→0.89 vicreg / 0.93→0.33 dino) it
+  delivers knn200 +6.1 (vicreg h.gap) / +3.6 (dino teacher CLS) over matched single-factor
+  controls with kmeans-NMI rising (.30→.34, .51→.55); D-028's pre-registered direction MATCHED
+  on both methods. The converged-linear cost is small and LOCAL to the constrained tap (−1.6 /
+  −0.7 there; ≈0..+0.8 one tap away and across the head; single seed, no seed CIs — magnitude
+  unresolved vs seed noise); lejepa's no-tax stays the adapter-backed exception (trainable
+  Linear under its floored tap). Cross-method effect-size ordering UNCLAIMED (equal-pull
+  unmeasured, D-028 limitation); λ*/seed sweep on vicreg/dino = declared headroom, not claimed.
+- **E12-T8** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **two-space result: the
+  floor is INVISIBLE at z.** Arm ≈ control at each method's loss space across the full battery
+  (rank/spectral, Gaussianity, uniformity, redundancy), V=8 view-invariance, and converged
+  probes (results/figures/e12g/), while h re-conditions dramatically — the control cone removed
+  (vicreg rand-pair cosine .84→.00), invariance margin lifted through the TRUNK segment only:
+  arm/control depth curves merge from the first head layer in all three methods, and the vicreg
+  control's margin notch at h (L09 .20 → h .10 → tap1 .63) is erased by the floor (.31→.46
+  smooth). Reading: each objective re-establishes its own z geometry regardless of h
+  conditioning; the floor relocates conditioning/invariance into the backbone without touching
+  the head's trajectory. Open pocket (parked): dino deep-head tap2 probes −3.2..−3.7 both
+  networks + arm bottleneck diag-KL .5→1.1 — see floor-placement question below.
+- **E12-T9** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **instrument rows.**
+  (i) The online monitor is not arm-neutral: ~+3 pts toward floor arms vs converged clean
+  offline probes when its head trains on aggressive augmented student views (lejepa +2.98,
+  vicreg +2.84; ≈neutral on dino's EMA-teacher mild crops, +0.44); vicreg's monitor-vs-offline
+  sign flip (+1.3 vs −1.6) is that bias crossing zero. The augmented-input-distribution
+  mechanism was tested and REFUTED (converged offline probes trained on the monitor's own view
+  distribution stay negative: vicreg −1.8; results/diag/e12_aug_probes.csv) — the bias lives in
+  the online/co-training setup; converged offline v2 probes are the arbiter. (ii) The two
+  normalized invariance readouts couple to conditioning: a cone-collapsed space flatters
+  ratio-form align_rel (positive AND random distances shrink together) while the difference-form
+  cos margin stays interpretable when read with the rand-cos panel as referee. **cos margin =
+  the project's headline invariance readout** (Berker 2026-07-13: the calibrated space's
+  rand-cos decorrelates almost completely, making the margin clean; align_rel stays recorded in
+  CSVs, not headlined). Also recorded per Berker: B/T is not read as class separability.
 
 ### G-wave scoring — landed 2026-07-13 (chained pipeline; controls = PRIMARY per D-030)
 
@@ -426,5 +461,23 @@ lane) — the D-030 control construction closed confounds that turn out negligib
 corroboration (results/diag/e12_{floor_values,class_align}_g.csv): floor genuinely enforced at h
 (moment_kl 2.46→0.89 vicreg, 0.93→0.33 dino; dino floor-space ≈ audited-h, EMA follows); effrank
 15→113 (vicreg), 59→153 (dino); B/T falls while kmeans-NMI RISES (.30→.34, .51→.55) — the E12-T5
-variance/recoverability dissociation replicated cross-method. NO takeaway (next-session
-discussion per D-034 agenda).
+variance/recoverability dissociation replicated cross-method. Takeaways T7–T9 FILLED
+(AGREED TAKEAWAY above; Berker 2026-07-13 "given our discussion you can fill the takeaways").
+
+### G-wave close-out artifacts + parked follow-ups (2026-07-13)
+
+Artifacts: h-vs-z figures `results/figures/e12g/e12g_hz_{battery,invariance,probes}.png` +
+`e12g_depth_invariance.png` (depth-ladder preview) · raw CSVs
+`results/diag/{e12g_tap_deltas,e12g_orbit_invariance,e12_aug_probes}.csv` · V=8 orbit stores
+`in100.pairs100.v1@<stack>.o8` + per-layer clean stores `in100.{train500,val}.v1L` under the six
+`.ext` run_ids (h_layers 3/6/9; HEAD_OVERLAP_LIPSCHITZ.md extraction record).
+
+**PARKED — floor placement (Berker 2026-07-13: "are we sure we employed calibration at the
+correct part? maybe we should add it to gap + cls overall").** Angle (Claude, endorsed as worth
+an arm): in BOTH g-methods the un-floored sibling trunk tap gets a linear BENEFIT while the
+floored tap pays the tax (dino: gap +0.7/+0.8 lin vs floored cls −0.7; vicreg: cls +0.5 vs
+floored gap −1.6) — pinning one readout while its sibling floats may be exactly what localizes
+the tax. Candidate arms: (a) joint {CLS, GAP} floor; (b) token-level floor (pooled patch-token
+stats) so every readout inherits calibration. Either would also probe whether dino's deep-head
+pocket (T8) is a placement artifact, and feeds H3's where-does-the-constraint-bind question.
+New training runs → user gate before launch.
