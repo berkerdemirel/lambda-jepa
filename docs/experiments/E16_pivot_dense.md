@@ -122,3 +122,11 @@ lawful conditional-mean scale: predicted σ_target·√(1−ratio) = .0233 at ra
 block_std .022–.025 (both arms). Probes scale-free and rising (a .163@ep18, b .200@ep16; ratio
 .50 and descending vs E15's exhausted 1.1 at same point). Standing unguarded subspace (declared):
 within-block token structure — checked at extraction via token-level effrank.
+
+*Precision + angle-loss audit (Berker Qs, 2026-07-13): bf16 quantization at our scales = .5% of
+residual at ratio .5 (loss delta 0.00%; binds only ~ratio 1e-3–1e-4; z fp32, blocks cast fp32,
+trunk internals O(1) via final-LN gamma). Angle loss rejected on measurement: cos(z, z̄)=.847±.068
+— raw-z cosine is DC-dominated (informative angular spread .13 lives in centered space);
+centered-cosine ≈ normalized MSE minus the scale anchor (anti-co-shrink), Theorem-1
+identification, and instrument continuity. Cosmetic lever if precision ever binds: global sketch
+rescale ×10 (Adam-invariant).*
