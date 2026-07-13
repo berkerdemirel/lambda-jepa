@@ -108,3 +108,17 @@ no curve destabilization. (2) e16b's view term RISES late in the smoke (.005→.
 settles — the global channel adds early cross-view tension. RESPONSE RULE: if e16b's view term
 is still growing at peak-lr (ep10+) or any K1 fires, the arm stops at the next cadence ckpt and
 goes to discussion; λ's stay frozen per protocol. **Chains: e16a = 62256149,62256150,62256151,62256152 (h100-slotA), e16b = 62256153,62256154,62256155,62256156 (h100-slotB), 4×8h links each; ~23h to ep100.**
+
+### Norm audit — 2026-07-13 (Berker challenge: "shrinking the norm would satisfy MSE")
+
+`results/figures/e16/e16_target_norms.png`. Target side: raw mae h.gap on ctx crops healthy
+(norms 5.00±0.76, 0 dead dims); sketch = constant part ‖z̄‖ 1.19 + informative rms .73 (38%
+energy) ⇒ one-sided shrinkage RAISES L_pred (frozen target = scale anchor; the BYOL co-shrink
+mode is structurally impossible). Live finding: a REAL transient shrink phase ep~3–8 (h_std min
+.0065/.0073, below γ) — the variance floor ENGAGED (active ~90% of steps since ep1.5, max 1e-4)
+and with the pred anchor pulled scale back; the smoke's "floor quiet" did not hold past ep2.5 —
+floor reclassified from backstop to LOAD-BEARING for this objective. Recovered equilibrium =
+lawful conditional-mean scale: predicted σ_target·√(1−ratio) = .0233 at ratio .50 vs measured
+block_std .022–.025 (both arms). Probes scale-free and rising (a .163@ep18, b .200@ep16; ratio
+.50 and descending vs E15's exhausted 1.1 at same point). Standing unguarded subspace (declared):
+within-block token structure — checked at extraction via token-level effrank.
