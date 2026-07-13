@@ -551,3 +551,13 @@ the shipped inv pull. dino/gd2 config: g_dino 1.552 · g_cls_floor 6.793 · g_ga
 Fresh 2-ep smokes AT the launch doses precede the chains (collapse risk is dose-dependent;
 the first smokes at .01/.02-gap validated the code paths only). Watch-items: per-term pull
 drift (h_inv is scale-dependent; the floor pins embed scale), grad_norm kill-trigger standing.
+
+**H-wave dose-smokes PASS (2026-07-13, jobs 62288110/111; 2 ep each).** gd2@gap-λ.0401: both
+floor terms descending (gap .39 vs .50 at λ.02 — stronger dose enforces harder), probe pace =
+code-path smoke, grad_norm quiet. f7@h_inv.8478: h_inv .011 by ep2 (hard enforcement); the
+embed floor RISES to ~2.1 and plateaus (vs .84 at negligible h_inv) — the invariance pull and
+the calibration floor visibly fight to an equilibrium at h; z-side terms and probe unchanged
+(inv .163/.161, sigreg 3.92/3.97, probe .1400/.1400); no incident. WATCH-ITEM (declared): if
+f7's h_moment_kl climbs past the CONTROL's free-h level (~1.65) and keeps rising by ep25, the
+dose is buying invariance by de-calibrating h — a landing-discussion datum, not a mid-flight
+change. Chains launched: 3×8h links per slot.
