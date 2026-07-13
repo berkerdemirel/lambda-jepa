@@ -109,11 +109,11 @@ class DINO(SSLMethod):
         if self.cfg.get("h_reg") == "moment":
             h_loss = self.floor(s_tok[:, 0])
             terms["h_moment_kl"] = h_loss
-            if self.cfg.get("h_taps", "cls") == "clsgap":   # H-wave (D-035): floor BOTH trunk
-                g_loss = self.floor(s_tok[:, 1:].mean(1))   # readouts, per-tap dose h_lamb each
-                terms["h_moment_kl_gap"] = g_loss
-                h_loss = h_loss + g_loss
             loss = loss + self.cfg.h_lamb * h_loss
+            if self.cfg.get("h_taps", "cls") == "clsgap":   # H-wave (D-035): floor BOTH trunk
+                g_loss = self.floor(s_tok[:, 1:].mean(1))   # readouts; gap dose = h_lamb_gap
+                terms["h_moment_kl_gap"] = g_loss           # (defaults to h_lamb)
+                loss = loss + self.cfg.get("h_lamb_gap", self.cfg.h_lamb) * g_loss
         self._t_cls = t_cls.detach()
         # probe monitors the AUDITED branch (teacher CLS, PROTOCOL §3) so _best selection aligns
         # with what the audit evaluates; view-major [2N] -> image-major per the base.py contract
