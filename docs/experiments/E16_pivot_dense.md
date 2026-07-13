@@ -74,3 +74,23 @@ variants → zeroing-path read → chains (~4×8h links per slot). Numbers land 
 only after joint discussion.
 
 ## Numbers land below this line as they arrive.
+
+### Budget gate — 2026-07-13 (jobs 62251779 + 62251789): **PASS**
+
+Var(z) total .001489; within-image position share **34.8%** (the signal E15 averaged away;
+2-draw estimate said 30% — consistent). Probes (pseudo-run `in100.mae.s0.e16grid`):
+
+| space | lin | knn | role |
+|---|---|---|---|
+| phi.mean9 (**C_gist**) | **.4420** | **.2494** | P2/K2 bar |
+| phi.concat9 (**C_pos**) | .5096 | .2838 | position-aware range |
+| phi.global (**C_glob**) | .3476 | .2368 | e16b anchor ceiling |
+
+**GATE: C_pos − C_gist = +.068 ≥ .05 ⇒ LAUNCH.** Calibration note (declared): even C_pos sits
+below vicreg (.590) — a static linear read of 9 sketches doesn't reach aug-method territory, so
+P3b requires the trained trunk to exploit position-integration beyond static sketch content;
+C_pos is a reference range, not a cap on a trained encoder. C_gist (.442) ≈ mae raw (.434):
+the 9-draw marginal recovers what E15's 2-draw C (.378) undershot.
+
+### Pre-launch λ (dense objective, job 62253782): λ_view = .6298, λ_g = 1.1228; floor inactive
+at init (var 0, h_std .585, block_std .646); init pred .532 = 368× constant-h floor; global .856.

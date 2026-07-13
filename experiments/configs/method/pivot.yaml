@@ -4,7 +4,7 @@ name: pivot
 fovea: 96
 tokenizer_ckpt: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/in100.mae.s0_ep100.pt
 target_prep: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/e15_target_v1.npz
-lamb_view: 0.7554   # equal-pull at init, job 62249062 (D-032)
+lamb_view: 0.6298   # equal-pull at init on the DENSE objective, job 62253782 (D-033)
 lamb_var: 1.0
 transport: false
 lamb_t: 1.6804      # equal-pull at init, job 62249062 (D-032)
@@ -18,4 +18,4 @@ dense: true
 k_queries: 4
 global_channel: false
 global_prep: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/e16_global_v1.npz
-lamb_g: 1.0
+lamb_g: 1.1228      # equal-pull at init, job 62253782 (D-033)
