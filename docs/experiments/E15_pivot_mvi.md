@@ -154,3 +154,16 @@ not optimization. Projection (not a verdict): online ~.35 sits near-below C (.37
 raw (.434); converged offline probes on final ckpts decide P2/K2. No mid-flight changes (per
 D-032); levers for the landing discussion (E16-class): K>1 ctx draws per step (§5.3's own
 variance-reduction), multi-channel/larger contexts (§3.2), richer reconstruction tokenizer.
+
+### KILLED at ~ep74 — 2026-07-13 (Berker: "they're wasting my compute. with that accuracy they
+### shouldnt be a part of any comparison. fix it and rerun 2 variants.")
+
+Runs cancelled (62249105–110); ep25/50 cadence ckpts retained, NO comparison membership, no
+probes/audit. Verdict (in-conversation, joint): the E15-MVI instantiation is INFORMATION-STARVED
+— my pooled-h.gap reading of §5.3/§6.1 collapsed the position-indexed family of conditional laws
+into its scene-average (c_B unknown to the event ⇒ optimal h = average local mae texture; ~32
+effective target dims, 30% draw noise; loss ≈ solved by ep10; probe plateau ~.35). §6.1's
+"obtain corresponding dense tokens by known crop maps" reads as position-conditioned dense
+prediction — E16 rebuilds on that. Salvage kept: head-less direct regression is STABLE without
+EMA/projector (P1 evidence), and the target-budget toolkit (C, Var(z), E Var(z|·)) becomes a
+mandatory pre-training gate (D-033). E15 P2–P5 are VOID (never tested at a meaningful ceiling).
