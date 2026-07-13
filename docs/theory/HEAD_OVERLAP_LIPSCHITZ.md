@@ -73,8 +73,9 @@ Runs: the three calibrated-vs-control pairs at final ckpt — `in100.lejepa.s0.e
 `in100.vicreg.s0.e12gv/.e12gvc`, `in100.dino.s0.e12gd/.e12gdc` (existing `.ext` run_ids gain new
 store keys; landed dirs untouched).
 
-Per run (one `slurm/extract.sbatch` job each, gpu partition, `adapter=native`, `bs=128`,
-`h_layers=[3,6,9]` = E02's declared trunk points below L12≡h):
+Per run (one `slurm/extract.sbatch` job each on the two H100 singleton slots
+`h100-slotA`/`h100-slotB` (Berker: "use h100, we have 2 idle h100 budget"), `adapter=native`,
+`bs=128`, `h_layers=[3,6,9]` = E02's declared trunk points below L12≡h):
 
 - `in100.pairs100.v1@<stack>.o8` — **orbit stores**: V=8 views/image, 10k pairs-manifest images,
   every branch × {h.cls, h.gap, h.{cls,gap}.L{03,06,09}, all head z-taps} × view0..7, rows
