@@ -94,3 +94,17 @@ the 9-draw marginal recovers what E15's 2-draw C (.378) undershot.
 
 ### Pre-launch λ (dense objective, job 62253782): λ_view = .6298, λ_g = 1.1228; floor inactive
 at init (var 0, h_std .585, block_std .646); init pred .532 = 368× constant-h floor; global .856.
+
+### Smoke read (2 ep, jobs 62253786 a / 62253787 b) — PASS with declared watch-items; chains launched
+
+wandb shpmi4c2 (a) / 65nd7si5 (b). **The E15 failure signature does NOT recur**: pred_over_varz
+ends the smoke at **26.1 (a) / 27.7 (b)** vs E15's 4.4/1.2 — the dense objective is far from
+solved at ep2 (P4 tension confirmed at smoke scale). Floor quiet (var ≡ 0; h_std .038–.059 ≫ γ);
+block_std .054–.070 approaching target scale; probes .017/.020 (warmup regime). Zeroing-path:
+nothing gamed. **Watch-items (declared, with responses):** (1) grad spikes — a 7 isolated
+steps >20 (max 227), b RECURRENT 32/1978 steps (max 286, five >130); the trainer's K1 EMA check
+did not fire (EMA absorbs isolated spikes — known softness), grad_clip 1.0 bounded every update,
+no curve destabilization. (2) e16b's view term RISES late in the smoke (.005→.113) while e16a's
+settles — the global channel adds early cross-view tension. RESPONSE RULE: if e16b's view term
+is still growing at peak-lr (ep10+) or any K1 fires, the arm stops at the next cadence ckpt and
+goes to discussion; λ's stay frozen per protocol. **Chains: e16a = 62256149,62256150,62256151,62256152 (h100-slotA), e16b = 62256153,62256154,62256155,62256156 (h100-slotB), 4×8h links each; ~23h to ep100.**
