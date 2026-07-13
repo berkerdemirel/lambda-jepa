@@ -415,27 +415,39 @@ the next-session discussion.
   caveat, loss-side).
 - T6 (E10-T4 travel scope) deferred — more exploration first. Full row texts in DECISIONS.
 - **E12-T7** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **the moment-KL floor at
-  h is a method-general kNN-favoring conditioner.** Transplanted verbatim from lejepa (λ=.02,
-  untuned per method, enforcement only partial: moment-KL 2.46→0.89 vicreg / 0.93→0.33 dino) it
-  delivers knn200 +6.1 (vicreg h.gap) / +3.6 (dino teacher CLS) over matched single-factor
-  controls with kmeans-NMI rising (.30→.34, .51→.55); D-028's pre-registered direction MATCHED
-  on both methods. The converged-linear cost is small and LOCAL to the constrained tap (−1.6 /
-  −0.7 there; ≈0..+0.8 one tap away and across the head; single seed, no seed CIs — magnitude
-  unresolved vs seed noise); lejepa's no-tax stays the adapter-backed exception (trainable
-  Linear under its floored tap). Cross-method effect-size ordering UNCLAIMED (equal-pull
+  h is a method-general kNN-favoring conditioner — and λ was selected ONCE, on lejepa only.** In
+  the one per-model-tuned case (lejepa, dose curve measured) the chosen dose improved BOTH probes
+  substantially (f2: knn200 +7.5, converged linear +1.2, no tax in any column); transplanted with
+  NO per-model tuning (λ=.02 verbatim, enforcement only partial: moment-KL 2.46→0.89 vicreg /
+  0.93→0.33 dino) it still delivers knn200 +6.1 (vicreg h.gap) / +3.6 (dino teacher CLS) over
+  matched single-factor controls with kmeans-NMI rising (.30→.34, .51→.55); D-028's
+  pre-registered direction MATCHED on both methods. The converged-linear cost on the untuned
+  methods is small and LOCAL to the constrained tap (−1.6 / −0.7 there; ≈0..+0.8 one tap away
+  and across the head; single seed, no seed CIs — magnitude unresolved vs seed noise); the tuned
+  case shows the tax is not intrinsic. Cross-method effect-size ordering UNCLAIMED (equal-pull
   unmeasured, D-028 limitation); λ*/seed sweep on vicreg/dino = declared headroom, not claimed.
-- **E12-T8** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **two-space result: the
-  floor is INVISIBLE at z.** Arm ≈ control at each method's loss space across the full battery
-  (rank/spectral, Gaussianity, uniformity, redundancy), V=8 view-invariance, and converged
-  probes (results/figures/e12g/), while h re-conditions dramatically — the control cone removed
-  (vicreg rand-pair cosine .84→.00), invariance margin lifted through the TRUNK segment only:
-  arm/control depth curves merge from the first head layer in all three methods, and the vicreg
-  control's margin notch at h (L09 .20 → h .10 → tap1 .63) is erased by the floor (.31→.46
-  smooth). Reading: each objective re-establishes its own z geometry regardless of h
-  conditioning; the floor relocates conditioning/invariance into the backbone without touching
-  the head's trajectory. Open pocket (parked): dino deep-head tap2 probes −3.2..−3.7 both
-  networks + arm bottleneck diag-KL .5→1.1 — see floor-placement question below.
-- **E12-T9** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **instrument rows.**
+- **E12-T8** (USER-APPROVED 2026-07-13, wording delegated, veto open) — **two-space result:
+  calibrated h wins on essentially every h-side stress dimension measured, and the floor is
+  INVISIBLE at z.** At the declared h, arm vs matched control (lejepa/vicreg/dino order):
+  effective rank 253/149/198 vs 34/37/93; participation ratio 217/113/153 vs 22/15/59; α-ReQ
+  decay .35/.99/.67 vs 2.54/1.69/1.45; Epps–Pulley 43/66/55 vs 454/386/157; worst top-eig |kurt|
+  .51/.32/.48 vs 2.68/1.19/.90; mean |off-diag corr| .042/.057/.048 vs .128/.128/.085;
+  uniformity −3.9/−3.8/−3.7 vs −1.6/−0.6/−3.3; variance-floor hinge .13/.69/.42 vs .45/.90/.63;
+  **negative-pair (different-image) cosine collapses to ≈0** (.003/.006/.051 vs .548/.840/.143 —
+  the control cone is gone), and the invariance margin rises where the cone was worst (vicreg
+  .46 vs .10, lejepa .54 vs .39; dino ≈flat, .52 vs .54 — its one h-side non-win). Meanwhile at
+  each method's loss space z, arm ≈ control across the full battery, V=8 view-invariance, and
+  converged probes (results/figures/e12g/): the floor's effect is confined to h and the trunk
+  below it — invariance margin lifted through the TRUNK segment only, arm/control depth curves
+  merging from the first head layer in all three methods, the vicreg control's margin notch at h
+  (L09 .20 → h .10 → tap1 .63) erased by the floor (.31→.46 smooth). Reading: each objective
+  re-establishes its own z geometry regardless of h conditioning; the floor relocates
+  conditioning/invariance into the backbone without touching the head's trajectory. Open pocket
+  (parked): dino deep-head tap2 probes −3.2..−3.7 both networks + arm bottleneck diag-KL .5→1.1
+  — see floor-placement question below.
+- **E12-T9** (**OPEN** — Berker 2026-07-13: "still inconclusive, i will look into it on a better
+  time, keep it open and remind me later"; **REMINDER OWED**, candidate text below) —
+  **instrument rows.**
   (i) The online monitor is not arm-neutral: ~+3 pts toward floor arms vs converged clean
   offline probes when its head trains on aggressive augmented student views (lejepa +2.98,
   vicreg +2.84; ≈neutral on dino's EMA-teacher mild crops, +0.44); vicreg's monitor-vs-offline
