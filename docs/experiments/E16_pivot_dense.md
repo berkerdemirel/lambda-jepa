@@ -130,3 +130,17 @@ trunk internals O(1) via final-LN gamma). Angle loss rejected on measurement: co
 centered-cosine ≈ normalized MSE minus the scale anchor (anti-co-shrink), Theorem-1
 identification, and instrument continuity. Cosmetic lever if precision ever binds: global sketch
 rescale ×10 (Adam-invariant).*
+
+### KILLED at ep66/60 — 2026-07-13 (Berker: "they failed as well, and we need a more fundamental
+### change … this turns into a distillation setting where we try to recover mae semantics which
+### is not even good")
+
+Chains cancelled (62256149–156); cadence ckpts ep25/50 retained (ep75 not reached), NO comparison
+membership. State at kill: e16a ep66 probe .344 (max .356) ratio .260; e16b ep60 probe .356
+(max .362) ratio .307. The mechanical fact supporting the diagnosis (to CONFIRM next session):
+E16 extracted the target far more deeply than E15 (ratio .26–.31 vs .44; position-conditional vs
+marginal) yet the probe plateaued at the SAME ~.35 — mining mae semantics harder does not raise
+representation quality; the ceiling is the teacher's content (C_gist .442 / C_pos .510, mae raw
+.434), i.e., a distillation-bounded setting with a weak teacher. E16 P2–P5 VOID. Products
+retained: budget-gate rule, tension dial, dense position-conditioned machinery, norm/precision
+audits.

@@ -414,3 +414,17 @@ the next-session discussion.
   linear separability dissociate; sliced floors under-enforce native spectra (k̂ lower-bound
   caveat, loss-side).
 - T6 (E10-T4 travel scope) deferred — more exploration first. Full row texts in DECISIONS.
+
+### G-wave scoring — landed 2026-07-13 (chained pipeline; controls = PRIMARY per D-030)
+
+Audited converged probes, arm vs matched control: **vicreg** h.gap lin .5808 vs .5966 (−1.6),
+knn200 **.4614 vs .4000 (+6.1)**; **dino** teacher.h.cls lin .6852 vs .6922 (−0.7), knn200
+**.6342 vs .5978 (+3.6)** (student.h.cls mirrors: −0.7/+3.4). D-028's directional prediction
+(same-sign as f2: kNN-favoring improvement, at worst a small linear tax) — **pattern matches on
+both methods**. Controls ≈ original lanes on every statistic (e12gvc≈vicreg lane, e12gdc≈dino
+lane) — the D-030 control construction closed confounds that turn out negligible. Mechanism
+corroboration (results/diag/e12_{floor_values,class_align}_g.csv): floor genuinely enforced at h
+(moment_kl 2.46→0.89 vicreg, 0.93→0.33 dino; dino floor-space ≈ audited-h, EMA follows); effrank
+15→113 (vicreg), 59→153 (dino); B/T falls while kmeans-NMI RISES (.30→.34, .51→.55) — the E12-T5
+variance/recoverability dissociation replicated cross-method. NO takeaway (next-session
+discussion per D-034 agenda).
