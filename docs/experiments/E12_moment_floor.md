@@ -594,3 +594,35 @@ g_h_moment 3.664 (×.02 = .0733 — the gv floor runs at 0.7% of the weighted in
 **Launch dose: `+method.h_inv=2.9087`** (10%-of-shipped-inv-pull rule: .10×25×.4155/.3572).
 Raw observation: cov dominates the encoder pull at init (35.7 of ~63 total weighted). Single
 2-ep smoke at the launch dose covers code path + dose (first vicreg h_inv smoke).
+
+### H-wave fourth arm — e12gvcls + a Lipschitz-instrument CORRECTION (Berker 2026-07-14: "no
+### then we should do both the inv and kl on cls if thats the feature space mate … lambda 0.02
+### on cls"; PRE-REGISTERED before numbers)
+
+**Correction first (Berker catch):** vicreg's projector reads the CLS token; the trunk-GAP is
+the audited h but NOT on the head's input path. Consequences: (a) gv "calibrated vicreg" floored
+a tap the loss machinery never consumes — its audited-gap gains are trunk-side conditioning, and
+the interpretation of gv is now explicitly under review against the new arms; (b) the
+head-Lipschitz vicreg chain used gap→tap1, which is NOT a computed path — those rows were
+cross-tap displacement ratios; the instrument is corrected to cls→tap1→tap2→out and re-run
+(figure + CSV regenerate in place; the lejepa/dino chains were real paths and stand).
+
+**e12gvcls** = vicreg M2 config (bs 256) + moment-KL floor at **CLS** (λ=.02, per Berker) +
+h_inv at **CLS** (10%-of-shipped-inv-pull rule, measured for the CLS placement). Monitor stays
+at the audited GAP (PROTOCOL §3; comparability across arms unchanged). Fourth H100 slot
+`h100-slotD` = user-authorized. **e12gvi (gap placement) CONTINUES on slotC** — the pair is the
+on-path/off-path contrast: same terms, same rules, only the tap differs.
+
+Predictions (pre-registered):
+- **gvcls-P1 (path matters):** head-burden effects STRONGER than gvi's — margin at CLS up; the
+  head's invariance jump (proj.out − CLS) shrinks more than gvi's (proj.out − gap).
+- **gvcls-P2 (tap-local signature moves):** the T7 pattern relocates to CLS — kNN gain
+  concentrates at CLS, any small linear tax sits at CLS; the audited GAP becomes the "floating
+  sibling" (gv gave it +0.5 lin/+1.0 knn when un-floored — direction now open, recorded).
+- **gvcls-P3:** head empirical Lipschitz on the REAL path (cls→tap1) ≤ gv's corrected value.
+- **gvcls-P4:** z-side invisibility persists (T8 pattern).
+- **Interpretation stake (Berker):** if gvcls reproduces gv's audited-gap improvements through
+  the shared trunk, "calibrated vicreg" is trunk conditioning, placement-robust; if the gap
+  gains vanish, gv's story was tap-local — either way the gv interpretation gets revised here.
+Discipline: pull measurement (CLS config) → dose recorded → 2-ep dose smoke on slotD → 3×8h
+chain. Floor equilibrium + var/cov interaction = watch-items; kill-trigger standing.

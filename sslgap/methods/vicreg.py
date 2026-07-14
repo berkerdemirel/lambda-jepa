@@ -71,23 +71,25 @@ class VICReg(SSLMethod):
         cov = covariance_term(za) + covariance_term(zb)
         loss = self.cfg.w_inv * inv + self.cfg.w_var * var + self.cfg.w_cov * cov
         terms = {"inv": inv, "var": var, "cov": cov}
-        # E12 cross-method arm: additive moment floor at the audited h (trunk-GAP), dose per the
-        # f2 lesson (E12 card §F-wave) — vicreg's own var/cov terms stay at z untouched.
+        # E12 cross-method arm: additive moment floor at h — h_tap picks the placement:
+        # "gap" (default; the audited h, off the head's input path) or "cls" (the head's actual
+        # input — e12gvcls, Berker 2026-07-14: "both the inv and kl on cls if thats the feature
+        # space"). vicreg's own var/cov terms stay at z untouched.
         gap = tok[:, 1:].mean(1)
+        h_feat = tok[:, 0] if self.cfg.get("h_tap", "gap") == "cls" else gap
         if self.cfg.get("h_reg") == "moment":
-            h_loss = self.floor(gap)
+            h_loss = self.floor(h_feat)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
-        # H-wave (D-035, e12gvi): tiny ADDITIVE view-invariance pull at the audited h — same
-        # functional form and pull rule as lejepa's h_inv. Structural note (declared): vicreg's
-        # projector reads CLS, so unlike lejepa the assist is NOT on the head's input path.
+        # H-wave (D-035): tiny ADDITIVE view-invariance pull at the same h tap — functional form
+        # and 10%-pull rule as lejepa's h_inv. gvi = gap placement (off-path), gvcls = cls.
         h_inv = self.cfg.get("h_inv", 0.0)
         if h_inv:
-            g_v = gap.reshape(N, V, -1).transpose(0, 1)
+            g_v = h_feat.reshape(N, V, -1).transpose(0, 1)
             hi_loss = (g_v.mean(0) - g_v).square().mean()
             loss = loss + h_inv * hi_loss
             terms["h_inv"] = hi_loss
-        probe_feats = gap.detach()                   # monitor = audited h (trunk-GAP, F1)
+        probe_feats = gap.detach()                   # monitor stays = audited h (trunk-GAP, F1)
         return ({"loss": loss, **terms}, probe_feats, V)
 
     @torch.inference_mode()

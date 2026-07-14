@@ -40,8 +40,10 @@ COL = {"lejepa": "#0072B2", "vicreg": "#D55E00", "dino": "#009E73"}
 CHAIN = {
     "lejepa": ["student.z.embed", "student.z.proj.tap1", "student.z.proj.tap2",
                "student.z.proj.out"],
-    "vicreg": ["student.h.gap", "student.z.proj.tap1", "student.z.proj.tap2",
-               "student.z.proj.out"],
+    "vicreg": ["student.h.cls", "student.z.proj.tap1", "student.z.proj.tap2",
+               "student.z.proj.out"],   # CORRECTED 2026-07-14: the projector reads CLS, not the
+                                        # audited GAP — the earlier gap->tap1 rows were cross-tap
+                                        # displacement ratios, not a computed path (Berker catch)
     "dino": ["teacher.h.cls", "teacher.z.dino.tap1", "teacher.z.dino.tap2",
              "teacher.z.dino.bottleneck"],
 }
