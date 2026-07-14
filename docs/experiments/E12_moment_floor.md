@@ -561,3 +561,28 @@ the calibration floor visibly fight to an equilibrium at h; z-side terms and pro
 f7's h_moment_kl climbs past the CONTROL's free-h level (~1.65) and keeps rising by ep25, the
 dose is buying invariance by de-calibrating h — a landing-discussion datum, not a mid-flight
 change. Chains launched: 3×8h links per slot.
+
+### H-wave third arm — e12gvi (Berker 2026-07-14: "use another h100, to run vicreg with added
+### h_inv term, use a similar strategy when setting the weight"; PRE-REGISTERED before numbers)
+
+**e12gvi** = the e12gv command verbatim (vicreg, floor at trunk-GAP λ=.02, bs=256) +
+`+method.h_inv=<pull-measured>` — the vicreg mirror of f7: floor + tiny view-invariance pull at
+the SAME tap (GAP), same functional form, same 10%-of-shipped-inv-pull rule (here: 10% of
+w_inv·g_inv, w_inv=25). Third H100 slot `h100-slotC` = a USER-AUTHORIZED exception to the
+standing 2-slot cap. Reading of "vicreg with added h_inv": floor RETAINED (f7-mirror; the
+floor's barrier is what makes an inv pull at h collapse-safe) — flagged to Berker, correctable.
+
+Declared structural difference from f7: vicreg's projector reads the CLS token; the floor and
+the assist sit at GAP, so the assist is NOT on the head's direct input path (lejepa's embed
+feeds its projector directly). gvi therefore also probes whether the assist must sit on the
+head-input path to move the head's burden.
+
+Predictions (pre-registered):
+- **gvi-P1:** invariance margin at h.gap rises vs gv (gv arm: .46).
+- **gvi-P2 (H3):** the head's invariance jump (margin at proj.out − margin at gap; gv: .23)
+  shrinks vs gv.
+- **gvi-P3:** head empirical Lipschitz on gap→out ≤ gv's.
+- **gvi-P4:** no probe tax at the 10%-pull dose (knn200/linear within noise of gv or better).
+- Watch-item (open direction, from f7's live datum): the h-floor equilibrium under the pull —
+  f7's floor RECOVERED calibration (2.1→1.4 by ep57); record vicreg's direction.
+Discipline: pull measurement → dose recorded here → 2-ep dose smoke on slotC → 3×8h chain.

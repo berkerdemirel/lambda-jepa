@@ -73,11 +73,21 @@ class VICReg(SSLMethod):
         terms = {"inv": inv, "var": var, "cov": cov}
         # E12 cross-method arm: additive moment floor at the audited h (trunk-GAP), dose per the
         # f2 lesson (E12 card §F-wave) — vicreg's own var/cov terms stay at z untouched.
+        gap = tok[:, 1:].mean(1)
         if self.cfg.get("h_reg") == "moment":
-            h_loss = self.floor(tok[:, 1:].mean(1))
+            h_loss = self.floor(gap)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
-        probe_feats = tok[:, 1:].mean(1).detach()    # monitor = audited h (trunk-GAP, F1)
+        # H-wave (D-035, e12gvi): tiny ADDITIVE view-invariance pull at the audited h — same
+        # functional form and pull rule as lejepa's h_inv. Structural note (declared): vicreg's
+        # projector reads CLS, so unlike lejepa the assist is NOT on the head's input path.
+        h_inv = self.cfg.get("h_inv", 0.0)
+        if h_inv:
+            g_v = gap.reshape(N, V, -1).transpose(0, 1)
+            hi_loss = (g_v.mean(0) - g_v).square().mean()
+            loss = loss + h_inv * hi_loss
+            terms["h_inv"] = hi_loss
+        probe_feats = gap.detach()                   # monitor = audited h (trunk-GAP, F1)
         return ({"loss": loss, **terms}, probe_feats, V)
 
     @torch.inference_mode()
