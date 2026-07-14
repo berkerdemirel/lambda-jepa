@@ -45,12 +45,13 @@ view-invariance beyond global compactness.** Added 2026-07-08 (M1 dress rehearsa
 h is cone-compact (uniformity −0.1…−0.45), so raw alignment/cos_invariance read h as *more*
 invariant than z across all view methods — including MAE, which trained on no augmentations.
 
-**Headline convention (Berker stated preference 2026-07-13; formal row E12-T9 still OPEN):** the
-two normalized forms themselves
-couple to conditioning — a cone-collapsed space shrinks positive AND random distances together,
-flattering ratio-form `align_rel` (E12 G-wave: the vicreg control reads *better* on align_rel at
-h while its rand-pair cosine is .84). **`cos_margin`, read with the rand-cos panel as referee, is
-the project's headline invariance readout**; `align_rel` stays recorded in CSVs, not headlined.
+**Headline convention (Berker ruling 2026-07-14, D-037; resolves the E12-T9(ii) question):** the
+two normalized forms couple to conditioning — a cone-collapsed space shrinks positive AND random
+distances together, flattering ratio-form `align_rel` (E12 G-wave: the vicreg control reads
+*better* on align_rel at h while its rand-pair cosine is .84). **Convention: where a space's
+random-pair cosine reads ≈0 (decorrelated negatives), `cos_margin` is the headline invariance
+readout; where it does not, the two readouts carry EQUAL weight and are reported jointly** — the
+rand-cos panel is always shown as the referee either way.
 Alignment/invariance glyphs are scored on the margin, never on the raw pair value alone.
 
 ## Spread / anti-collapse

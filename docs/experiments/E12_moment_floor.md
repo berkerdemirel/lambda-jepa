@@ -445,9 +445,12 @@ the next-session discussion.
   conditioning/invariance into the backbone without touching the head's trajectory. Open pocket
   (parked): dino deep-head tap2 probes −3.2..−3.7 both networks + arm bottleneck diag-KL .5→1.1
   — see floor-placement question below.
-- **E12-T9** (**OPEN** — Berker 2026-07-13: "still inconclusive, i will look into it on a better
-  time, keep it open and remind me later"; **REMINDER OWED**, candidate text below) —
-  **instrument rows.**
+- **E12-T9** (PARTIALLY RESOLVED 2026-07-14, D-037 — part (i) monitor bias: OPEN, deprioritized
+  by Berker ("we can look at it later… not a priority till we fix the other issues"; his prior:
+  online should ≈ offline in general, which is why we monitor online at all — the ~+3pt arm bias
+  stays an unexplained anomaly for later); part (ii) RESOLVED as a conditional convention: cos
+  margin is the headline WHERE rand-cos ≈ 0 (decorrelated negatives), otherwise the two readouts
+  carry equal weight, reported jointly — METRICS.md updated) — **instrument rows.**
   (i) The online monitor is not arm-neutral: ~+3 pts toward floor arms vs converged clean
   offline probes when its head trains on aggressive augmented student views (lejepa +2.98,
   vicreg +2.84; ≈neutral on dino's EMA-teacher mild crops, +0.44); vicreg's monitor-vs-offline
