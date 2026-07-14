@@ -309,3 +309,84 @@ assist terms' raw gradients are 3–9× weaker than the reference. Process lesso
 LAUNCH (dose-dependent risk forced second smokes at measured λ); a rising floor in a 2-ep smoke
 is tension, not collapse (f7's chain recovered it); the floor's relative pull at equal nominal
 λ spans 0.7%/2.2%/8.8% across methods — nominal λ is not a cross-method dose.
+
+## 2026-07-14 — D-036 EXECUTED (h = projector input, F1 GAP→CLS); monitor-tap fix + fresh vicreg restarts; clean CLS migration; PIVOT ceiling ruled (D-038)
+
+**D-036 fully executed** (the redeclaration owed at the prior close). Docs: PROTOCOL §1/§3/F1
+rows + monitor line + v1-draft.5; AUDIT_MATRIX v1.1 locking row (prediction letters UNCHANGED —
+only which stored tap is read as "h" moved); E02 lock feature-type amendment landed BEFORE any
+E02 score (integrity preserved). Code: the declared-h tap lives in ~13 hand-kept mirror dicts +
+the `adapters.py` extraction authority + two inverse edits (`e1_matrix_figs.ALT`→GAP, randinit
+null→CLS) — all flipped simclr/vicreg/byol → `student.h.cls`, guardrail-grepped (every surviving
+`student.h.gap` is legitimately mae/ijepa/toy/pivot/floor-values or an intentional GAP diagnostic).
+Battery + probes are tap-AGNOSTIC (store every space) ⇒ **no re-extraction/battery/probe** — the
+CLS numbers already existed; regeneration is pure re-selection + re-plot. Regenerated at CLS and
+spot-verified (M2 table + class-align now read `student.h.cls`): report_m2 (E1_IN100_MATRIX.md),
+e1_matrix (5 figs), pair_margin_m2, e12g h-vs-z (4 figs) + ladder, class-align, e13 chain (7
+scatters + 4 figs).
+
+**The monitor-tap fix (Berker's catch made precise).** Berker asked "is the linear probe already
+at the right position for dino/lejepa?" — it is, verified in code on BOTH monitor sides: dino
+trains+evals on teacher CLS (`dino.py:121/147`), lejepa on `emb`=z.embed (`lejepa.py:261/265`).
+vicreg/simclr/byol sat at **GAP on both sides** (`probe_feats` train + `eval_features` eval) —
+and fixing only one would train the probe on CLS but score it on GAP, a silently-broken monitor.
+Moved both sides → CLS = declared h; `_best.pt` now selects on the declared tap (was GAP). gvcls/gv2
+restarted **fresh** on the CLS monitor (Berker: "they are fresh enough"; verified CLS probe_acc
+climbs *above* the old GAP curve as D-036 predicts). simclr/byol fixed too (future-runs; not
+running). **Lesson: the "probe position" is a train+eval PAIR — a half-fix is worse than none.**
+
+**Clean CLS migration** (Berker: "clean audit, clean viz, migrate fully to cls whenever
+necessary"). Re-stamped 76 IN-100 F1 `.ext` meta.json `h_space` GAP→CLS (filtered by method so
+mae/ijepa untouched) — this is the ONLY consumer that reads stored provenance (`audit.py:68`),
+everything else reads the mirror dicts. Clean audit re-run for gv/gvc (CLS `.cross.csv`); clean
+viz (toy rung — its config is toy-only). GAP-specific diagnostics (`probe_conv_check` =
+GAP-feature probe-censoring evidence for D-020; `e12_aug_probes` = the parked T9(i) monitor-bias
+instrument) left at GAP BY DESIGN — they *study* the GAP tap, they don't measure h; Berker
+confirmed "gap specific measurements we dont care right now." Toy meta + simclr/byol audit +
+IN-100 viz config deferred ("whenever necessary").
+
+**T7/T8 held (Berker ruling), not amended.** gv/gvc CALIBRATED the floor at GAP; reading them at
+the new declared h (CLS) is a placement mismatch — "you cannot reclaim anything from that
+experiment." At CLS the gv-vs-gvc deltas are a mild +1.0 knn / +0.5 lin (the GAP floor barely
+conditions the projector-input tap); the dramatic +6.1 knn / −1.6 lin survives as the GAP
+*intermediate-tap* reading. The clean CLS-calibrated-and-CLS-measured result comes from gv2 (floor
+at CLS) + gvcls (floor+inv at CLS) — the H-wave arms. So the regenerated h-vs-z figures showing
+gv≈gvc at CLS must be read as "GAP-floor's weak effect at CLS," NOT "calibrated vicreg."
+
+**Chain crash/resume + landings.** All four H-wave chains took a cluster wall/preemption mid-run;
+the two mature runs resumed cleanly from checkpoints (gd2 ep48, f7 ep57) — mature-run ckpt hygiene
+held — while gvcls/gv2 were too young to have a ckpt and restarted (then were re-restarted fresh
+anyway for the monitor fix). gd2's later 8h wall-rollover resumed correctly via the singleton
+follow-on (a `DUE TO TIME LIMIT` signal the incident monitor correctly surfaced — a normal boundary,
+not a failure). f7 landed best .6972, gd2 best .6944; both extracted (adapter=native, h_layers
+[3,6,9], orbit V=8, do_pairs=false) + probe/battery chained. H100 pool returned to the 2-slot cap
+on its own as slotA/B freed. **Lesson: a fig script that TRAINS probes needs a GPU** —
+`e12g_ladder_fig` (fresh L-tap probes via `sslgap.probes`) failed on the CPU partition; the
+"CPU-only npy reader" assumption held for the read-only fig scripts but not this one.
+
+**PIVOT ceiling ruled — D-038.** (1) D-034 distillation-ceiling diagnosis **CONFIRMED** (Berker:
+"keep consistent to distillation view") — evidence = extraction-depth invariance (E15→E16 mined
+deeper, ratio .26–.31 vs .44, at the SAME ~.35 plateau) + the plateau below mae's own raw h-probe
+(.434). (2) D-033 target-budget gate **AMENDED — the beat-the-zoo condition**: an external-teacher
+target must clear the best zoo h-probe + margin, or be self-referential (teacher-free); Berker's
+emphasis: teacher-free, **self-distillation the leading redesign direction**. Then a full close-read
+of the PIVOT proposal (Predictive Foveal Isometry) surfaced that **self-distillation competes with
+the PIVOT theory**: converting the frozen external tokenizer to an EMA teacher escapes the content
+ceiling but forfeits Theorem 1's fixed-target identification (§4.1), the target-content audit
+(§5.2/§10 — the very D-034 instrument), and the "declared-not-emergent" high ground (§1.2/§7.4) —
+PIVOT drifts toward the I-JEPA row it defines itself against; it also forces the variance floor to
+become load-bearing (gate 14's "PIVOT incomplete"), which MERGES the redesign with the
+calibration-at-h/E12 program, and weakens the RFF justification (gate 10 — a strong EMA teacher
+smooths away the conditional multimodality that RFF exists to capture). The surviving distinctive
+is the declared foveal channel Ψ (gate 8). Berker is brainstorming the fork; redesign PARKED,
+budget gate standing.
+
+**Two artifacts + a hypothesis noted.** (a) `docs/theory/CALIBRATION_AT_H_GENERALIZATION.md` —
+Berker's hypothesis that calibration-toward-h may be general (any method's OWN term, slight, at h),
+with inv/moment-KL the easy instances and DINO's clustering-at-h the falsifier; "would lead
+something more general and bigger." (b) `docs/literature/related_work/kalapos_whitening_improves_ssl.md`
+— close-read of arXiv:2408.07519 (whitening as a differentiable IterNorm layer at the encoder
+output h, method-agnostic, +1–5%): the nearest neighbor to our premise, **NOT a blocker** (Berker),
+our two-space audit / trunk-relocation mechanism / soft-diagonal-floor / placement all untouched;
+recorded as a post-report BIBLIOGRAPHY addition. **git push d662fa3** (all the above; slides/tarball/
+session-scaffolding deliberately left uncommitted).
