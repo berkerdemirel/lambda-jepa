@@ -27,7 +27,7 @@ FIGD = f"{ROOT}/results/figures/e12g"
 
 PAIRS = [
     ("lejepa", "in100.lejepa.s0.e12f2.ext", "in100.lejepa.s0.e12c1.ext", "student.z.embed"),
-    ("vicreg", "in100.vicreg.s0.e12gv.ext", "in100.vicreg.s0.e12gvc.ext", "student.h.gap"),
+    ("vicreg", "in100.vicreg.s0.e12gv.ext", "in100.vicreg.s0.e12gvc.ext", "student.h.cls"),  # D-036: projector input
     ("dino", "in100.dino.s0.e12gd.ext", "in100.dino.s0.e12gdc.ext", "teacher.h.cls"),
 ]
 COL = {"lejepa": "#0072B2", "vicreg": "#D55E00", "dino": "#009E73"}
@@ -35,7 +35,7 @@ LADDER = {
     "lejepa": ["student.h.cls.L03", "student.h.cls.L06", "student.h.cls.L09", "student.h.cls",
                "student.z.embed", "student.z.proj.tap1", "student.z.proj.tap2",
                "student.z.proj.out"],
-    "vicreg": ["student.h.gap.L03", "student.h.gap.L06", "student.h.gap.L09", "student.h.gap",
+    "vicreg": ["student.h.cls.L03", "student.h.cls.L06", "student.h.cls.L09", "student.h.cls",
                "student.z.proj.tap1", "student.z.proj.tap2", "student.z.proj.out"],
     "dino": ["teacher.h.cls.L03", "teacher.h.cls.L06", "teacher.h.cls.L09", "teacher.h.cls",
              "teacher.z.dino.tap1", "teacher.z.dino.tap2", "teacher.z.dino.bottleneck"],

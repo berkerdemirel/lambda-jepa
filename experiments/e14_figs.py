@@ -65,11 +65,14 @@ for ax, (tk, stratum, zoo) in zip(axes.flat, PANELS):
         if rid not in vals:
             continue
         selfref = (tk == "dino" and rid == DINO)
+        anchor = "deitlite" in rid          # E13-T3a: unranked anchor, in NO rho; context only
         col, mk = fam(rid) if rid in RANKED else (GRAY, "x")
         ax.plot([vals[rid]], [probe[rid]["linear_raw_v2"]], marker=mk, color=col, ms=8,
-                mfc="white" if (rid == RANDINIT or selfref) else col, ls="none")
-        ax.annotate(short(rid) + (" (self)" if selfref else ""), (vals[rid], probe[rid]["linear_raw_v2"]),
-                    textcoords="offset points", xytext=(4, 4), fontsize=7, color="#222222")
+                mfc="white" if (rid == RANDINIT or selfref or anchor) else col, ls="none")
+        ax.annotate(short(rid) + (" (self)" if selfref else " (anchor)" if anchor else ""),
+                    (vals[rid], probe[rid]["linear_raw_v2"]),
+                    textcoords="offset points", xytext=(4, 4), fontsize=7,
+                    color="#888888" if anchor else "#222222")
     rl, pl, n = crho("d_read_dof", cell, zoo, "linear_raw_v2")
     rk, pk, _ = crho("d_read_dof", cell, zoo, "knn_v1_k200")
     ax.set_title(f"T={tk} · {stratum}   ρ_lin={rl:+.2f} (p={pl:.3f}, n={n})   ρ_knn={rk:+.2f} (p={pk:.3f})",

@@ -13,7 +13,7 @@ from omegaconf import DictConfig
 
 # PROTOCOL §3 / D-003v2 h and z.final per method — mirrors sslgap/ckpt/adapters._NATIVE_ASM
 # (pinned there by experiments/adapter_selftest.py EXPECT_H).
-H_SPACE = {"simclr": "student.h.gap", "vicreg": "student.h.gap", "byol": "student.h.gap",
+H_SPACE = {"simclr": "student.h.cls", "vicreg": "student.h.cls", "byol": "student.h.cls",  # D-036: projector input (was GAP)
            "dino": "teacher.h.cls", "mae": "student.h.gap", "ijepa": "teacher.h.gap",
            "lejepa": "student.z.embed"}
 Z_FINAL = {"simclr": "student.z.proj.out", "vicreg": "student.z.proj.out",

@@ -140,7 +140,7 @@ def fig_probes():
 
     # the non-headline trunk readout per method (CLS if h=GAP, GAP if h=CLS; lejepa = the raw
     # CLS one Linear upstream of its official h=z.embed - the F4 tension cell)
-    ALT = {"simclr": "student.h.cls", "byol": "student.h.cls", "vicreg": "student.h.cls",
+    ALT = {"simclr": "student.h.gap", "byol": "student.h.gap", "vicreg": "student.h.gap",  # D-036: h=CLS now, so GAP is the alt readout
            "mae": "student.h.cls", "dino": "teacher.h.gap", "ijepa": "teacher.h.cls",
            "lejepa": "student.h.cls"}
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 5.2), facecolor="white", sharey=True)
@@ -158,7 +158,7 @@ def fig_probes():
             if va == va:
                 ax.plot(va, y, "s", ms=5, mfc="none", mec=c, mew=1.3, zorder=3)
         for v, lab, ls in [(acc(deit, "student.h.cls", probe), "deitlite h.cls", "--"),
-                           (acc(rnd, "student.h.gap", probe), "randinit h.gap", ":")]:
+                           (acc(rnd, "student.h.cls", probe), "randinit h.cls", ":")]:  # D-036: null matches the audited tap (CLS)
             ax.axvline(v, color="#8a8a85", ls=ls, lw=1.3)
             ax.text(v + 0.006, -0.42, f"{lab} {v:.3f}", fontsize=7.5, color=MUT, rotation=90,
                     va="bottom")

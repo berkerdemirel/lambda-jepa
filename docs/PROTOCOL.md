@@ -1,6 +1,8 @@
 # PROTOCOL.md — the fixed experimental frame
 
-**Version: v1-draft.4 (2026-07-10: D-025 k̂ defect-rank estimator spec, §6 item 9; prior:
+**Version: v1-draft.5 (2026-07-14: D-036 — h redeclared as the projection input (pre-MLP); F1
+methods SimCLR/BYOL/VICReg h moved trunk-GAP→trunk-CLS in §1/§3/F1; online monitor tap follows the
+declared h; trunk-GAP demoted to intermediate tap. prior: v1-draft.4, 2026-07-10: D-025 k̂ defect-rank estimator spec, §6 item 9; prior:
 v1-draft.3, 2026-07-09: D-020 convergence-guaranteed linear probes — v2 family is the
 headline; v1-draft.2, 2026-07-02: D-003v2 space definitions, D-006v2 probe proposal, D-009
 relrep). Pre-registration lock pending user sign-off.**
@@ -9,9 +11,11 @@ estimator discipline, adapted to this cluster and the binding data ladder (DECIS
 
 ## 1 · Spaces and notation (D-003v2 — Berker's rule)
 
-- **`h` — "the representation": the feature the method's own paper probes for its main linear-probe
-  tables.** Defined per method in §3 (paper protocols differ: avgpool trunk, CLS, concat-last-k CLS,
-  teacher branch, …).
+- **`h` — "the representation": the input of the method's projection/head (pre-MLP), per D-036
+  (2026-07-14).** For most methods this coincides with the feature the paper probes for its main
+  linear-probe tables; for the ResNet-native F1 methods (SimCLR/BYOL/VICReg) the ViT port makes it
+  the trunk-**CLS** (the projector's actual input), not trunk-GAP (superseded — see F1 below).
+  Defined per method in §3 (projector inputs differ: CLS, embed, teacher branch, GAP-on-uncorrupted).
 - **`z` — "the proj": the space the training loss is applied to**, `z.<role>.out`, plus every
   intermediate head-layer tap `z.<role>.tapK`. Role ∈ {embed, proj, pred, dec}.
 - **Linear-only clause:** if a method's loss is applied after ONLY a linear projection of h, it
@@ -35,8 +39,10 @@ estimator discipline, adapted to this cluster and the binding data ladder (DECIS
 
 Frame owns (identical across methods within a frame): backbone topology; dataset+split; epoch
 budget (epochs-matched, D-004; pixels/epoch recorded as covariate); checkpoint cadence
-`ep{25,50,75,100}` + best + last; seed handling; online-probe monitor (LayerNorm+Linear on detached
-`h.gap`, monitor-only); logging schema (per-step grad_norm, per-term losses, collapse monitors);
+`ep{25,50,75,100}` + best + last; seed handling; online-probe monitor (LayerNorm+Linear on the
+detached **declared h per §3**, monitor-only; both `_best` selection and the live curve track the
+declared h — F1 methods moved GAP→CLS with the h redeclaration, code + fresh vicreg arms 2026-07-14,
+D-036); logging schema (per-step grad_norm, per-term losses, collapse monitors);
 bf16 autocast; grad_clip default 1.0 (recipe may override only with a DECISIONS row); resume/requeue;
 wandb run-id persistence.
 
@@ -45,20 +51,26 @@ augmentations/views/masking; optimizer family, LR/wd/EMA/temperature schedules; 
 accumulation; head architectures and dims; loss hyperparameters; drop_path. Every deviation from the
 paper/donor recipe is listed under "Deviations" in the dossier.
 
-## 3 · Per-method space definitions (D-003v2 + D-008)
+## 3 · Per-method space definitions (D-003v2 + D-008 + D-036)
 
-| method | **h (paper-probed)** | z.final ("the proj") | intermediate z taps | notes |
+| method | **h (projector input, D-036)** | z.final ("the proj") | intermediate z taps | notes |
 |---|---|---|---|---|
-| SimCLR | student trunk-GAP (paper: ResNet avgpool → ViT analog, flag F1) | proj.out (128-d) | proj.tap1 (2048) | |
-| BYOL | student trunk-GAP (paper: "we only keep the encoder"; F1) | pred.out (256-d) | proj.tap1, proj.out (256), pred.tap1 | teacher proj.out = target space, stored |
-| VICReg | student trunk-GAP (F1) | proj.out (8192-d expander) | proj.tap1, proj.tap2 (8192) | largest stored dim |
+| SimCLR | student trunk-**CLS** (projector input; paper avgpool→ViT, F1 re-resolved D-036) | proj.out (128-d) | proj.tap1 (2048) | trunk-GAP kept as intermediate tap |
+| BYOL | student trunk-**CLS** (projector input; paper "we only keep the encoder"; F1 re-resolved D-036) | pred.out (256-d) | proj.tap1, proj.out (256), pred.tap1 | teacher proj.out = target space, stored; trunk-GAP kept as intermediate tap |
+| VICReg | student trunk-**CLS** (projector input; F1 re-resolved D-036) | proj.out (8192-d expander) | proj.tap1, proj.tap2 (8192) | largest stored dim; trunk-GAP kept as intermediate tap |
 | DINO | teacher **last-layer CLS** (F2 ruling: no concat readouts) | 256-d ℓ2-bottleneck (pre-prototypes) | proj.tap1, proj.tap2 (2048) | prototype logits (65k) never stored — recomputed `l2norm(bottleneck) @ W_proto^T` when needed |
 | MAE | student trunk-GAP on uncorrupted images (paper adds a BN inside its linear probe — probe-side, flag F3) | dec.tapK = decoder tokens mean-pooled per block {2,5,8} (512-d) | — | pixel loss space handled metric-by-metric; "z = —" cells = `space missing` |
 | I-JEPA | **teacher** last-layer avgpooled patches (F2 ruling: no concat/best-of) | pred.out tokens, pooled (384-d) | — | "we use the target-encoder for evaluation" |
 | LeJEPA | **`z.embed` alias `h`** = trunk-CLS→Linear(384→512), the recipe's probed embedding (F4 ruling: linear maps add no capacity — CLS+linear is a valid h; no concat alternative) | proj.out (proj_dim; 16 in toy ckpts) | proj.tap1, proj.tap2 (2048) | both losses on proj.out; single branch |
 
 **Consistency flags — RESOLVED (Berker, 2026-07-02):**
-- **F1 (resolved)** — ResNet-native methods (SimCLR/BYOL/VICReg): h = trunk-GAP on the ViT frame.
+- **F1 (RE-RESOLVED, D-036 2026-07-14)** — ResNet-native methods (SimCLR/BYOL/VICReg): h = the
+  **projector input** = trunk-**CLS** on the ViT frame (superseding the original trunk-GAP
+  translation of the ResNet avgpool). Basis: in the source papers the probe space (avgpool) WAS the
+  projector input; the ViT port broke that coincidence and the original F1 kept the pooling shape
+  over the wiring. Empirically the projector input wins on all three (lin/knn: vicreg 64.3/55.1 vs
+  59.0/39.4 GAP; simclr 60.6/49.4 vs 56.6/38.2; byol 58.4/45.9 vs 56.8/39.0). Trunk-GAP survives as
+  a measured intermediate tap (guillotine overlay), not "h".
 - **F2 (resolved)** — **No concatenated readouts, no best-of.** h uses the LAST layer's feature of
   the paper's feature type: DINO → last CLS; I-JEPA → last avgpooled patches (teacher). Paper-exact
   concat variants may appear only as E11 sensitivity arms. (h_layers stays [3,6,9,12] — guillotine

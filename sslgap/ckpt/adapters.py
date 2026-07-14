@@ -164,16 +164,16 @@ class IjepaPredTaps(nn.Module):
 
 def _asm_projector(mods, ck):
     """simclr / vicreg: single branch, projector taps off trunk CLS (what the trainer fed it);
-    h = student trunk-GAP (F1)."""
+    h = student trunk-CLS = the projector input (D-036; was trunk-GAP under F1)."""
     return ({"student": Branch(mods["backbone"], TVMLPTaps(mods["projector"], "proj"), "cls")},
-            "student", "student.h.gap")
+            "student", "student.h.cls")
 
 
 def _asm_byol(mods, ck):
     student = Branch(mods["backbone"], ByolHeads(mods["projector"], mods["predictor"]), "cls")
     teacher = Branch(mods["teacher_backbone"],
                      TVMLPTaps(mods["teacher_projector"], "proj"), "cls")  # target space, stored
-    return ({"student": student, "teacher": teacher}, "student", "student.h.gap")
+    return ({"student": student, "teacher": teacher}, "student", "student.h.cls")  # D-036: projector input (was GAP)
 
 
 def _asm_dino(mods, ck):

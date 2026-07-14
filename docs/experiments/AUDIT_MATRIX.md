@@ -40,3 +40,4 @@ view-predictability) are enforced at z; their transfer to h is the study's centr
 |---|---|---|---|
 | v1-draft | 2026-07-02 | transcribed from report §3.1 | — |
 | **v1 (LOCKED)** | 2026-07-02 | locked at M0 exit; predictions frozen before any controlled-grid number exists (M0 touched only pre-existing lejepa/DINO checkpoints) | **Berker, 2026-07-02** |
+| **v1.1** | 2026-07-14 | D-036: h for SimCLR/BYOL/VICReg redeclared to the projector input (trunk-CLS), superseding the F1 trunk-GAP translation. Prediction **letters UNCHANGED** — the h/z divergence cells are tap-definition-agnostic; only which stored tap is read as "h" changed (now per PROTOCOL §3). Trunk-GAP survives as a measured intermediate tap. | **Berker (D-036)** |

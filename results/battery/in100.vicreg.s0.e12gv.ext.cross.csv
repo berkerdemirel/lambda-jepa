@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.out,cka_linear,cross,0.3355349863643423,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.out,neighbor_jaccard,cross,0.1350196733950604,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.out,procrustes_distance,cross,1.030108101565357,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.out,knn_label_agreement,cross,0.4104,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,cka_linear,cross,0.5545924138223597,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,neighbor_jaccard,cross,0.16170095441194512,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,procrustes_distance,cross,0.8455308060878837,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,knn_label_agreement,cross,0.4194,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap2,cka_linear,cross,0.5016883606172693,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap2,neighbor_jaccard,cross,0.140830673746618,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap2,procrustes_distance,cross,0.9093183962537545,,,50000,384x2048,none
+in100.vicreg.s0.e12gv.ext,in100.train500.v1,student.h.gap~student.z.proj.tap2,knn_label_agreement,cross,0.417,,,50000,384x2048,none

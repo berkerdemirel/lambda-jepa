@@ -40,7 +40,7 @@ PAIRS = [
     ("lejepa", "in100.lejepa.s0.e12f2.ext", "in100.lejepa.s0.e12c1.ext",
      "student.z.embed", "student.z.proj.out", "audit_v1"),
     ("vicreg", "in100.vicreg.s0.e12gv.ext", "in100.vicreg.s0.e12gvc.ext",
-     "student.h.gap", "student.z.proj.out", "own_vicreg"),
+     "student.h.cls", "student.z.proj.out", "own_vicreg"),  # D-036: projector input (was GAP)
     ("dino", "in100.dino.s0.e12gd.ext", "in100.dino.s0.e12gdc.ext",
      "teacher.h.cls", "teacher.z.dino.bottleneck", "own_dino"),
 ]
@@ -52,7 +52,7 @@ LADDER = {
     "lejepa": ["student.h.cls.L03", "student.h.cls.L06", "student.h.cls.L09", "student.h.cls",
                "student.z.embed", "student.z.proj.tap1", "student.z.proj.tap2",
                "student.z.proj.out"],
-    "vicreg": ["student.h.gap.L03", "student.h.gap.L06", "student.h.gap.L09", "student.h.gap",
+    "vicreg": ["student.h.cls.L03", "student.h.cls.L06", "student.h.cls.L09", "student.h.cls",
                "student.z.proj.tap1", "student.z.proj.tap2", "student.z.proj.out"],
     "dino": ["teacher.h.cls.L03", "teacher.h.cls.L06", "teacher.h.cls.L09", "teacher.h.cls",
              "teacher.z.dino.tap1", "teacher.z.dino.tap2", "teacher.z.dino.bottleneck"],
@@ -132,7 +132,7 @@ def legend_handles():
 
 
 def caption(fig, extra=""):
-    fig.text(0.005, 0.005, "h = calibrated tap (lejepa z.embed · vicreg trunk-GAP · dino teacher "
+    fig.text(0.005, 0.005, "h = calibrated tap (lejepa z.embed · vicreg trunk-CLS · dino teacher "
              "CLS; floor applied in the arm only) · z = loss space (proj.out / proj.out / dino "
              "bottleneck)" + extra, fontsize=7.5, color="#555555", va="bottom")
 
@@ -153,8 +153,8 @@ def main():
     I = {(r.run_id, r.stack, r.space): r for r in inv.itertuples()}
 
     # ---- diag moment-KL on clean train500 (floor-values convention + self-check) -------------
-    dkl, checks = {}, {("in100.vicreg.s0.e12gv.ext", "student.h.gap"): 0.8157,
-                       ("in100.vicreg.s0.e12gvc.ext", "student.h.gap"): 1.9486,
+    dkl, checks = {}, {("in100.vicreg.s0.e12gv.ext", "student.h.cls"): 0.8131,  # D-036: CLS (GAP was 0.8157)
+                       ("in100.vicreg.s0.e12gvc.ext", "student.h.cls"): 1.1962,  # D-036: CLS (GAP was 1.9486)
                        ("in100.dino.s0.e12gd.ext", "teacher.h.cls"): 0.3436,
                        ("in100.dino.s0.e12gdc.ext", "teacher.h.cls"): 0.6470}
     for m, arm, ctl, h, z, _own in PAIRS:

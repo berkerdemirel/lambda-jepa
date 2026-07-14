@@ -8,6 +8,10 @@ qualifier below, added after the M1 toy grid showed the two headline probes movi
 directions along MAE's decoder (linear_raw .669→.693 up, knn_v1 .528→.450 down): an unqualified
 "accuracy" monotonicity prediction is unscoreable. Toy M1 numbers (including every tap probe)
 were visible when this lock was signed; the lock binds the IN-100 rung.
+**Amended 2026-07-14 (D-036, before any E02 score):** the h feature type for simclr/vicreg/byol
+moved GAP→CLS (projector input), so their headline guillotine curve now starts at trunk-CLS with
+trunk-GAP demoted to the sensitivity overlay. E02 has not scored (Results section empty), so the
+amendment lands before any number is bound to the lock — pre-registration integrity preserved.
 
 ## Hypothesis
 
@@ -29,9 +33,9 @@ h.{cls,gap}.L03 → L06 → L09 → L12(=h final) → z taps in forward order (p
   lejepa:         z.embed(=h, F4) → proj.tap1 → proj.tap2 → proj.out
 ```
 
-The feature type at trunk layers follows the method's h feature type (F1/F2: gap for
-simclr/vicreg/byol/mae/ijepa, cls for dino/lejepa); the other type is kept as a sensitivity
-overlay, not the headline curve.
+The feature type at trunk layers follows the method's h feature type (per PROTOCOL §3): gap for
+mae/ijepa, **cls for simclr/vicreg/byol** (D-036: projector input) and dino/lejepa; the other type
+is kept as a sensitivity overlay, not the headline curve.
 
 ## Pre-registered curve-shape predictions (PROPOSED)
 

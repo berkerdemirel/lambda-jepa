@@ -70,7 +70,7 @@ class BYOL(SSLMethod):
             zt = modules["teacher_projector"](ht).reshape(N, V, -1)
             self._t_std = zt.reshape(-1, zt.shape[-1]).float().std(0).mean().item()
         loss = self._regress(q[:, 0], zt[:, 1]) + self._regress(q[:, 1], zt[:, 0])
-        probe_feats = tok[:, 1:].mean(1).detach()    # monitor = audited h (trunk-GAP, F1)
+        probe_feats = tok[:, 0].detach()             # monitor = declared h (projector-input CLS, D-036); _best aligns to audit
         return ({"loss": loss}, probe_feats, V)
 
     def post_step(self, modules, step, total_steps):
@@ -81,7 +81,7 @@ class BYOL(SSLMethod):
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        return modules["backbone"].forward_features(x)[:, 1:].mean(1)     # audited h (GAP)
+        return modules["backbone"].forward_features(x)[:, 0]              # declared h (projector-input CLS, D-036)
 
     def probe_dim(self):
         return 384

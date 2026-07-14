@@ -17,7 +17,7 @@ from sslgap.models.vitops import vit_tokens
 
 DEV = "cuda"
 
-EXPECT_H = {"simclr": "student.h.gap", "vicreg": "student.h.gap", "byol": "student.h.gap",
+EXPECT_H = {"simclr": "student.h.cls", "vicreg": "student.h.cls", "byol": "student.h.cls",  # D-036: projector input (was GAP)
             "dino": "teacher.h.cls", "mae": "student.h.gap", "ijepa": "teacher.h.gap",
             "lejepa": "student.z.embed"}
 

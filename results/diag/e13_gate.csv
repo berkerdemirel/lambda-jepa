@@ -1,2 +1,2 @@
 randinit_d_read,trained_min,trained_max,trained_mean,trained_sd,randinit_margin_sd,n_trained_worse_than_randinit,boot_se_median,dynamic_range_ratio
-0.97854,0.8471,0.91718,0.86383,0.01808,6.35,0,0.002864,6.3
+0.97854,0.8471,0.91718,0.86352,0.01827,6.3,0,0.002864,6.4

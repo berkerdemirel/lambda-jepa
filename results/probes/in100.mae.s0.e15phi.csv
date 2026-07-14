@@ -1,0 +1,9 @@
+run_id,train_manifest,val_manifest,space,probe,val_acc,n_train,n_val,num_classes,best_ep,epochs_run
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,linear_raw_v1,0.2751999795436859,50000,5000,100,28.0,30.0
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,linear_raw_v2,0.3779999911785126,50000,5000,100,959.0,1000.0
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,linear_house_v1,0.368399977684021,50000,5000,100,26.0,30.0
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,linear_house_v2,0.38359999656677246,50000,5000,100,108.0,229.0
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,linear_l2_v1,0.2624000012874603,50000,5000,100,28.0,30.0
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,linear_l2_v2,0.3707999885082245,50000,5000,100,672.0,793.0
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,knn_v1_k200,0.2376,50000,5000,100,,
+in100.mae.s0.e15phi,in100.train500.v1,in100.val.v1,phi.marginal,knn_v1_k20,0.2486,50000,5000,100,,

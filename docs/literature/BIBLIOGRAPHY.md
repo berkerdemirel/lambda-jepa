@@ -121,6 +121,10 @@ Derived from docs/report/ssl-projector-gap-report.html (compiled 2026-07-01, quo
 - **Understanding SSL via Latent Distribution Matching** — Mikulasch & Zenke. ICML 2026 Spotlight. [arXiv:2605.03517](https://arxiv.org/abs/2605.03517) `[E]` — existence & venue verified; unifies families as alignment+entropy
 - **An Augmentation-Aware Theory for Contrastive SSL** — Cui, Wen, Wang. ICML 2025. [arXiv:2505.22196](https://arxiv.org/abs/2505.22196) `[E]`
 
+## Post-report additions (project-discovered — not in the report's §8 transcription)
+
+- **Whitening Improves SSL** — Kalapos & Gyires-Tóth. *Whitening Consistently Improves Self-Supervised Learning*. preprint 2024. [arXiv:2408.07519](https://arxiv.org/abs/2408.07519) `[P]` — nearest-neighbor to our calibration-toward-h program: a differentiable ZCA-whitening layer (IterNorm) at the encoder output h, method-agnostic, +1–5% linear/kNN. Close-read + framing: `related_work/kalapos_whitening_improves_ssl.md`. Verdict (Berker 2026-07-14): good rel-work, NOT a blocker (precedent for the premise; our audit / trunk-relocation mechanism / soft-diagonal-floor / placement are untouched).
+
 ---
 
 BibTeX for all entries: `docs/literature/refs.bib`.

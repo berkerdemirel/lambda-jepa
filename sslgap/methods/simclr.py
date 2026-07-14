@@ -60,12 +60,12 @@ class SimCLR(SSLMethod):
         z = modules["projector"](h[:, 0]).reshape(N, V, -1)               # loss input: CLS (trained)
         z = torch.cat([z[:, 0], z[:, 1]])                                 # [2N, d], i <-> i+N
         loss = nt_xent(z, self.cfg.temp)
-        probe_feats = h[:, 1:].mean(1).detach()      # monitor = audited h (trunk-GAP, F1); image-major
+        probe_feats = h[:, 0].detach()               # monitor = declared h (projector-input CLS, D-036); image-major
         return ({"loss": loss, "nt_xent": loss}, probe_feats, V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        return modules["backbone"].forward_features(x)[:, 1:].mean(1)     # audited h (GAP)
+        return modules["backbone"].forward_features(x)[:, 0]              # declared h (projector-input CLS, D-036)
 
     def probe_dim(self):
         return 384

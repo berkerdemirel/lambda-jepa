@@ -89,12 +89,12 @@ class VICReg(SSLMethod):
             hi_loss = (g_v.mean(0) - g_v).square().mean()
             loss = loss + h_inv * hi_loss
             terms["h_inv"] = hi_loss
-        probe_feats = gap.detach()                   # monitor stays = audited h (trunk-GAP, F1)
+        probe_feats = tok[:, 0].detach()             # monitor = declared h (projector-input CLS, D-036); _best aligns to audit
         return ({"loss": loss, **terms}, probe_feats, V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
-        return modules["backbone"].forward_features(x)[:, 1:].mean(1)     # audited h (GAP)
+        return modules["backbone"].forward_features(x)[:, 0]              # declared h (projector-input CLS, D-036)
 
     def probe_dim(self):
         return 384

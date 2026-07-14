@@ -25,9 +25,9 @@ TRAIN500 = "in100.train500.v1"
 E12 = [f"in100.lejepa.s0.e12{a}.ext" for a in ("a1", "a2", "a3", "c1", "f1", "f2", "f3", "f4", "f5", "f6")]
 RANKED = {
     "in100.dino.s0.ext": "teacher.h.cls",
-    "in100.simclr.s0.ext": "student.h.gap",
-    "in100.byol.s0.ext": "student.h.gap",
-    "in100.vicreg.s0.ext": "student.h.gap",
+    "in100.simclr.s0.ext": "student.h.cls",
+    "in100.byol.s0.ext": "student.h.cls",
+    "in100.vicreg.s0.ext": "student.h.cls",
     "in100.ijepa.s0.ext": "teacher.h.gap",
     "in100.lejepa.s0.ext": "student.z.embed",
     "in100.deitlite.s0.ext": "student.h.cls",

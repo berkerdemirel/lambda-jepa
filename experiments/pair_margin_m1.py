@@ -19,7 +19,7 @@ from sslgap.metrics.single import variance_floor
 RES = "/nfs/scistore19/locatgrp/bdemirel/ssl_project/results"
 FEAT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project/features"
 # mirrors experiments/report_m1.py (PROTOCOL §3 / D-003v2)
-H_SPACE = {"simclr": "student.h.gap", "vicreg": "student.h.gap", "byol": "student.h.gap",
+H_SPACE = {"simclr": "student.h.cls", "vicreg": "student.h.cls", "byol": "student.h.cls",  # D-036: projector input (was GAP)
            "dino": "teacher.h.cls", "mae": "student.h.gap", "ijepa": "teacher.h.gap",
            "lejepa": "student.z.embed"}
 Z_FINAL = {"simclr": "student.z.proj.out", "vicreg": "student.z.proj.out",

@@ -33,7 +33,7 @@ CLASSES = ["tench", "springer", "cassette", "chainsaw", "church",
 INK, INK2, MUTED, GRID, SURF = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
 
 # PROTOCOL §3 h / z.final (mirrors adapters._NATIVE_ASM; pinned by adapter_selftest EXPECT_H).
-H = {"simclr": "student.h.gap", "byol": "student.h.gap", "vicreg": "student.h.gap",
+H = {"simclr": "student.h.cls", "byol": "student.h.cls", "vicreg": "student.h.cls",  # D-036: projector input (was GAP)
      "dino": "teacher.h.cls", "mae": "student.h.gap", "ijepa": "teacher.h.gap",
      "lejepa": "student.z.embed"}
 Z = {"simclr": "student.z.proj.out", "byol": "student.z.pred.out",

@@ -17,7 +17,7 @@ from sslgap.ckpt import adapters
 from sslgap.data import _Source, orbit_stack, read_manifest, seed_everything
 from sslgap.extract.extractor import _batch_spaces
 
-H = {"simclr": "student.h.gap", "byol": "student.h.gap", "vicreg": "student.h.gap",
+H = {"simclr": "student.h.cls", "byol": "student.h.cls", "vicreg": "student.h.cls",  # D-036: projector input (was GAP)
      "dino": "teacher.h.cls", "mae": "student.h.gap", "ijepa": "teacher.h.gap",
      "lejepa": "student.z.embed"}
 Z = {"simclr": "student.z.proj.out", "byol": "student.z.pred.out",

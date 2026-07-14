@@ -21,9 +21,9 @@ MANIFEST, SPACE = "in100.train500.v1", "student.z.embed"
 # G-wave (D-028/D-030): per-run space map — vicreg floor trained at student trunk-GAP; dino floor
 # trains student global-crop CLS while the AUDITED h is teacher.h.cls (score both, labeled).
 # Controls e12gvc/e12gdc are the PRIMARY comparators; original lanes demote to reference rows.
-G_RUNS = [("in100.vicreg.s0.e12gv.ext", "student.h.gap"),
-          ("in100.vicreg.s0.e12gvc.ext", "student.h.gap"),
-          ("in100.vicreg.s0.ext", "student.h.gap"),
+G_RUNS = [("in100.vicreg.s0.e12gv.ext", "student.h.cls"),  # D-036: projector input (was GAP)
+          ("in100.vicreg.s0.e12gvc.ext", "student.h.cls"),
+          ("in100.vicreg.s0.ext", "student.h.cls"),
           ("in100.dino.s0.e12gd.ext", "teacher.h.cls"),
           ("in100.dino.s0.e12gd.ext", "student.h.cls"),
           ("in100.dino.s0.e12gdc.ext", "teacher.h.cls"),

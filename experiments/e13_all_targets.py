@@ -25,12 +25,12 @@ from scipy.spatial.distance import pdist
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 FIGD = f"{ROOT}/results/figures/e13_targets"
 
-TARGETS = {"byol": ("in100.byol.s0.ext", "student.h.gap"),
-           "simclr": ("in100.simclr.s0.ext", "student.h.gap"),
+TARGETS = {"byol": ("in100.byol.s0.ext", "student.h.cls"),  # D-036: projector input
+           "simclr": ("in100.simclr.s0.ext", "student.h.cls"),
            "lejepa": ("in100.lejepa.s0.ext", "student.z.embed"),
            "ijepa": ("in100.ijepa.s0.ext", "teacher.h.gap"),
            "dino": ("in100.dino.s0.ext", "teacher.h.cls"),
-           "vicreg": ("in100.vicreg.s0.ext", "student.h.gap"),
+           "vicreg": ("in100.vicreg.s0.ext", "student.h.cls"),  # D-036: projector input
            "mae": ("in100.mae.s0.ext", "student.h.gap")}
 ZOO = {r: s for r, s in RANKED.items() if "deitlite" not in r}   # 19 checkpoints
 D_M, SEED = PRIMARY[0], 1312                                     # primary-cell conventions
