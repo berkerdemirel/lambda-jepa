@@ -648,3 +648,12 @@ Predictions (pre-registered):
 - **gv2-P4:** head empirical Lipschitz on the real path (cls→tap1) tamer than gvc's.
 Discipline: fixed λ (known term, f2/gv lineage — no pull measurement needed); 2-ep smoke on
 slotE (first training of the h_tap=cls code path alone) → 3×8h chain.
+
+**e12gvcls λ measurement + corrected-Lipschitz datum (2026-07-14, jobs 62298737/62298738).**
+CLS-placement pulls: g_h_moment 6.537 (1.8× the gap placement's 3.664 — echoes dino's cls/gap
+= 2.0) · g_h_inv 1.0605 (3× gap's .357) · inv/var/cov reproduce the gvi batch (internal
+consistency ✓). **Launch dose: `+method.h_inv=0.9790`** (10%-pull rule at CLS); floor λ=.02
+fixed (Berker). Corrected head-Lipschitz (real path cls→tap1): gv arm .547 vs gvc .838 — the
+1.5× taming SURVIVES the correction at reduced magnitude (was 3.7× on the invalid gap ratio),
+and it occurred with the floor off-path at GAP: trunk-propagated. Deeper segments identical
+(1.438/1.436, 5.833/5.825). Figure/CSV regenerated in place.
