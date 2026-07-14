@@ -586,3 +586,11 @@ Predictions (pre-registered):
 - Watch-item (open direction, from f7's live datum): the h-floor equilibrium under the pull —
   f7's floor RECOVERED calibration (2.1→1.4 by ep57); record vicreg's direction.
 Discipline: pull measurement → dose recorded here → 2-ep dose smoke on slotC → 3×8h chain.
+
+**e12gvi λ measurement (2026-07-14, job 62298401; e12h_pull.csv).** Unweighted encoder pulls:
+g_inv .4155 (×w_inv 25 = 10.39 weighted) · g_var .6581 (×25 = 16.45) · g_cov 35.66 (×1) ·
+g_h_moment 3.664 (×.02 = .0733 — the gv floor runs at 0.7% of the weighted inv pull; lejepa
+2.2%, dino 8.8%: the T7 equal-pull caveat fully quantified) · g_h_inv .3572.
+**Launch dose: `+method.h_inv=2.9087`** (10%-of-shipped-inv-pull rule: .10×25×.4155/.3572).
+Raw observation: cov dominates the encoder pull at init (35.7 of ~63 total weighted). Single
+2-ep smoke at the launch dose covers code path + dose (first vicreg h_inv smoke).
