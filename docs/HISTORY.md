@@ -256,3 +256,56 @@ Direction set by Berker: FOLLOW PIVOT next (rung-1 / MVI-training pre-registrati
 while the G-wave lands. Process note: three pre-registered sub-predictions failed informatively
 (P2 photo-finish, P3 affine-forgiveness, P5 D_m-saturation) — the pre-registration discipline is
 what makes those failures data.
+
+## 2026-07-13 — PIVOT training rung: E15 (marginal MVI) and E16 (dense rebuild) KILLED; the distillation-ceiling lesson (D-032…D-034)
+
+E15 — the first PIVOT-native training (two H100 arms, pre-registered) — hit Berker's "loss too
+small, not enough tension" flag at ~ep71; forensics: `pred_over_varz` below the constant-h floor
+since ep10 (h genuinely image-predictive), but the 2-draw target-noise estimate gave
+E Var(z|image)=.000434 ⇒ perfect-image residual bound .300 — arm A had mined ~80% of the
+extractable target with the online probe flat at ~.35. KILLED ep74: the pooled-h.gap /
+position-marginal instantiation had collapsed the position-indexed conditional-law family to its
+scene-average (~32 effective target dims, 30% draw noise). Salvage: head-less direct regression
+is STABLE without EMA/projector; the target-budget toolkit became the D-033 METHOD RULE. E16 —
+the position-conditioned dense rebuild (§6.1; e16a local, e16b +global anchor) — passed its gate
+(C_pos−C_gist=+.068), smoked at 26× the tension floor, mined the target far deeper (residual
+.26–.31 vs E15's .44) — and plateaued at the SAME ~.35. KILLED ep66/60 (Berker: "this turns into
+a distillation setting where we try to recover mae semantics which is not even good"). Lessons:
+(i) probe-invariance under deeper target extraction is the signature of a CONTENT ceiling, not
+an optimization problem; (ii) the budget gate verified that position-information EXISTS but
+never checked the ceiling against the zoo (C_pos .510 < vicreg's own h .58) — "beat the zoo's
+best h or be self-referential" is the missing inequality (D-033 amendment PROPOSED 07-14).
+En-route audits worth keeping: frozen target = scale anchor; the var floor is load-bearing
+(~90% of steps active); bf16 contributes 0.5% of residual at ratio .5.
+
+## 2026-07-13/14 — G-wave concluded (T7/T8); instrument corrections; the H-wave (5 arms); h REDECLARED (D-036)
+
+G-wave scored against the matched controls: the moment-KL floor is a method-general
+kNN-favoring conditioner (T7 — λ selected ONCE, on lejepa, transplanted untuned to vicreg/dino
+at partial enforcement) and the two-space headline (T8): calibrated h wins essentially every
+h-side stress dimension (control cones removed: negative-pair cosine .84→.00 vicreg) while the
+floor is INVISIBLE at z — arm≈control across battery, V=8 invariance, and converged probes;
+depth ladders show conditioning relocated into the TRUNK with the head's trajectory untouched.
+T9 (instrument rows: monitor bias, margin-vs-ratio coupling) left OPEN by Berker. The vicreg
+monitor sign flip's aug-input mechanism was tested and REFUTED (offline converged probes on the
+monitor's own view distribution stay negative). New standing instruments: V=8 orbit stores at
+the E02 ladder taps + per-layer v1L eval stores (six ckpts); head-Lipschitz (per-segment
+view-pair stretch + weight spectral norms) — arm heads tamer exactly at the segment touching
+the floored tap, deeper segments numerically IDENTICAL; dino's bottleneck pocket now on three
+instruments. Berker's wiring catch: vicreg's projector consumes CLS while the audited h was GAP
+— gv had calibrated a tap the loss never eats, the vicreg Lipschitz "first segment" was not a
+computed path (corrected: cls→tap1, 1.5× taming, trunk-propagated), and CLS out-probes GAP on
+ALL three F1 methods (+1.6…+5.3 lin, +7…+15.7 knn) ⇒ **h REDECLARED = the input of the
+projection (D-036; execution owed next session)**. E13 extension: every zoo method as the
+D_read target — ranking power tracks target quality (dino −.91; T=mae −.62 reproduces E13-T1
+exactly) and the affinity knockout is clean (lejepa −.43 full-zoo → −.98 family-excluded).
+H-wave launched (D-035): gd2 (dino floor CLS+GAP, gap dose pull-matched .0401) · f7 (f2 +
+h_inv=.8478 at embed; its floor RECOVERED under the pull, 2.1→1.4 by ep57) · gv2 (floor at CLS
+— "the fixed gv") · gvcls (floor+inv at CLS, h_inv=.9790) · gvi (floor+inv at GAP; HELD after
+smoke: half-pace probe, floor above the control-free level). Doses via the generalized per-term
+pull convention (e12h_pull.py; assists at 10% of the shipped invariance pull) — the
+coefficient-vs-pull lesson again: "very small" landed at coefficients .85–2.9 because the
+assist terms' raw gradients are 3–9× weaker than the reference. Process lessons: smoke WHAT YOU
+LAUNCH (dose-dependent risk forced second smokes at measured λ); a rising floor in a 2-ep smoke
+is tension, not collapse (f7's chain recovered it); the floor's relative pull at equal nominal
+λ spans 0.7%/2.2%/8.8% across methods — nominal λ is not a cross-method dose.
