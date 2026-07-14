@@ -626,3 +626,25 @@ Predictions (pre-registered):
   gains vanish, gv's story was tap-local — either way the gv interpretation gets revised here.
 Discipline: pull measurement (CLS config) → dose recorded → 2-ep dose smoke on slotD → 3×8h
 chain. Floor equilibrium + var/cov interaction = watch-items; kill-trigger standing.
+
+### H-wave fifth arm — e12gv2, the FIXED gv (Berker 2026-07-14: "launch a fixed gv as well. it
+### is important."; PRE-REGISTERED before numbers)
+
+**e12gv2** = vicreg M2 config (bs 256) + moment-KL floor at **CLS only** (λ=.02, the gv dose at
+the corrected placement; NO h_inv). The missing single-factor cell: gv2−gvc isolates the floor
+at the head's real input; gv2−gv isolates placement alone; gvcls−gv2 isolates the added inv
+term. Monitor stays at audited GAP. Slot `h100-slotE` (fifth concurrent H100, user-directed).
+Dino/lejepa checked for the same mistake: NOT present (dino's floor sat on student CLS = its
+head input; lejepa's on embed = its projector input) — vicreg-only issue (audited h GAP ≠ head
+input CLS, F1 port flag).
+
+Predictions (pre-registered):
+- **gv2-P1:** the T7 tap-local signature appears at CLS (kNN gain concentrated at CLS; any
+  small linear tax local to CLS).
+- **gv2-P2 (the gv-interpretation stake):** direction of the audited-GAP readouts vs gvc is the
+  decisive datum — if GAP improves (trunk propagation), gv's story generalizes
+  placement-robustly; if not, gv was tap-local conditioning of the audit space.
+- **gv2-P3:** z-side invisibility persists (T8).
+- **gv2-P4:** head empirical Lipschitz on the real path (cls→tap1) tamer than gvc's.
+Discipline: fixed λ (known term, f2/gv lineage — no pull measurement needed); 2-ep smoke on
+slotE (first training of the h_tap=cls code path alone) → 3×8h chain.
