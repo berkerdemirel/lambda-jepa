@@ -604,7 +604,9 @@ c005/c010/c015 ep100 ckpts available for converged scoring when we resume.
 - **E17-T5 — vicreg's own term removes the cone only indirectly and dose-hungrily; at 6× it
   joins the winners. [CORRECTED same-day — the bullet first drafted here used ep15
   extrapolations ("can only dilute", "needs 15–20×", rand ".264", probes flat); the CONVERGED
-  c015 numbers refute that draft. Correction owned; re-confirmation requested on this bullet.]**
+  c015 numbers refute that draft. Corrected wording CONFIRMED by Berker 2026-07-17 ("perfect now
+  i agree") with the label: mean-agnostic ⇒ indirect-only removal (dilution + unattributed
+  drift), hence dose-hungry.]**
   var+cov is mean-blind (code fact, stands): its cone-removal is INDIRECT — at 6× the var hinge
   recruits centered variance to saturation (tr Σ 19.4→361.7 ≈ d), diluting the mean share to
   ~.12 by itself, and the residual mean additionally halves via un-modeled drift (‖μ‖² 48.7→20.8;
