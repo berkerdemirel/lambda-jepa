@@ -49,6 +49,12 @@ DEFAULT_BATTERY = [
     MetricSpec("alpha", _spectrum_metric(spectra.power_law_alpha), boot="spectral"),
     MetricSpec("epps_pulley", lambda X, seed=0: isotropy.epps_pulley(X, seed=seed),
                dim_sensitive=True, gauss_null=True, boot="spectral"),
+    # D-040 ISO-ladder v2: the moment component of KL(P||N(0,I)) exactly (location + Stein
+    # spectrum, logdet barrier) + the CLT-immune radial law. Nulls give the finite-sample floors.
+    MetricSpec("gauss_kl_full", lambda X, seed=0: isotropy.gauss_kl_full(X),
+               l2_variant=False, gauss_null=True, boot="spectral"),
+    MetricSpec("radial_gauss", lambda X, seed=0: isotropy.radial_gauss(X, seed=seed),
+               l2_variant=False, gauss_null=True, boot="spectral"),
     MetricSpec("kurt_topeig",
                lambda X, seed=0: {"mean": float(spectra.top_eigvec_excess_kurtosis(X).mean()),
                                   "worst": float(np.abs(spectra.top_eigvec_excess_kurtosis(X)).max())},

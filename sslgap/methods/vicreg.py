@@ -81,6 +81,16 @@ class VICReg(SSLMethod):
             h_loss = self.floor(h_feat)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
+        # E17 h-pull (D-039): a small copy of vicreg's OWN non-collapse term at h (var+cov, the
+        # method's actual regularizer, NOT the E12 moment-KL proxy), per-view at the declared tap
+        # with the shipped 25:1 var:cov ratio kept internal; h_lamb is the overall dose. Logged
+        # split (h_var/h_cov) so the pull measurement can dose the bundle. z-side terms untouched.
+        elif self.cfg.get("h_reg") == "varcov":
+            hv = h_feat.reshape(N, V, -1)
+            h_var = variance_term(hv[:, 0]) + variance_term(hv[:, 1])
+            h_cov = covariance_term(hv[:, 0]) + covariance_term(hv[:, 1])
+            loss = loss + self.cfg.h_lamb * (self.cfg.w_var * h_var + self.cfg.w_cov * h_cov)
+            terms["h_var"], terms["h_cov"] = h_var, h_cov
         # H-wave (D-035): tiny ADDITIVE view-invariance pull at the same h tap — functional form
         # and 10%-pull rule as lejepa's h_inv. gvi = gap placement (off-path), gvcls = cls.
         h_inv = self.cfg.get("h_inv", 0.0)

@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.out,cka_linear,cross,0.9554364568449711,,,50000,512x16,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.out,neighbor_jaccard,cross,0.7045786468433527,,,50000,512x16,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.out,procrustes_distance,cross,0.18330352743976447,,,50000,512x16,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.out,knn_label_agreement,cross,0.767,,,50000,512x16,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap1,cka_linear,cross,0.9812058139891768,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap1,neighbor_jaccard,cross,0.8225834831834833,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap1,procrustes_distance,cross,0.3216066605280976,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap1,knn_label_agreement,cross,0.8428,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap2,cka_linear,cross,0.9717785160374377,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap2,neighbor_jaccard,cross,0.7447567432567433,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap2,procrustes_distance,cross,0.399791855570357,,,50000,512x2048,none
+in100.lejepa.s0.hpull_sigreg_inv.ext,in100.train500.v1L,student.z.embed~student.z.proj.tap2,knn_label_agreement,cross,0.791,,,50000,512x2048,none

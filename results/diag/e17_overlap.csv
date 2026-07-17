@@ -1,0 +1,16 @@
+method,tag,run,space,med_r,med_d_intra,overlap,frac_touch,intra_over_inter
+lejepa,ctrl,in100.lejepa.s0.e17c.ext,student.z.embed,0.1774,0.2739,0.661,0.8246,0.8827
+lejepa,sigreg,in100.lejepa.s0.hpull_sigreg.ext,student.z.embed,0.4672,0.53,0.8971,0.9802,0.917
+lejepa,sigreg_inv,in100.lejepa.s0.hpull_sigreg_inv.ext,student.z.embed,0.271,0.3553,0.7818,0.8772,0.9276
+lejepa_e12,C1,in100.lejepa.s0.e12c1.ext,student.z.embed,0.2114,0.3148,0.6825,0.8759,0.8887
+lejepa_e12,f2,in100.lejepa.s0.e12f2.ext,student.z.embed,0.6287,0.7363,0.8675,0.9967,0.9284
+lejepa_e12,f8_weak_inv,in100.lejepa.s0.e12f8.ext,student.z.embed,0.4992,0.6974,0.7342,0.9535,0.8948
+lejepa_e12,f7_strong_inv,in100.lejepa.s0.e12f7.ext,student.z.embed,0.4406,0.6566,0.6878,0.9122,0.8997
+simclr,ctrl,in100.simclr.s0.e17c.ext,student.h.cls,0.3319,0.4662,0.7149,0.9354,0.9495
+simclr,uniform,in100.simclr.s0.hpull_uniform.ext,student.h.cls,0.5429,0.7134,0.7731,0.9685,0.9242
+simclr,uniform_align,in100.simclr.s0.hpull_uniform_align.ext,student.h.cls,0.3876,0.5926,0.6594,0.8095,0.9018
+byol,ctrl,in100.byol.s0.e17c.ext,student.h.cls,0.226,0.2797,0.8094,0.9826,0.9643
+byol,align,in100.byol.s0.hpull_align.ext,student.h.cls,0.4164,0.5474,0.7673,0.9656,0.9354
+dino,ctrl,in100.dino.s0.e17c.ext,teacher.h.cls,0.5092,0.6509,0.7859,0.9816,0.932
+dino,protoce,in100.dino.s0.hpull_protoce.ext,teacher.h.cls,0.3811,0.4305,0.8768,0.9501,0.8488
+vicreg,ctrl,in100.vicreg.s0.e17c.ext,student.h.cls,0.2497,0.324,0.7761,0.9743,0.9235

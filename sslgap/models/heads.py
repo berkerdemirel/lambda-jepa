@@ -25,6 +25,24 @@ class DINOHead(nn.Module):
         return self.last(F.normalize(self.mlp(x), dim=-1))
 
 
+class DINOLinearHead(nn.Module):
+    """E17 h-pull (D-039): the small LINEAR prototype head at the backbone h — DINO's final stage
+    (L2-normalize then weight-normed prototypes) WITHOUT the MLP+bottleneck. "linear K_small"
+    (Berker 2026-07-15). Same `last`/`original0` structure as DINOHead so the ep0-freeze +
+    norm_last_layer gain-freeze logic (dino.on_epoch_start) applies unchanged."""
+
+    def __init__(self, in_dim=384, K=512, norm_last_layer=True):
+        super().__init__()
+        self.last = nn.utils.parametrizations.weight_norm(nn.Linear(in_dim, K, bias=False))
+        g = self.last.parametrizations.weight.original0
+        g.data.fill_(1.0)
+        if norm_last_layer:
+            g.requires_grad_(False)
+
+    def forward(self, x):
+        return self.last(F.normalize(x, dim=-1))
+
+
 class DinoHeadTaps(nn.Module):
     """z-taps through a DINOHead: post-GELU hiddens + the (raw) bottleneck. Prototype logits
     (K up to 65k) are NOT emitted — recompute when a metric needs them:

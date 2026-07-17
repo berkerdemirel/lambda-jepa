@@ -660,3 +660,78 @@ fixed (Berker). Corrected head-Lipschitz (real path cls→tap1): gv arm .547 vs 
 1.5× taming SURVIVES the correction at reduced magnitude (was 3.7× on the invalid gap ratio),
 and it occurred with the floor off-path at GAP: trunk-propagated. Deeper segments identical
 (1.438/1.436, 5.833/5.825). Figure/CSV regenerated in place.
+
+### H-wave sixth arm — e12f8, the SHAPE-DOMINANT lejepa (Berker 2026-07-14: "h invariance pull for lejepa was dominating the kl moment shape regularization part … redo that experiment where shape is more important than h_inv pull"; PRE-REGISTERED before numbers)
+
+**Observation that motivates it (from the e12h h-vs-z figure, RAW):** in f7 the h_inv pull dominated
+the moment-KL floor at the embed — weighted inv pull 0.042·... = 0.8478·g_h_inv(0.467) = **0.396**
+vs the floor pull 0.02·g_h_moment(4.362) = **0.087** (inv : floor = **4.5:1**), and the embed
+DE-CALIBRATED: moment-KL 0.583(c1)→0.043(f2)→**0.976**(f7), Epps-Pulley 454→42→165, excess-kurt
+2.68→0.51→**12.1**, while embed invariance rose 0.391→0.540→**0.754**. So f7 bought h-invariance by
+spending h-gaussianity.
+
+**e12f8** = the f7 command verbatim + **h_inv reduced 0.8478 → 0.042** (nothing else changes; floor
+`h_lamb=0.02` kept). This flips the dominance to **floor : inv = 4.5:1** — the exact mirror of f7's
+inv-dominant 4.5:1 (same magnitude, reversed). Doses grounded in e12h_pull.csv (per-unit grad norms
+are init-determined, so f7's g_h_moment=4.362 / g_h_inv=0.467 apply to f8): inv pull 0.042·0.467 =
+0.0196 = floor pull 0.087 / 4.5. One H100 (slot `h100-slotF`, user-authorized "use one h100").
+
+Pre-registered directional predictions:
+- **f8-P1 (calibration holds):** embed moment-KL stays LOW — near f2's 0.043, NOT f7's 0.976;
+  Epps-Pulley near f2's ~42 not 165; worst excess-kurt near f2's ~0.5 not 12. The dominant floor
+  holds the embed's gaussianity.
+- **f8-P2 (partial invariance):** embed cos_margin rises above f2 (0.540) but stays below f7 (0.754)
+  — the small inv pull buys *some* invariance that the dominant floor permits.
+- **f8-P3 (best-of-both probe test):** embed linear/knn ≥ f2 (f2: lin 65.8 / knn 60.6). If the
+  small inv assist adds probe value WITHOUT the de-calibration cost, shape-dominant is the better
+  balance; if probes ≈ f2, the inv at this dose is inert.
+- **f8-P4 (head burden):** projector inv-jump (proj.out − embed cos_margin) and head operator
+  Lipschitz (σ_max) both between f2 and f7.
+Discipline: known f7 code path, inv 20× smaller (collapse risk strictly lower than f7); 2-ep smoke →
+3×8h chain; grad_norm kill-trigger standing; watch-item — does the floor hold the embed moment-KL
+low through training (the f7 failure was a late rise)?
+
+### H-WAVE SCORING — COMPLETE except gd2-P4 (2026-07-16; raw + mechanical vs pre-reg; `experiments/e12h_score.py`; NO takeaway)
+
+First-pass gd2/f7 numbers unchanged (gd2-P1 ✓ knn +2.9 cls / +12.2 gap; gd2-P2 both-pinned removes
+the gd asymmetry at a −2.0/−1.9 lin cost; gd2-P3 pocket PERSISTS, teacher bottleneck diag-KL
+.478→1.78; f7-P1 ✓ +21.3; f7-P2 ✓ jump .373→.163; f7-P3 MIXED (embed→tap1 1.443 > f2 .341);
+f7-P4 knn −2.9 / lin +2.2). New this pass:
+
+**f8 (shape-dominant, floor:inv 4.5:1):**
+- P1 PARTIAL: embed diag-KL .143 (~f2 .043, NOT f7 .976 ✓); EP 58.7 (f2 42.5, f7 164.7 ✓);
+  **kurt_worst 7.11 — the worst direction is NOT held** (f2 0.51, f7 12.08): bulk calibration holds,
+  worst-direction doesn't.
+- P2 ✓ exactly: margin@embed .693 ∈ (f2 .540, f7 .754).
+- P3: **lin 67.0 = +1.2 vs f2, +2.4 vs c1 — the best lejepa linear measured**; knn200 60.2 = −0.4 vs
+  f2 (+7.1 vs c1) → the shape-dominant mix keeps f2's kNN while adding f7's lin gain.
+- P4 ✓ direction: inv-jump .223 ∈ (f7 .163, f2 .373); seg-stretch embed→tap1 .549 ∈ (f2 .341,
+  f7 1.443); head σmax (raw-orig scale — E12-lane heads are spec_norm-parametrized, effective
+  σmax=1 by construction; reader fixed 07-16): f8 [8.44, 20.19, 2.2] between f2 [10.58, 20.54,
+  2.18] and f7 [6.37, 16.6, 1.75] per-layer ✓ — monotone in inv dose.
+
+**gv2 (floor@CLS only) vs gvc — the CLS placement matrix:**
+- P1 ✓ T7 tap-local at CLS: knn +2.4, lin +0.1.
+- **P2 DECISIVE (the gv-interpretation stake): audited-GAP readouts do NOT propagate** — gap lin
+  −1.5 / knn −0.7 vs gv's gap +6.1 knn ⇒ per the pre-registered stake, gv's audited-gap gains were
+  TAP-LOCAL conditioning of the measured space, not trunk improvement. gv reinterpretation
+  triggered (discussion owed).
+- P3 ✓ z-side invisibility (proj.out Δ +0.1/+0.1). P4 ✓ cls→tap1 .478 < gvc .838.
+- **NOTABLE (mechanical): floor-ONLY gv2 drives the head inv-jump +.474→+.005** with margin@cls
+  .215→.684 — no inv term involved; the mean-seeing floor removes the CLS cone by itself
+  (cross-validates E17's mean-carried-cone datum; the own var+cov could not — E17 T5 lane).
+
+**gvcls (floor+inv@CLS) vs gvc/gv2:**
+- P1: inv-jump +.0105 ≈ gv2's +.0048 — no extra shrink (the floor had already zeroed it).
+- P2: cls lin +0.5 / knn +2.3; gap lin +1.4 / knn +1.7 — the added inv contributes ≈ nothing over
+  gv2 (knn +2.3 vs +2.4), consistent with the E17 +inv pattern.
+- P3 ✗ MISS (recorded): cls→tap1 .807 NOT ≤ gv .547. P4 ✓ (+0.6/+0.4).
+- Placement contrast gv2−gv: cls knn +1.4, gap knn −6.8 (each tap gains when floored, loses when
+  the floor moves away — tap-local both ways).
+
+**gd2-P4 LANDED (2026-07-16):** gd/gdc val-side stores lacked L-taps (probe.py probes train∩val
+spaces) → re-extracted as `in100.dino.s0.e12gd{,c}.ext2` (jobs 62379959–62; sanity: gdc.ext2
+teacher-CLS lin 69.1/knn 59.8 reproduces). Teacher mid-trunk linear Δ vs gdc: **gd2 −0.9 / +1.6 /
+−1.9 at L03/06/09 vs gd −3.0 / −5.1 / −3.6** (matches the remembered −2.9/−5.2/−3.5) — the
+CLS-only floor's mid-trunk deficit largely VANISHES when both trunk readouts are floored.
+(P4 was pre-registered open, "record both outcomes".)

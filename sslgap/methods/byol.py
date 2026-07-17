@@ -21,6 +21,10 @@ def byol_mlp(in_dim, hidden=4096, out_dim=256):
                          nn.Linear(hidden, out_dim))
 
 
+def byol_h_predictor(dim=384):                # E17: byol's predictor at h, minimal (a linear map)
+    return nn.Linear(dim, dim)
+
+
 class BYOL(SSLMethod):
     name = "byol"
 
@@ -31,17 +35,23 @@ class BYOL(SSLMethod):
         pred = byol_mlp(self.cfg.out_dim, self.cfg.pred_hidden, self.cfg.out_dim)
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
         t_proj = copy.deepcopy(proj).requires_grad_(False)
-        return nn.ModuleDict({"backbone": trunk, "projector": proj, "predictor": pred,
-                              "teacher_backbone": t_trunk, "teacher_projector": t_proj})
+        mods = {"backbone": trunk, "projector": proj, "predictor": pred,
+                "teacher_backbone": t_trunk, "teacher_projector": t_proj}
+        if self.cfg.get("h_align", 0.0):      # E17: linear predictor at h (byol's own mechanism)
+            mods["h_predictor"] = byol_h_predictor(384)
+        return nn.ModuleDict(mods)
 
     def arch(self):
         mlp = lambda i, h: {"class": "sslgap.methods.byol.byol_mlp",
                             "kwargs": {"in_dim": i, "hidden": h, "out_dim": self.cfg.out_dim}}
-        return {"backbone": trunk_arch(self.frame, self.cfg.drop_path),
-                "projector": mlp(384, self.cfg.proj_hidden),
-                "predictor": mlp(self.cfg.out_dim, self.cfg.pred_hidden),
-                "teacher_backbone": trunk_arch(self.frame, self.cfg.drop_path),
-                "teacher_projector": mlp(384, self.cfg.proj_hidden)}
+        a = {"backbone": trunk_arch(self.frame, self.cfg.drop_path),
+             "projector": mlp(384, self.cfg.proj_hidden),
+             "predictor": mlp(self.cfg.out_dim, self.cfg.pred_hidden),
+             "teacher_backbone": trunk_arch(self.frame, self.cfg.drop_path),
+             "teacher_projector": mlp(384, self.cfg.proj_hidden)}
+        if self.cfg.get("h_align", 0.0):
+            a["h_predictor"] = {"class": "sslgap.methods.byol.byol_h_predictor", "kwargs": {"dim": 384}}
+        return a
 
     def build_train_dataset(self):
         return ViewsDataset(self.frame.dataset, "train", V=2, img_size=self.frame.img_size,
@@ -50,8 +60,10 @@ class BYOL(SSLMethod):
 
     def param_groups(self, modules):
         student = ("backbone", "projector", "predictor")
-        return [{"params": [p for k in student for p in modules[k].parameters()],
-                 "lr": self.cfg.lr, "weight_decay": self.cfg.wd}]
+        params = [p for k in student for p in modules[k].parameters()]
+        if "h_predictor" in modules:          # E17: the h-predictor is student-side, trainable
+            params += list(modules["h_predictor"].parameters())
+        return [{"params": params, "lr": self.cfg.lr, "weight_decay": self.cfg.wd}]
 
     def build_scheduler(self, optimizer, steps_per_epoch, total_steps):
         return house_scheduler(optimizer, steps_per_epoch, total_steps,
@@ -69,9 +81,22 @@ class BYOL(SSLMethod):
             ht = modules["teacher_backbone"].forward_features(views.flatten(0, 1))[:, 0]
             zt = modules["teacher_projector"](ht).reshape(N, V, -1)
             self._t_std = zt.reshape(-1, zt.shape[-1]).float().std(0).mean().item()
-        loss = self._regress(q[:, 0], zt[:, 1]) + self._regress(q[:, 1], zt[:, 0])
+        regress = self._regress(q[:, 0], zt[:, 1]) + self._regress(q[:, 1], zt[:, 0])
+        loss, terms = regress, {"regress": regress}
+        # E17 h-pull (D-039): byol's OWN mechanism at h — a small LINEAR predictor maps student
+        # trunk-CLS to predict the stop-grad EMA-teacher trunk-CLS, cross-view (Berker 2026-07-15:
+        # "add a linear to its h and do the pull there"). The direct/no-predictor version was inert
+        # (student-CLS ~= teacher-CLS at h, 0.999 same-view); the predictor is byol's actual
+        # asymmetry, so the pull is measured/applied through it. Additive small dose on the z-loss.
+        h_align = self.cfg.get("h_align", 0.0)
+        if h_align:
+            ph = modules["h_predictor"](tok[:, 0]).reshape(N, V, -1)
+            th = ht.reshape(N, V, -1)
+            ha = self._regress(ph[:, 0], th[:, 1]) + self._regress(ph[:, 1], th[:, 0])
+            loss = loss + h_align * ha
+            terms["h_align"] = ha
         probe_feats = tok[:, 0].detach()             # monitor = declared h (projector-input CLS, D-036); _best aligns to audit
-        return ({"loss": loss}, probe_feats, V)
+        return ({"loss": loss, **terms}, probe_feats, V)
 
     def post_step(self, modules, step, total_steps):
         m = ema_momentum(step, total_steps, self.cfg.ema_base)

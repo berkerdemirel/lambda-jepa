@@ -54,6 +54,16 @@ readout; where it does not, the two readouts carry EQUAL weight and are reported
 rand-cos panel is always shown as the referee either way.
 Alignment/invariance glyphs are scored on the margin, never on the raw pair value alone.
 
+**Decomposition convention (Berker 2026-07-14, extends D-037):** `cos_margin` is NEVER reported
+alone — its two components are shown *with* it: `pos_cos` (same-image view alignment = the actual
+invariance) and `rand_cos` (random-pair cosine = the cone/anisotropy). The margin is a *difference*,
+so reading it alone conflates the two. Decomposing the h-side controls (2026-07-14): the backbone's
+positive-pair alignment stays HIGH (pos_cos ≈0.92 vicreg / 0.94 lejepa at h, ≥ its z value) while
+the low h-margin is the high cone (rand_cos 0.55–0.70); the h→z margin jump is the cone collapsing,
+NOT alignment appearing. So **"the backbone is not invariant" is a misreading of the margin** — h is
+aligned, just anisotropic. Report the (pos_cos, rand_cos, cos_margin) triple wherever invariance is
+shown (H-wave figs `results/figures/e12h/` do this).
+
 ## Spread / anti-collapse
 
 ### `uniformity`
@@ -194,3 +204,24 @@ relations in OUR two-space setting** (per space × per family, under shift). M0'
 `results/M0/metric_vs_probe.csv` gives exploratory rank correlations across the M0 spaces —
 **non-evidential** (few models, one seed, layer-spaces are not independent); it exists to build
 intuition for E3's design, nothing more (D-010).
+
+## ISO-ladder v2 additions (D-040, 2026-07-17; Berker-approved "simple implementations")
+
+- **`gauss_kl_full`** (`isotropy.gauss_kl_full`; subkeys `total/location/spectrum`): the exact
+  MOMENT component of KL(P‖N(0,I)) via the Pythagorean split KL(P‖N(0,I)) = KL(P‖P_G) +
+  KL(P_G‖N(0,I)) — a two-Gaussian log-ratio is quadratic, so only (μ,Σ) enter; machine-checked
+  cluster-blind (its gauss-null row equals the data row identically). `location` = ‖μ‖²/2d (the
+  cone as a first-class number); `spectrum` = Stein/Burg divergence Σ(λ−1−log λ)/2d, eigenvalues
+  shrunk by 1e-3·mean (logdet barrier alive). Deliberately scale-sensitive (calibration
+  instrument). CAVEAT: a per-dim-calibrated rank collapse (λ ≈ 0.1–0.2, unit diagonal — E17
+  sigreg_inv) reads only mildly elevated — this COMPLEMENTS effrank, it does not replace it.
+- **`radial_gauss`** (`isotropy.radial_gauss`; subkeys `var_ratio/mean_ratio`): cross-fit radial
+  law — whitening moments from one half, r² = ‖W(x−μ)‖² on the held-out half; var_ratio =
+  Var(r²)/2d, mean_ratio = mean(r²)/d. Rotation-invariant and CLT-immune (reads shells vs
+  clumped mixtures where sliced tests get fooled at high rank). Finite-sample whitening bias is
+  systematic ⇒ **read BOTH subkeys against the battery's gauss_null row** (EP precedent), never
+  against the analytic χ²_d (a KS-vs-χ² variant saturated and was dropped at validation).
+  Validation snapshot (data var_ratio / null): simclr ctrl 17.3/0.85 · uniform 16.4/0.90 ·
+  f2 5.7/0.71 · lejepa ctrl 0.80/0.13 · sigreg_inv 0.29/0.08 (most shell-compressed measured).
+Both registered in `DEFAULT_BATTERY` (l2_variant off, gauss_null on, spectral boot); they enter
+every future audit; historical stores gain them on their next battery pass.

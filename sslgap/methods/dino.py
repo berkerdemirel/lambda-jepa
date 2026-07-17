@@ -17,12 +17,16 @@ from sslgap.data import MultiCropDataset
 from sslgap.methods._common import MomentFloor, ema_momentum, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
-from sslgap.models.heads import DINOHead
+from sslgap.models.heads import DINOHead, DINOLinearHead
 from sslgap.models.vitops import ema_update, vit_tokens, vit_tokens_lowres
 
 
 def dino_head(in_dim=384, hidden=2048, bottleneck=256, K=4096, norm_last_layer=True):
     return DINOHead(in_dim, hidden, bottleneck, K, norm_last_layer)
+
+
+def dino_linear_head(in_dim=384, K=512, norm_last_layer=True):   # E17 h-pull: linear proto-head @h
+    return DINOLinearHead(in_dim, K, norm_last_layer)
 
 
 def dino_ce(t_logits, s_logits, center, t_temp, s_temp):
@@ -43,17 +47,31 @@ class DINO(SSLMethod):
         self.center = torch.zeros(self.cfg.K)
         if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
             self.floor = MomentFloor()
-        return nn.ModuleDict({"backbone": trunk, "projector": head,
-                              "teacher_backbone": t_trunk, "teacher_projector": t_head})
+        mods = {"backbone": trunk, "projector": head,
+                "teacher_backbone": t_trunk, "teacher_projector": t_head}
+        if self.cfg.get("h_protoce", 0.0):        # E17 h-pull (D-039): small linear proto-head @h
+            hK = self.cfg.get("h_K", 512)         # + its EMA-teacher copy (faithful mini-DINO)
+            hh = dino_linear_head(384, hK, self.cfg.norm_last_layer)
+            mods["h_head"] = hh
+            mods["teacher_h_head"] = copy.deepcopy(hh).requires_grad_(False)
+            self.h_center = torch.zeros(hK)
+        return nn.ModuleDict(mods)
 
     def arch(self):
         head = {"class": "sslgap.methods.dino.dino_head",
                 "kwargs": {"in_dim": 384, "hidden": self.cfg.head_hidden,
                            "bottleneck": self.cfg.bottleneck, "K": self.cfg.K,
                            "norm_last_layer": self.cfg.norm_last_layer}}
-        return {"backbone": trunk_arch(self.frame, self.cfg.drop_path), "projector": head,
-                "teacher_backbone": trunk_arch(self.frame, self.cfg.drop_path),
-                "teacher_projector": head}
+        a = {"backbone": trunk_arch(self.frame, self.cfg.drop_path), "projector": head,
+             "teacher_backbone": trunk_arch(self.frame, self.cfg.drop_path),
+             "teacher_projector": head}
+        if self.cfg.get("h_protoce", 0.0):        # E17: register the h-head for ckpt round-trip
+            hh = {"class": "sslgap.methods.dino.dino_linear_head",
+                  "kwargs": {"in_dim": 384, "K": self.cfg.get("h_K", 512),
+                             "norm_last_layer": self.cfg.norm_last_layer}}
+            a["h_head"] = hh
+            a["teacher_h_head"] = hh
+        return a
 
     def build_train_dataset(self):
         return MultiCropDataset(self.frame.dataset, "train", img_size=self.frame.img_size,
@@ -61,8 +79,10 @@ class DINO(SSLMethod):
                                 data_root=self.frame.data_root)
 
     def param_groups(self, modules):
-        return [{"params": list(modules["backbone"].parameters())
-                 + list(modules["projector"].parameters()),
+        params = list(modules["backbone"].parameters()) + list(modules["projector"].parameters())
+        if "h_head" in modules:                       # E17: the student h-proto-head is trainable
+            params += list(modules["h_head"].parameters())
+        return [{"params": params,
                  "lr": self.cfg.lr, "weight_decay": self.cfg.wd}]
 
     def build_scheduler(self, optimizer, steps_per_epoch, total_steps):
@@ -74,13 +94,18 @@ class DINO(SSLMethod):
         modules["projector"].train()
         modules["teacher_backbone"].eval()      # sslx control: teachers eval (kills drop_path
         modules["teacher_projector"].eval()     # stochasticity in targets; official DINO equiv.)
+        if "h_head" in modules:                 # E17: student h-head trains, its EMA teacher evals
+            modules["h_head"].train()
+            modules["teacher_h_head"].eval()
 
     def on_epoch_start(self, modules, epoch):
         # paper: prototype layer frozen during epoch 0; the weight-norm gain (original0) stays
         # frozen FOREVER when norm_last_layer=True (DINOHead init semantics).
-        for name, p in modules["projector"].last.named_parameters():
-            frozen_gain = self.cfg.norm_last_layer and name.endswith("original0")
-            p.requires_grad_(epoch > 0 and not frozen_gain)
+        heads = [modules["projector"]] + ([modules["h_head"]] if "h_head" in modules else [])
+        for hd in heads:
+            for name, p in hd.last.named_parameters():
+                frozen_gain = self.cfg.norm_last_layer and name.endswith("original0")
+                p.requires_grad_(epoch > 0 and not frozen_gain)
 
     def training_step(self, modules, batch_x, device, y=None):
         g, l = batch_x                                            # [N,2,C,G,G], [N,nl,C,L,L]
@@ -114,6 +139,20 @@ class DINO(SSLMethod):
                 g_loss = self.floor(s_tok[:, 1:].mean(1))   # readouts; gap dose = h_lamb_gap
                 terms["h_moment_kl_gap"] = g_loss           # (defaults to h_lamb)
                 loss = loss + self.cfg.get("h_lamb_gap", self.cfg.h_lamb) * g_loss
+        # E17 h-pull (D-039): dino's OWN clustering term at h — a small linear proto-head assigns
+        # student & EMA-teacher global-crop CLS; CE(centered+sharpened teacher assign || student
+        # assign) over the 2 global cross-view pairs (the falsifier: an assignment loss at h).
+        if self.cfg.get("h_protoce", 0.0):
+            with torch.no_grad():
+                t_h = modules["teacher_h_head"](t_tok[:, 0]).reshape(2, N, -1)
+            s_h = modules["h_head"](s_tok[:, 0]).reshape(2, N, -1)
+            hc = self.h_center.to(device)
+            h_pairs = [dino_ce(t_h[t], s_h[s], hc, self.cfg.t_temp, self.cfg.s_temp)
+                       for t in range(2) for s in range(2) if s != t]
+            h_ce = torch.stack(h_pairs).mean()
+            terms["h_protoce"] = h_ce
+            loss = loss + self.cfg.h_protoce * h_ce
+            self._t_h = t_h.detach()
         self._t_cls = t_cls.detach()
         # probe monitors the AUDITED branch (teacher CLS, PROTOCOL §3) so _best selection aligns
         # with what the audit evaluates; view-major [2N] -> image-major per the base.py contract
@@ -128,6 +167,11 @@ class DINO(SSLMethod):
         t = self._t_cls.reshape(-1, self.cfg.K).float()
         self.center = (self.cfg.center_m * self.center.to(t.device)
                        + (1 - self.cfg.center_m) * t.mean(0)).detach()
+        if "h_head" in modules:                   # E17: EMA the h-teacher-head + its own center
+            ema_update(modules["teacher_h_head"], modules["h_head"], m)
+            th = self._t_h.reshape(-1, self._t_h.shape[-1]).float()
+            self.h_center = (self.cfg.center_m * self.h_center.to(th.device)
+                             + (1 - self.cfg.center_m) * th.mean(0)).detach()
         with torch.no_grad():
             p = F.softmax((t - self.center) / self.cfg.t_temp, -1)
             ent_sample = -(p * p.clamp_min(1e-9).log()).sum(-1).mean() / math.log(self.cfg.K)
@@ -136,11 +180,16 @@ class DINO(SSLMethod):
                 "proto_used": protos}
 
     def extras(self):
-        return {"center_cls": self.center.cpu()}
+        e = {"center_cls": self.center.cpu()}
+        if hasattr(self, "h_center"):
+            e["h_center"] = self.h_center.cpu()
+        return e
 
     def load_extras(self, extras):
         if "center_cls" in extras:
             self.center = extras["center_cls"]
+        if "h_center" in extras:
+            self.h_center = extras["h_center"]
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):

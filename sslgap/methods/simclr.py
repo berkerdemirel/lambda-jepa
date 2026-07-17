@@ -27,6 +27,24 @@ def nt_xent(z, temp):
     return F.cross_entropy(sim, pos)
 
 
+def uniformity(x, t=2.0):
+    """Wang-Isola (2020) uniformity = log E_{i!=j} exp(-t||xi-xj||^2) on the sphere. SimCLR's OWN
+    non-collapse mechanism (negative repulsion) made explicit as a differentiable functional.
+    Squared distances via the inner-product identity (no sqrt -> no inf grad on the zero diagonal);
+    diagonal excluded by an out-of-place mask (in-place after exp breaks autograd)."""
+    x = F.normalize(x, dim=1)
+    n = x.size(0)
+    sq = (x.pow(2).sum(1, keepdim=True) + x.pow(2).sum(1) - 2 * x @ x.T).clamp_min(0)
+    w = torch.exp(-t * sq) * (1 - torch.eye(n, device=x.device))
+    return (w.sum() / (n * (n - 1))).log()
+
+
+def alignment(xa, xb):
+    """Wang-Isola alignment = E||xi_a - xi_b||^2 on positive pairs (normalized). SimCLR's OWN
+    invariance mechanism (positive attraction)."""
+    return (F.normalize(xa, dim=1) - F.normalize(xb, dim=1)).pow(2).sum(1).mean()
+
+
 class SimCLR(SSLMethod):
     name = "simclr"
 
@@ -60,8 +78,22 @@ class SimCLR(SSLMethod):
         z = modules["projector"](h[:, 0]).reshape(N, V, -1)               # loss input: CLS (trained)
         z = torch.cat([z[:, 0], z[:, 1]])                                 # [2N, d], i <-> i+N
         loss = nt_xent(z, self.cfg.temp)
+        terms = {"nt_xent": loss}
+        # E17 h-pull (D-039): simclr's OWN mechanism at h (declared CLS) — uniformity = its
+        # non-collapse (the softmax denominator / negatives), alignment = its invariance (the
+        # numerator / positives), as Wang-Isola functionals. Additive on the unchanged NT-Xent;
+        # weights are the 10%-pull doses. Both logged for the pull measurement.
+        hv = h[:, 0].reshape(N, V, -1)
+        if self.cfg.get("h_uniform", 0.0):
+            u = uniformity(hv.reshape(N * V, -1), t=self.cfg.get("h_unif_t", 2.0))
+            loss = loss + self.cfg.h_uniform * u
+            terms["h_uniform"] = u
+        if self.cfg.get("h_align", 0.0):
+            a = alignment(hv[:, 0], hv[:, 1])
+            loss = loss + self.cfg.h_align * a
+            terms["h_align"] = a
         probe_feats = h[:, 0].detach()               # monitor = declared h (projector-input CLS, D-036); image-major
-        return ({"loss": loss, "nt_xent": loss}, probe_feats, V)
+        return ({"loss": loss, **terms}, probe_feats, V)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):

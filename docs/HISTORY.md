@@ -390,3 +390,48 @@ output h, method-agnostic, +1–5%): the nearest neighbor to our premise, **NOT 
 our two-space audit / trunk-relocation mechanism / soft-diagonal-floor / placement all untouched;
 recorded as a post-report BIBLIOGRAPHY addition. **git push d662fa3** (all the above; slides/tarball/
 session-scaffolding deliberately left uncommitted).
+
+## 2026-07-16 — E17 landed: the desideratum-transfer matrix scored, interpreted, APPROVED (D-039); H-wave completed; the connectivity finding
+
+**The session that turned E17's raw numbers into the project's strongest result set.** Opened with
+a skeptical re-verification of the prior session's (different-model) work: every scoring number
+reproduced exactly; implementations faithful to the signed-off designs (one 2%-magnitude deviation
+logged: simclr uniformity pools both views). Then four instrument-building passes over the landed
+stores, each triggered by a Berker question, each becoming a card block: (a) **jump decomposition**
+— the head's margin jump is entirely rand-side, alignment contribution NEGATIVE in all non-dino
+controls; (b) **cone = mean** — rand_cos ≈ ‖μ‖²/E‖x‖² to 3 decimals everywhere, centered rand ≈ 0
+(⇒ vicreg's var+cov is mean-blind vs a mean-carried cone — derivation); (c) **centered probes** —
+our knn_v1 is weighted-cosine ⇒ mean-sensitive; eval-time centering recovers only +0.5–3.4 of the
+gains, every winner beats its centered control, f2 centering-insensitive (T7-continuity held);
+(d) **class-pair d′ + h~z gentleness + wandb final losses** — sigreg drops mean d′ −17% (the shape
+channel visible in class-contrast directions), f2 lifts the worst tail (p10 +15%); head-gentleness
+rises with total desideratum satisfaction but occupies all four {gentle,wild}×{good,bad} cells;
+final z-terms equal-or-worse everywhere except byol. **The connectivity finding (Berker: "one of
+the best findings we have so far"): augmentation-cloud touch% tracks kNN monotonically within
+every ±inv family** (C1→f2→f8→f7 = 87.6/99.7/95.3/91.2 touch vs 53.1/60.5/60.2/57.6 knn);
+threshold-like; figure `results/figures/e17/e17_touch_vs_knn.png`. **The f2 mechanism explanation
+(Berker: "one of the biggest wins"): safety (cluster-blind) × activity (rotation-swept,
+non-absorbable graded floor — per-eigen slope ½(1−1/λ) ⇒ ~65× weakest-first asymmetry at ε-dose;
+whitener at destination dose)**; f5/f2/A3/sigreg quadrangulate; higher moments stay data-driven
+(Varimax kurt .44). **T1–T7 APPROVED** (card §AGREED TAKEAWAY; D-039; theory doc verdict appended;
+reviewer report `docs/report/e17_desiderata_at_h_findings.md`).
+
+**H-wave scoring COMPLETED (owed since 07-14):** f8 = best-of-both (lin 67.0 — best lejepa linear
+measured — at f2's kNN; shape-dominant 4.5:1 is the favorable mixing corner); **gv2 settled the gv
+stake: GAP gains were tap-local** (gap knn −0.7 vs gv's +6.1; gv reinterpretation owed discussion);
+floor-only gv2 zeroes vicreg's head jump (+.474→+.005) — the mean-seeing/mean-blind contrast
+cross-validated; gvcls adds ≈ nothing over gv2 (P3 MISS recorded); gd2-P4 landed after
+val-store re-extraction (`e12gd{,c}.ext2`): both-tap flooring removes the mid-trunk deficit
+(gd2 −0.9/+1.6/−1.9 vs gd −3.0/−5.1/−3.6).
+
+**vicreg closed — WITH A CORRECTION OWNED IN-SESSION:** the takeaway bullet was first drafted from
+ep15 extrapolations ("can only dilute; needs 15–20×") and the converged c015 numbers refuted it
+minutes later — at 6×/ep100 the cone breaks (rand .035; var-hinge saturation tr→362≈d + residual
+mean halving) and vicreg JOINS the T7 winners (+4.4 knn). Bullet corrected on the card same-day,
+D-039 row carries the amendment flag, Berker re-confirmation requested. Lesson repeated: never
+extrapolate mid-training reads to convergence claims.
+
+**Session lesson (meta):** the strongest results came from instruments built to answer Berker's
+questions within the hour (cone decomposition, centered-kNN, d′, touch%) — cheap store-analyses,
+each < 30 min, each changing the interpretation. The expensive part of E17 was already paid; the
+understanding was in the cheap passes.
