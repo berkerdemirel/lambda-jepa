@@ -21,3 +21,6 @@
 - orbits/orbit_clouds.png
 - probes/probe_bars.png
 - probes/probe_guillotine.png
+- e17/e17_touch_vs_knn.png — the connectivity finding: cloud-touch% vs kNN, per-family paths (D-039/T4)
+- e17/e17_lejepa_hz.png · e17_simclr_hz.png · e17_byol_hz.png · e17_dino_hz.png — per-method 11-metric h/z panels
+- e17/e17_centered.png — mean-sensitive readouts raw vs centered (kNN, pos)
