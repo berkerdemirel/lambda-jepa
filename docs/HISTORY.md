@@ -630,3 +630,39 @@ wandb sampled histories starve sparse per-epoch keys (pull test rows with keys=)
 instruments: e19_diag_curves · e18_knot_residual · e20_curves · e20_centered · anatomy argv
 mode · traverse explainer (priority (ii) delivered). Session ran ~fully autonomously on
 watcher-chained mechanical batches; all raw, takeaways only where Berker stated them.
+
+## 2026-07-19b — the floorssl z-collapse day (E20 comparison pass + E18 mechanism + D-047/D-048)
+
+**Delivered:** (1) E20 comparison pass complete (card §Comparison pass): anatomy cadence
+over 32 ckpts (instrument grew dino multi-crop handling) — cone+scale won zoo-wide, aniso
+the contested channel, R ×2–3 (floor spends h-invariance), z untouched except simclr raw-z
+scale ×20; battery-vs-ctrl table + e20_score deep pass (inv-jump shrinks in the 4 winning
+lanes, INVERTS in dino — h-margin .537→.329) + class-pair d′ (moves OPPOSITE to probe
+deltas in both directions) + centered fig. (2) E18 owed mechanism: opposition grid (P-opp-A
+refuted — no gradient antagonism, |cos|≤.2; ν-swap rotates the CF gradient ≤.03) + inv-val
+phase plot (CF cells stall inv ON the control's val-per-inv line; floors +10 at matched
+inv). (3) Chain-handoff hardening: smoke→chain via SLURM-native afterok+singleton (the
+in-session watchers died with the previous session — ping-only, no losses).
+
+**The collapse:** both lejepa-V4 floorssl cells (bn + nobn heads) hit the pre-registered
+kill at ep3→4 via a SMOOTH info-starved equilibrium (inv sacrificed; no incident) while v2
+(same doses, byol pair) was healthy. Frame-bridge pull (hold v2_best, swap ONLY augs):
+g_inv −24% under lejepa V=4, floors frame-invariant; equal-pull re-dose (D-047: 32.8/43.8/
+.617) restored v2's 35% inv share and STILL collapsed one epoch later (laug2 .0944@3→
+.0728@4; nobn2 fell at 3) ⇒ **dose axis refuted under strong views**. D-048 fork response:
+nobn2/laug2 killed at their forks (no ep10 waits — Berker's no-wasted-compute directive);
+laug_eps launched (z-floor demoted to the certified 6% share; inv owns z 91%) = the
+deferred Z5 cell, running at close. Commensurability read behind Berker's inv concern:
+raw inv values are not cross-lane comparable — R at the loss space is; even HEALTHY v2
+runs R@z .61 vs f2's aligned .15, and healthy z spectra are anisotropic (vicreg 22% effrank,
+kurt 245) EXCEPT lejepa's proj (99.3% — fully isotropized at 2% share and still healthy).
+
+**Instrument/process lessons:** init pulls CANNOT see aug-family differences (measured:
+near-identical term values on a random trunk; the frame difference lives at formation
+states — bridge at a healthy formation state with augs swapped, the e21_pull pattern);
+MomentFloor's own E12 docstring warning ("destination weights scrub class structure") was
+the collapse's h-space precedent; the 2×2 synthesis (demand-type × share: every healthy
+cell is barrier×owner or shape×minority, every floorssl failure shape×owner) = the fix
+session's map, SESSION_OPENER.md. New instruments: e20_battery_table · e20_score ·
+e20_pair_dprime · e20_centered_fig · e21_curves · e21_pull (frame bridge) ·
+e18_opposition · e18_inv_phase.

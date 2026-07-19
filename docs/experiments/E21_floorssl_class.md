@@ -207,3 +207,14 @@ chain 62421497→498→499 (`e21-laug-eps`). Pre-registered: P-eps-A the inv-own
 (z-var → ≪.1, cls probe suffers despite own floor) · P-eps-C same collapse anyway (the
 strong-view family defeats the form regardless of ownership — the deepest read). Claude's
 pick: P-eps-A.
+
+**laug2 KILLED at ep4 (Berker confirms the fall; 2026-07-19 ~12:55):** ep4 .0728 < ep3
+.0944 — the v1 fork one epoch later, softer slope, same direction; chain 62421228-30
+cancelled. With nobn2's ep3 fall this closes the dose axis: **share restoration (the
+certified equal-pull correction, D-047) does NOT prevent the collapse under lejepa V=4 —
+dose alone is refuted; the question moves to the functional/structural level.** Berker
+directive: dedicated fix session; question = why do var+cov and sigreg work at z but
+MomentFloor does not (→ standalone floorssl). Evidence base + 2×2 synthesis
+(demand-type × share; all floorssl failures in shape×owner) + discriminating-experiment
+menu handed over in SESSION_OPENER.md. laug_eps (shape×minority, 91/6/3) left RUNNING —
+its ep3–6 is the next session's first read.
