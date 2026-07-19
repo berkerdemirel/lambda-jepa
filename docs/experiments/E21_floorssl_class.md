@@ -159,3 +159,51 @@ corrected doses refutes the loss FORM under strong-view families (dose ruled out
 certified correction). Late note for the record: the nobn v1 tail (post-collapse, ~ep5+)
 did eventually spike (grad max 7728 vs med 48, h_kl→1.03) — the BN-free instability
 appeared DOWNSTREAM of the shared dose failure, not as its cause; K1's ordering matters.
+
+**Commensurability read (Berker: "inv still doesnt look good, but i dont know how comparable
+the curves are to f2") — R = within-instance/total variance at each cell's loss space (the
+anatomy instrument's lane-free inv readout; raw inv VALUES are not cross-lane comparable —
+different dims/weights/normalization):**
+
+| cell | space | ep | R | pos-cos | per-dim var |
+|---|---|---|---|---|---|
+| f2 | proj (its aligned space) | 25 | **.151** | .826 | .83 |
+| lejepa ctrl | proj | 25 | .163 | .813 | .80 |
+| f2 | embed (its FLOOR space) | 25 | .561 | .468 | .92 |
+| v2_best (healthy, byol pair) | z | 6 | **.615** | .570 | .35 |
+| laug v1 (collapsed) | z | 2 | .944 | .405 | .29 |
+| **laug2 (re-dosed)** | z | 2 | **.920** | .421 | .24 |
+| **nobn2 (re-dosed)** | z | 2 | .903 | .147 | .24 |
+
+Structural datum: lejepa/f2 SPLIT the duties across spaces (floored embed R .56 · aligned
+proj R .15); floorssl presses floor+alignment on ONE z — and even the HEALTHY v2 runs at
+R@z .61, four times f2's aligned-space value. The eye-read "inv doesn't look good" is real
+on the commensurable scale and PREDATES the collapse (v2 carries it while climbing).
+Re-dosed cells at ep2: inv value bending (−17% vs v1 at matched ep4, flattening in v2's
+plateau shape; z_kl/h_kl slightly higher = laxer floors, consistent) but R@z only
+marginally below v1 (.92 vs .94) and monitors identical through ep2 (.0752/.0980) — the
+ep3–5 monitor fork is the verdict (watcher armed). nobn2 raw notes: z pos .147 (much less
+aligned than laug2's .421) while its cls kl .386 is the best of any floorssl cell; cls
+per-dim var 1.26 = variance OVERSHOOT without BN's pin (v1 pinned at 1.00 — the pin is
+dose-sensitive). RAW.
+
+## ep3 fork + the ε-structure arm (D-048; Berker: fix now, don't waste compute)
+
+Fork at ep3 (the v1 collapse epoch): **laug2 .0426→.0752→.0944 — above v1's peak and
+rising (KEPT, earns time; ep4–5 verdict pending)** · **nobn2 .0432→.0980→.0536 — falling,
+v1's pattern (chain CANCELLED at ep3)**. Under corrected doses the head axis
+differentiates: BN's stabilization is doing work the dose correction can't replace.
+
+`in100.floorssl.s0.laug_eps` (NEW; = the deferred Z5 ε-dose grid cell, now derived): the
+commensurability table says floorssl's aligned space is majority-owned by its floor (65%
+share at z; even healthy v2 runs R@z .61 vs f2's aligned .15). The ε-arm inverts ownership:
+inv owns z (91% share), z-floor demoted to the certified 6% conditioner share (T, E19-T1),
+h-floor kept (.617, 2.8%), total trunk pull preserved at the bridge state (15.87) ⇒
+**w_inv 87.8 · w_floor 4.16 · h_lamb .617**. The floor's −ln(var) barrier still hard-blocks
+scale collapse; v1-scaling predicts z-var equilibrium ~.1 (sqrt(F/W) law: v1 sqrt(19/25)→.39
+observed). BN head — the dose-STRUCTURE axis stays clean vs laug2. Smoke 62421496 → gpu
+chain 62421497→498→499 (`e21-laug-eps`). Pre-registered: P-eps-A the inv-owned z aligns
+(R@z falls toward f2's aligned band, monitor healthy through ep6) · P-eps-B scale-starved z
+(z-var → ≪.1, cls probe suffers despite own floor) · P-eps-C same collapse anyway (the
+strong-view family defeats the form regardless of ownership — the deepest read). Claude's
+pick: P-eps-A.
