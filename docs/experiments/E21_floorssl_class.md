@@ -93,10 +93,10 @@ BN pin showing as ~1.9× the bn arm's envelope, max/med ≪ the 100× kill rule.
 z-scale equilibrium read queued (anatomy argv on `_last`, job 62421070: does w=45 hold
 per-dim z-var above v2's .39?).
 
-PACE FLAG (operational): real cost ≈ 20–25 min/ep (V=4 ⇒ 4× trunk passes; laug 2.3 ep in
-58 min on H100) ⇒ 3×8h segments cover ~60–75 of 100 ep. Steady-state re-measure at ~ep8;
-chains get extra singleton segments as needed (finished-run resumes exit clean — the
-resume-safe design; no frame change).
+PACE (corrected 11:24 — the first flag was a wall-clock arithmetic error, retracted): log
+timestamps give laug ep3 in 32 min ≈ 10–11 min/ep (H100, V=4) · nobn ~12 · dino cells ~11
+⇒ 100 ep ≈ 18–20 h — ALL four cells fit their 3×8h chains with margin; no extension needed.
+Monitor at matched epochs: nobn AHEAD of laug (ep2 .0956 vs .0712; laug ep3 .0868) — raw.
 
 z-scale first point (anatomy on `_last`, job 62421070; ep2/ep1 states — EARLY, equilibrium
 read repeats at ep25 cadence): per-dim z-var laug .287 / nobn .265 (v2-era reference .39 was
@@ -104,3 +104,58 @@ the w=19 equilibrium; too early to score w=45 against it). cls side: nobn per-di
 1.0001 with scale-part 2e-05 at ep1 — the BN-free head's cls-floor pinned scale IMMEDIATELY
 (bn arm .90 at ep2); nobn z kl .63 (aniso .31) vs laug .51 (aniso .15) at mismatched-epoch
 states. RAW.
+
+## COLLAPSE + fix (Berker 2026-07-19 ~12:00: "floorssl runs collapsed. fix them.")
+
+**Kill confirmed (pre-registered criterion met):** monitor laug .0388→.0712→.0868@ep3 →
+.0322→.0216@ep5 and falling (2× chance = .02; per-step probe loss ≈4.34 vs ln100=4.61 at
+ep13) · nobn .0406→.0956@ep2 → .0400→.0184@ep4. BOTH arms, SAME onset (ep3→4) ⇒ not the
+head axis (K1/BN-free instability acquitted: grad_norm envelopes smooth-decaying, no
+incident, no NaN — P-bn-B's failure mode is NOT what happened).
+
+**Forensics (per-step window, both cells):** a SMOOTH equilibrium, no divergence event —
+inv RISES monotonically (.23→.54 by ep5 and keeps rising = alignment sacrificed), z-floor
+stalls at .44–.50, h-floor loses ground (nobn .28→.41), grad_norm decays normally. The
+information-starved signature (E15/E16 class), not an instability. Decisive control: **v2
+(SAME 25/45/.65 doses, byol pair) was healthy** — monitor .042→.189@ep6 climbing, inv
+peaked .467@ep3 then FELL. Same doses, different aug family, opposite equilibrium ⇒ the
+card's verbatim-dose bet across aug frames FAILED = E19-T1's certified error class
+(nominal-weight transplant across frames; the "adversary shifts under stronger views —
+cadence pulls, not re-dosing" convention is retired for cross-FRAME moves).
+
+**Fix derivation (the certified route, not weight-tweaking):** init pulls cannot carry it —
+measured init term values are near-identical across frames (inv .234 vs .224: a random
+trunk cannot see the aug family; same reason the E20 law measured at ep25 FORMATION
+states). Frame-bridge instead (`experiments/e21_pull.py`, job 62421210): hold the healthy
+formation state fixed (v2_best ep6; loadable into the floorssl class by the migration
+byte-proof) and swap ONLY the aug pipeline — per-term trunk-g under byol pair vs lejepa
+V=4. Equal-pull re-dose per term: **w′_t = w_t · g_t(v2_best, byol) / g_t(v2_best,
+lejepa)** — every term keeps its healthy-lineage realized pull under the new frame. Also
+measured: init both frames (the null) + laug_best ep3 (trajectory record). Chains
+CANCELLED (62420881-6); collapsed ckpts KEPT until the fix lands (diagnostic states; _best
+= the pull's bridge input). Relaunch = new tags (collapsed cells retired), 2-ep smokes →
+chains, collapse-window (ep3–6) watched via e21_curves. If the re-dosed cells collapse
+again, the loss FORM (MSE + floors at these ratios) is refuted under strong-view families
+— that would be a design datum, not a dose datum.
+
+**Frame-bridge pull LANDED (e21_pull.csv, job 62421210) — the mechanism is now measured:**
+at v2_best (ep6 healthy state), swapping ONLY the aug pipeline: g_inv .2166 (byol) → .1650
+(lejepa V=4) = **−24%**, while g_z .2226→.2288 (−3% eq.) and g_h .6732→.7096 (+5%) are
+frame-invariant — verbatim doses silently cut inv's realized share 34.1%→27.7% at the
+formation state; the equilibrium then sacrificed alignment (the observed collapse mode).
+Corroborations: (i) trajectory row (laug_best ep3): floor pulls GREW along the collapsing
+run (g_z .334, g_h .994 vs v2-state .229/.710) while g_inv stayed .166 — the floors'
+dominance amplified as content leaked; (ii) the init-null concretely confirmed: init-state
+ratios would have prescribed w_floor 45→62.7 (the WRONG direction; init cannot see the aug
+family — inv g ratio at init 1.10 vs 1.31 at formation).
+
+**Re-dose (equal-pull at the healthy formation state):** w_inv 25→**32.8** (×1.313) ·
+w_floor 45→**43.8** (×0.973) · h_lamb .65→**0.617** (×0.949). RELAUNCHED as new cells
+`in100.floorssl.s0.lejepa_augs2` (bn) + `in100.floorssl.s0.nobn2` (head_norm=none), same
+frame/seed/bs, 2-ep smokes 62421226/27 → chains gated afterok+singleton: laug2 =
+h100-slotA 62421228→229→230 · nobn2 = gpu e21-nobn 62421231→232→233. Collapse-window
+(ep3–6) watched via e21_curves; pre-registered falsification stands: a second collapse at
+corrected doses refutes the loss FORM under strong-view families (dose ruled out by the
+certified correction). Late note for the record: the nobn v1 tail (post-collapse, ~ep5+)
+did eventually spike (grad max 7728 vs med 48, h_kl→1.03) — the BN-free instability
+appeared DOWNSTREAM of the shared dose failure, not as its cause; K1's ordering matters.
