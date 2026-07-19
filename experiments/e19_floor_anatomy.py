@@ -103,6 +103,8 @@ def main():
         acc = {}
         for _ in range(K_BATCHES):
             views, _y = next(it)
+            if isinstance(views, (list, tuple)):  # dino multi-crop: the floor's tap lives on
+                views = views[0]                  # the two GLOBAL crops; locals dropped
             N, V = views.shape[:2]
             x = views.flatten(0, 1).to(dev)
             with torch.no_grad(), autocast(dev, dtype=torch.bfloat16):

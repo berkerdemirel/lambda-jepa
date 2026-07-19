@@ -278,3 +278,64 @@ order weaker (|g| .046/.012), so their calibrated cells ran hot (realized share 
 6% target: ĝ=.30 underestimated their control-state g_h .65/.40). Raw; single-batch cosines
 do not dose lanes — the dose curve (lam008/lam06, chains running) carries the dino fix per
 the declared fallback.
+
+## Comparison pass (2026-07-19, HANDOVER priority ii; RAW — no takeaway)
+
+**(a) Anatomy decomposition at cadence** (e19_floor_anatomy argv mode extended with dino
+multi-crop global-crop handling; 32 ckpts: 5 view-lane e20f arms + missing controls ×
+ep25/50/75/100; full rows in `results/diag/e19_floor_anatomy.csv`). The floor-KL at each
+lane's train-time h tap (cls; lejepa embed), split cone/scale/aniso, arm/ctrl at ep100:
+
+| lane | kl | cone | scale | aniso | R (win-inst var share) | per-dim var |
+|---|---|---|---|---|---|---|
+| simclr | .20/1.71 | .02/.02 | .01/1.03 | .17/.65 | .39/.26 | .82/.05 |
+| byol | .21/2.16 | .00/.05 | .01/1.28 | .20/.84 | .37/.22 | .85/.03 |
+| vicreg | .13/1.64 | .00/.07 | .00/1.01 | .12/.56 | .36/.21 | .93/.05 |
+| dino | .20/1.13 | .01/.01 | .01/.50 | .19/.61 | .58/.17 | .85/.16 |
+| lejepa | .25/2.95 | .00/.06 | .00/.80 | .25/2.09 | .48/.12 | .95/.08 |
+
+Cone and scale are fully won in every arm (per-dim var pinned .78–.95 vs collapsed controls
+.02–.16); aniso is the one contested channel (.12–.25 residual) — the E19-T1 anatomy
+reproduced zoo-wide. Controls' kl lives in different channels per lane: lejepa = cone+aniso
+at embed (6.36 total @ep25), byol = scale (collapse-adjacent per-dim var .02), dino = the
+smallest total (1.13 — "least to condition" in anatomy form). R rises 2–3× in every arm (the
+floor spends h view-invariance), most extremely dino (.58 vs .17 — the lane that lost).
+z-side @ep100: vicreg/dino/byol/lejepa z unmoved (kl/R/pos ≈ ctrl — "z untouched" holds in
+anatomy); EXCEPTION simclr raw-z scale ×20 (per-dim var 57 vs 2.8, kl 27 vs 1.7) — NT-Xent
+normalizes z so raw scale is loss-free; the h-floor's variance pressure propagated there.
+
+**(b) Battery vs control per lane** (`experiments/e20_battery_table.py` →
+`results/compare/e20_battery_vs_ctrl.csv`; declared-h spaces = the headline probe spaces).
+At h, arm/ctrl: effrank 195–330 / 14–92 (mae 305/13.6 the extreme); kurt_topeig.worst falls
+toward Gaussian everywhere except dino (~flat .91/.89); EP drops an order of magnitude;
+uniformity → −3.7..−3.9 (near-uniform sphere) from −0.8..−3.2; pairs: alignment (pos-pair
+distance²) WORSENS ~.65 vs .09–.28 ctrl and cos_invariance drops .67 vs .88–.95 — the floor
+trades h view-alignment for spread, zoo-wide. z-block: unmoved except simclr scale (above)
+and byol/dino mild effrank up (33.9/23, 91.5/80). CAVEAT: control batteries predate
+gauss_kl_full — backfill audits running (62420968–74; same features, current battery code);
+gauss columns + refreshed table land when they finish. Control-flavor note: comparison-pass
+controls = `.s0.ext` extractions; the card's headline ctrl numbers for vicreg/dino/lejepa are
+e17c-flavor re-extractions of the SAME ckpt (probe deltas ≤ .002 — e.g. vicreg lin .6430 vs
+.6452, lejepa embed lin .6022 vs .6036).
+
+**(c) e17-score deep pass re-pointed** (`experiments/e20_score.py` → full text in
+`results/compare/e20_score.txt`; orbit @o8 stores extracted for arms + controls, jobs
+62420983–92). Inv-jump (head z-margin − h-margin): the four winning lanes SHRINK it under
+the floor (ctrl +.54/+.48/+.41/+.51 → arm +.32/+.14/+.22/+.11 for lejepa/vicreg/simclr/byol)
+while the h-margin itself expands +23/+35/+20/+39 pts — entirely by rand_cos → ~0 (cone
+gone: mu_share .50–.77 → .01–.06). The head's jump-split job INVERTS: controls' jump was
+−Δrand (cone removal, +.48–.70); arms' jump is +Δpos (pos-restoration, +.14–.45). dino
+INVERTS the lane pattern: its control h-margin was the zoo's largest (.537) and the floor
+collapsed it to .329 (pos .683→.348); head burden GROWS (+.149→+.370). diagKL@h .01–.21 vs
+.65–1.5 ctrl zoo-wide. byol seg-stretch printout carries a key collision (proj vs pred both
+end "tap1/out"); printed tap1→out 9.52 = pred.tap1→pred.out.
+
+**(d) Class-pair d′ + centered figures** (`experiments/e20_pair_dprime.py` →
+`results/diag/e20_pair_dprime.{csv,npz}`, figures `results/figures/e20/e20_pair_dprime.png`
++ `e20_centered.png`, INDEX rows added). Per-pair two-class discriminability along the
+mean-difference axis: view lanes DROP or hold (mean d′ lejepa 4.43→4.16 · simclr 4.01→3.79 ·
+vicreg 4.38→3.76 · dino 4.91→4.41 · byol 3.78→3.80; frac(arm>ctrl) .22–.56) while their
+probes gained; the aug-less pair RISES (mae 1.71→3.06, 98% of pairs; ijepa 2.80→3.17, 85%)
+while their lin dropped. The probe deltas do not ride pairwise mean-separation in either
+direction — mechanical note: the floor's within-class spread inflation (R↑) sits in the d′
+denominator. NO takeaway without Berker.
