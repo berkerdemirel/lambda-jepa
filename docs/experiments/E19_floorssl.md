@@ -445,3 +445,8 @@ recorded. Pre-registered directions: P-v2-A h-tap holds f2-like (share ≥3%) AN
 equilibrium rises toward 1 (w×2.35) · P-v2-B probes: beat arms 1–2 at h; the bar Berker set
 = dino/lejepa-variant territory (lejepa e20f .6700/.6288 = the zoo top) · kill criteria as
 arms 1–2. Smoke → 3×8h gpu chain.
+
+Arm-6 execution: smoke 62420599 PASSED (ep1/2 .0420/.1022 — below arm-2's smoke pace
+.056/.127 as expected at the heavier doses, no incidents). Chain `e19-hz-v2` LAUNCHED
+2026-07-19 (3×8h singleton, gpu). First read = divergence-window h_kl (does λ_h=.65 hold
+CLS f2-like at ~3.4% share) + z-scale equilibrium (does w=45 lift per-dim z-var from .39).
