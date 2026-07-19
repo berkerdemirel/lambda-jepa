@@ -62,3 +62,16 @@ transfers its advantage (h probes above the byol-pair v2 arm at matched epochs) 
 family-specific (lejepa's family helps lejepa's loss, not ours — v2 ≥ this arm) · health:
 V=4 quadruples per-step trunk passes — pace watched, kill criteria standing. 2-ep smoke →
 3×8h chain (gpu).
+
+REDIRECTION (Berker 2026-07-19: "this hz arm that is running, cancel it and rerun with the
+new augs"): the v2 chain (byol-pair, vicreg-class) CANCELLED at ep6 — **arm 3 (lejepa_augs)
+is the primary hz run**, chain on h100-slotA when its smoke passes. Comparability note: the
+stated bar (beat dino/lejepa variants — lejepa e20f .6700/.6288) is now AUG-MATCHED, which
+is the fairer frame for that bar; the byol-frame reference (vs e17c/floorssl_hz) is
+retired with v2. nobn keeps the byol pair as launched — if Berker wants the head axis clean
+inside the new aug frame, nobn moves to lejepa augs too (one word).
+nobn MOVED to lejepa augs too (Berker 2026-07-19: "nobn is also with lejepa augs right? if
+not make correct it"): byol-pair chain cancelled ~ep2; relaunch = head_norm=none + V=4
+lejepa family (fresh run under the SAME tag `nobn` — the byol-pair steps are superseded
+from the smoke2-validated relaunch). Head axis now clean inside the lejepa-aug frame:
+{bn, nobn} × lejepa_augs; the byol frame is fully retired from E21.
