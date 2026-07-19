@@ -75,3 +75,32 @@ not make correct it"): byol-pair chain cancelled ~ep2; relaunch = head_norm=none
 lejepa family (fresh run under the SAME tag `nobn` — the byol-pair steps are superseded
 from the smoke2-validated relaunch). Head axis now clean inside the lejepa-aug frame:
 {bn, nobn} × lejepa_augs; the byol frame is fully retired from E21.
+
+## Launch + early-window record (2026-07-19; RAW)
+
+Smokes PASSED (laug ep2 probe .0714 · nobn.smoke2 ep2 .0956 — both climbing, no incident;
+BN-free head trained 2 clean epochs). Chains: laug = h100-slotA 62420881→882→883 · nobn =
+gpu e21-nobn 62420884→885→886, both gated `afterok:<smoke>,singleton` (SLURM-native — the
+previous session's watchers died with it; ping-only, no duplicate launches). Reader:
+`experiments/e21_curves.py` → results/figures/e21/e21_curves.png (h_kl vs f2/lejepa-e20f
+template · z-floor+inv terms with the v2 ep6 stub · grad_norm envelope · dino dose panel).
+
+Early window (~ep2, 11:50): h_moment_kl laug .52 (bottom .44@0.6) · nobn .33 (.28@0.9) —
+both inside the template band, no divergence flag (rule: sustained > min+.15); z-floor
+moment_kl ~.50 both and falling; inv ~.53/.53 (head-axis pair tracking each other); nobn
+grad_norm med 64 / max 438 vs laug 47 / 231 — elevated absolute scale (weights 25/45), no
+BN pin showing as ~1.9× the bn arm's envelope, max/med ≪ the 100× kill rule. K1 NOT fired.
+z-scale equilibrium read queued (anatomy argv on `_last`, job 62421070: does w=45 hold
+per-dim z-var above v2's .39?).
+
+PACE FLAG (operational): real cost ≈ 20–25 min/ep (V=4 ⇒ 4× trunk passes; laug 2.3 ep in
+58 min on H100) ⇒ 3×8h segments cover ~60–75 of 100 ep. Steady-state re-measure at ~ep8;
+chains get extra singleton segments as needed (finished-run resumes exit clean — the
+resume-safe design; no frame change).
+
+z-scale first point (anatomy on `_last`, job 62421070; ep2/ep1 states — EARLY, equilibrium
+read repeats at ep25 cadence): per-dim z-var laug .287 / nobn .265 (v2-era reference .39 was
+the w=19 equilibrium; too early to score w=45 against it). cls side: nobn per-dim var
+1.0001 with scale-part 2e-05 at ep1 — the BN-free head's cls-floor pinned scale IMMEDIATELY
+(bn arm .90 at ep2); nobn z kl .63 (aniso .31) vs laug .51 (aniso .15) at mismatched-epoch
+states. RAW.

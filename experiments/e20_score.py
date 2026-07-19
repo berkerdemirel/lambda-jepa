@@ -82,7 +82,8 @@ def seg_lip(run, chain):
             for w in range(u + 1, V):
                 dx = np.linalg.norm(A[u] - A[w], axis=1); dy = np.linalg.norm(B[u] - B[w], axis=1)
                 rs.append(dy / (dx + 1e-12))
-        out[f"{sin.split('.')[-1]}->{sout.split('.')[-1]}"] = float(np.median(np.concatenate(rs)))
+        key = f"{'.'.join(sin.split('.')[-2:])}->{'.'.join(sout.split('.')[-2:])}"
+        out[key] = float(np.median(np.concatenate(rs)))    # 2-component names: byol's proj/pred taps collide on the last component alone
     return out
 
 

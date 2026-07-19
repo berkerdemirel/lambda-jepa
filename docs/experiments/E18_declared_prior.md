@@ -246,3 +246,52 @@ prior swap does not relieve the h-shape tax though the arm obeys its prior (knot
 record: h-CF-shape terms impede inv optimization (same-batch inv@ep100: sigreg_t .0742 /
 sigreg3 .0760 vs e20f .0461 / f2 .0500) — insufficient alone (inv-matched epochs still favor
 e20f). Mechanism OPEN; deeper analysis owed.
+
+## Deeper analysis (the OWED mechanism; opened 2026-07-19, priority-list item iv)
+
+**Instrument 1 — within-lane opposition grid** (`experiments/e18_opposition.py`, job
+62421061; e20_opposition mold): at matched states — the four arm lineages (sigreg_t ·
+sigreg3 · e20f · f2) + the control, ep25 (formation) and ep100 (converged) — the cosine
+between each candidate h-term's trunk-gradient and the lane's inv trunk-gradient, for all
+THREE functionals through the method's own cfg.h_reg paths (moment · sigreg · sigreg_t,
+ν=8.2), same seed-0 batch, unweighted norms (e12h_pull convention). Separates
+term-functional from state: at the SAME state, is the CF-shape gradient more inv-opposed
+than the floor's?
+
+Pre-registered directions (Claude's pick: P-opp-A at ep25, fading by ep100):
+- **P-opp-A** cos(CF, inv) < cos(floor, inv) at matched states — first-order gradient
+  opposition carries the impede-inv account.
+- **P-opp-B** cosines ≈ equal — the impediment is not first-order opposition (curvature /
+  conditioning / slice-noise channel next).
+- **P-opp-C** floor MORE opposed yet wins on inv — opposition refuted as the mechanism
+  (the E20 opposition-read lesson repeating: cosine ≠ outcome).
+
+Numbers land below as they arrive; AGREED TAKEAWAY only after joint discussion.
+
+**Instrument 2 — inv-vs-val phase plot LANDED** (`experiments/e18_inv_phase.py` →
+`results/figures/e18/e18_inv_phase.png`; online-probe y-axis, E12-T9 caveat rides):
+val interpolated at matched inv — inv=.10: e20f 47.0 / f2 47.1 vs sigreg_t 35.9 / sigreg3
+33.7 / sigreg 37.3 / control 36.8 · inv=.08: 55.4/56.4 vs 46.0/46.1/47.7/45.6 · the CF
+cells NEVER reach inv ≤ .06 (stall above it) while the floors pass .05 (e20f 67.9). Two raw
+facts now separated on one figure: (1) CF-shape terms stall inv above ~.07 (the impediment
+half of E18-T1's candidate mechanism); (2) at MATCHED inv the CF cells sit ON the control's
+val-per-inv line while the floor cells sit ~+10 ABOVE both (≈+7 net of the E12-T9 ~+3
+monitor bias) — the floor's gain is a val-per-inv lift the CF terms never had; the E18 tax
+vs f2 reads as impeded-inv, not as a lost non-inv channel. Joint-discussion material only.
+
+**Instrument 1 LANDED** (e18_opposition.csv, job 62421061; 30 rows = 5 states × ep25/100 ×
+3 functionals). Mechanical score vs the pre-registered directions: **P-opp-A REFUTED** — at
+matched states cos(CF, inv) is never meaningfully more negative than cos(floor, inv); all
+|cos| ≤ .20 (no first-order antagonism channel at all), and the small effects run the OTHER
+way: at ep100 states the FLOOR is the more inv-opposed functional (moment −.12/−.12/−.20/−.08
+across the four arm states vs CF −.01..−.08) yet the floors hold the lane's best inv — the
+E20 opposition-read lesson (cosine ≠ outcome) reproduced within-lane ⇒ the outcome mixes
+P-opp-B (no first-order opposition) with P-opp-C's direction. Secondary raw facts: sigreg vs
+sigreg_t gradient directions nearly identical at every state (Δcos ≤ .03 — the declared-
+prior swap barely rotates the CF gradient; the E18-T1 null in gradient form); unweighted
+|g_CF| = 7–49 vs |g_floor| = .17–.44 (the λ-normalization the dose law exists for); control
+states mildly inv-aligned for all three (+.02..+.07). Joint with Instrument 2: the
+impede-inv mechanism is NOT gradient opposition — remaining candidates for discussion:
+slice-noise in the CF estimator (fresh random projections per step ⇒ noisy effective
+gradient at matched |step|), and curvature/conditioning of the CF objective near the
+constraint surface. NO takeaway without Berker.
