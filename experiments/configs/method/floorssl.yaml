@@ -1,0 +1,16 @@
+name: floorssl
+# The house method (E19-T2 lineage): MSE alignment + moment floor as sole anti-collapse at z
+# + calibrated moment floor at declared h (cls). Doses = the v2 recipe (E19 card arm 6):
+# w_floor by z-duty matching, h_lamb by the E19-T1 share rule. head_norm: bn = vicreg's
+# expander verbatim (byte-matched migration) | none = the BN-free conduit head (E21).
+w_inv: 25.0
+w_floor: 45.0
+h_lamb: 0.65
+expander_hidden: 2048
+expander_dim: 2048
+head_norm: bn
+drop_path: 0.1
+lr: 1e-3
+wd: 5e-2
+warmup_ep: 10
+eta_min: 1e-5

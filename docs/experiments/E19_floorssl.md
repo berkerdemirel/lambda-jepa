@@ -450,3 +450,6 @@ Arm-6 execution: smoke 62420599 PASSED (ep1/2 .0420/.1022 — below arm-2's smok
 .056/.127 as expected at the heavier doses, no incidents). Chain `e19-hz-v2` LAUNCHED
 2026-07-19 (3×8h singleton, gpu). First read = divergence-window h_kl (does λ_h=.65 hold
 CLS f2-like at ~3.4% share) + z-scale equilibrium (does w=45 lift per-dim z-var from .39).
+Arm-6 chain MOVED to gpu100/H100 (Berker 2026-07-19: "it should be better if it is gpu100
+partition"): gpu links scancelled at ~ep8, resubmitted as h100-slotA 3×8h singleton; resumes
+from _last — no training lost.

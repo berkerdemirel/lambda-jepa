@@ -251,3 +251,30 @@ NO takeaway rows without Berker.
 **E20-T3 (USER-APPROVED 2026-07-19; full row in DECISIONS):** the calibrated floor at h
 delivers two-column gains in 4/5 view lanes (lejepa beats f2, lr flag standing); dino =
 dose overshoot (T1); aug-less lanes take lin damage — the h-benefit is VIEW-LANE-shaped.
+
+## dino-fix fork (Berker 2026-07-19: "for dino part also launch a fixed version … if there's
+## additional complication … resolve")
+
+The clean single-tap dose curve has two points (.02 → −0.1/+2.6c · .258 → −2.5/−0.4; gd2's
+middle is two-tap-confounded). Two bracketing cells complete it: `e20f_lam008` (λ=.008) ·
+`e20f_lam06` (λ=.06) — everything else e20f-verbatim (same lane overrides). Pre-registered:
+the curve peaks in [.008, .06]; the winning cell = the fixed dino. Claude's pick: peak near
+.02–.05 (rise 0→.02 measured, decline by .258; if .008 ≥ .02's gain the optimum is even
+lower and dino's effective adversary ≈ nil). Companion instrument `e20_opposition.py` (the
+complication's mechanism read): cos(∂h_floor/∂trunk, ∂lane/∂trunk) at every control's ep25 —
+prediction: dino's lane gradient is floor-ALIGNED-or-neutral (its teacher-centering already
+does floor work; control effrank 93 vs 34–37) while the view adversaries are opposed —
+the measured direction factor missing from the share rule (magnitude ≠ opposition). If the
+cosine separation fails to materialize, the opposition account is refuted and the dose curve
+alone carries the fix. 2-ep smokes → 3×8h chains, gpu.
+
+Opposition read LANDED (job rerun after a dino multi-crop list-batch fix; e20_opposition.csv):
+cos(lane, floor) at ep25 — ijepa +.159 · mae +.129 · byol +.048 · simclr +.033 · vicreg
++.016 · lejepa −.015 · **dino −.053**. The pre-registered ally-account is REFUTED as stated
+(dino is the MOST OPPOSED lane, not the most allied): its overshoot reads as direct gradient
+interference at high λ (consistent with E20-T1's strength-of-the-loss framing). Inverse
+surprise: the aug-less lin-damaged pair is the most ALIGNED — but their lane gradients are an
+order weaker (|g| .046/.012), so their calibrated cells ran hot (realized share ≈8–14% vs the
+6% target: ĝ=.30 underestimated their control-state g_h .65/.40). Raw; single-batch cosines
+do not dose lanes — the dose curve (lam008/lam06, chains running) carries the dino fix per
+the declared fallback.
