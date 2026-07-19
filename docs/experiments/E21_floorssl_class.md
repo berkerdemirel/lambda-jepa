@@ -230,3 +230,21 @@ eigs [.26,2.18], unbounded logdet vs sigreg CF .0075–.027 bounded, vicreg hing
 — per-weight severity ≫ the two-moment definition suggests; phantom does NOT explain the
 frame fork (byol frame = more phantom, healthy). Full corrected synthesis in
 SESSION_OPENER.md.**
+
+**vicreg-vs-floorssl contrast (Berker's ask; code-verified; full table in
+SESSION_OPENER.md):** same trunk/expander/inv — the anti-collapse differs on FOUR axes:
+(1) target set: diagonal-Σ-with-diag≥1 (huge feasible set, anisotropy allowed axis-aligned)
+vs Σ=I exactly (a point); (2) pressure: one-sided-up + decorrelate vs symmetric
+shrink+equalize; (3) coordinates: fixed axes (gauge-exploitable) vs rotation-invariant
+slices; (4) **payment: per-view batches (one view/image ⇒ only ACROSS-IMAGE spread pays;
+aug variance cannot) vs pooled views (aug variance pays)**. Smoking gun (measured):
+collapsed cells at ep2 have across-image var ≈ .02/dim (std .14) — the floor ~92%-paid in
+aug noise while vicreg's hinge would read .86/dim; healthy byol-frame cells paid 71% in
+image spread. The payment axis explains the aug-frame fork the demand hierarchy alone
+could not (strong augs = abundant aug-payment = cheap content-free equilibrium), and the
+law-of-total-variance budget (within+across = 1/dim) is the inv-coupling vicreg simply
+does not have. Design wall carried to the fix session: pooling exists FOR the slice
+estimator (n/d′=4) — a view-mean floor (across-image payment, keeps Σ=I identity) makes
+n=bs=d′ singular ⇒ payment rule and estimator must be co-designed (d′≤64, or diagonal/1-d
+bounded floor, or bigger bs). New menu item (2b): view-mean floor; composes with
+one-sidedness (2).
