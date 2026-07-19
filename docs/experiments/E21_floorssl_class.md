@@ -218,3 +218,15 @@ MomentFloor does not (→ standalone floorssl). Evidence base + 2×2 synthesis
 (demand-type × share; all floorssl failures in shape×owner) + discriminating-experiment
 menu handed over in SESSION_OPENER.md. laug_eps (shape×minority, 91/6/3) left RUNNING —
 its ep3–6 is the next session's first read.
+
+**CORRECTION (Berker 2026-07-19: "momentfloor demands for first two moment match no? while
+sigreg asks for complete [isotropic] gaussian at z"): CONFIRMED — the demand ordering is
+vicreg-var ⊂ MomentFloor (μ=0, Σ=I only; higher-order-blind by construction) ⊂ SIGReg
+(full distribution via CF). The earlier "2×2" mislabeled the axis; the record's synthesis
+is a MONOTONE tradeoff: more demanded structure ⇒ smaller content-safe share (vicreg owns
+at ~50% · floor helps ≤6% / kills at owner · sigreg works at 2% / taxed at 10%). Estimator
+rider (measured on perfect N(0,I): floor phantom .070/.158 at n=512/256, ~all aniso, MP
+eigs [.26,2.18], unbounded logdet vs sigreg CF .0075–.027 bounded, vicreg hinge .013–.019)
+— per-weight severity ≫ the two-moment definition suggests; phantom does NOT explain the
+frame fork (byol frame = more phantom, healthy). Full corrected synthesis in
+SESSION_OPENER.md.**
