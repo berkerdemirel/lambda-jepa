@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.7504924644187864,0.7423265478021008,0.758779675861489,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.6247537677905635,0.6204398582339435,0.6286854134334279,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.39536935895436737,0.39140532188825905,0.39886290940327623,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.8023153205227598,0.7998875777707994,0.8041035605191013,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.z.proj.out,alignment,pairs,0.40954728336526414,0.40151625066687385,0.41743902780027176,10000,512,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.7952263583173652,0.7907312029604786,0.7994508506115744,10000,512,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.6036677714014635,0.595507054800736,0.6123232741302559,10000,4096,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.6981661142992452,0.6936807575789303,0.7022890251996112,10000,4096,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.h.cls,alignment,pairs,0.653120010505196,0.6452713555278891,0.6601387564232826,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.h.cls,cos_invariance,pairs,0.6734399947473639,0.6696787631102384,0.6769629746298433,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.h.gap,alignment,pairs,0.35992228908980906,0.35676915754623423,0.3637331323781177,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.h.gap,cos_invariance,pairs,0.8200388554550427,0.8180268827554725,0.822063097103917,10000,384,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.z.proj.out,alignment,pairs,0.30195886124977034,0.29620545798381087,0.30689477002469573,10000,512,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.z.proj.out,cos_invariance,pairs,0.8490205693751129,0.8458560161821681,0.8524828541590912,10000,512,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.z.proj.tap1,alignment,pairs,0.49682919323697605,0.48964335295850686,0.5028483757104519,10000,4096,cheap
+in100.simclr.s0.e20f.ext,in100.pairs100.v1@own_simclr,student.z.proj.tap1,cos_invariance,pairs,0.7515854033814933,0.7479621592655116,0.7557608592803634,10000,4096,cheap

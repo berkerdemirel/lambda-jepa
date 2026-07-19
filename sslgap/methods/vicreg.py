@@ -6,6 +6,7 @@ Expander 2048-d for the 384-d trunk (paper ratio ~4x; solo-learn RN18-512 used 2
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.utils.parametrizations import spectral_norm
 
 from sslgap.data import ViewsDataset, byol_pair
 from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
@@ -13,10 +14,17 @@ from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
 
-def vicreg_expander(in_dim=384, hidden=2048, out_dim=2048):
-    return nn.Sequential(nn.Linear(in_dim, hidden), nn.BatchNorm1d(hidden), nn.ReLU(inplace=True),
-                         nn.Linear(hidden, hidden), nn.BatchNorm1d(hidden), nn.ReLU(inplace=True),
-                         nn.Linear(hidden, out_dim))
+def vicreg_expander(in_dim=384, hidden=2048, out_dim=2048, spec_norm=False):
+    # spec_norm (E19 divergence ladder, embdiag_spec): lejepa's C1/f2 head convention
+    # transplanted — spectral norm on the Linears only, BN affines free (same declared caveat).
+    mlp = nn.Sequential(nn.Linear(in_dim, hidden), nn.BatchNorm1d(hidden), nn.ReLU(inplace=True),
+                        nn.Linear(hidden, hidden), nn.BatchNorm1d(hidden), nn.ReLU(inplace=True),
+                        nn.Linear(hidden, out_dim))
+    if spec_norm:
+        for m in mlp.modules():
+            if isinstance(m, nn.Linear):
+                spectral_norm(m)
+    return mlp
 
 
 def variance_term(z, gamma=1.0, eps=1e-4):
@@ -37,16 +45,33 @@ class VICReg(SSLMethod):
     def build_modules(self):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 drop_path_rate=self.cfg.drop_path)
-        proj = vicreg_expander(384, self.cfg.expander_hidden, self.cfg.expander_dim)
+        proj = vicreg_expander(384, self.cfg.expander_hidden, self.cfg.expander_dim,
+                               spec_norm=self.cfg.get("spec_norm", False))
         if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
             self.floor = MomentFloor()
-        return nn.ModuleDict({"backbone": trunk, "projector": proj})
+        if self.cfg.get("anticollapse", "varcov") == "floor":   # E19 floorssl (no RNG either)
+            self.floor_z = MomentFloor()
+        mods = {"backbone": trunk, "projector": proj}
+        # E19c conduit arms (D-043): a BARE affine between cls and the expander — the lejepa emb
+        # topology transplanted (no BN: the whole point; no init calibration: stricter than f2's
+        # lane). Created AFTER the expander so trunk/proj init streams stay byte-identical to
+        # every existing cell; absent cfg key = byte-identical method (running chains resume-safe).
+        if self.cfg.get("emb_dim", 0):
+            mods["embed"] = nn.Linear(384, self.cfg.emb_dim)
+        return nn.ModuleDict(mods)
 
     def arch(self):
-        return {"backbone": trunk_arch(self.frame, self.cfg.drop_path),
-                "projector": {"class": "sslgap.methods.vicreg.vicreg_expander",
-                              "kwargs": {"in_dim": 384, "hidden": self.cfg.expander_hidden,
-                                         "out_dim": self.cfg.expander_dim}}}
+        proj_kwargs = {"in_dim": 384, "hidden": self.cfg.expander_hidden,
+                       "out_dim": self.cfg.expander_dim}
+        if self.cfg.get("spec_norm", False):   # recorded only when set: existing arch dicts stable
+            proj_kwargs["spec_norm"] = True
+        a = {"backbone": trunk_arch(self.frame, self.cfg.drop_path),
+             "projector": {"class": "sslgap.methods.vicreg.vicreg_expander",
+                           "kwargs": proj_kwargs}}
+        if self.cfg.get("emb_dim", 0):
+            a["embed"] = {"class": "torch.nn.Linear",
+                          "kwargs": {"in_features": 384, "out_features": self.cfg.emb_dim}}
+        return a
 
     def build_train_dataset(self):
         return ViewsDataset(self.frame.dataset, "train", V=2, img_size=self.frame.img_size,
@@ -54,6 +79,15 @@ class VICReg(SSLMethod):
                             transforms=byol_pair(self.frame.img_size))
 
     def param_groups(self, modules):
+        # emb_wd0 (E19 divergence ladder, embdiag_wd0): the emb Linear rides with wd=0 — the
+        # gauge/balanced-split candidate isolated. Absent key = the original single group.
+        if self.cfg.get("emb_wd0", False):
+            print("[vicreg] emb_wd0 active: embed param group weight_decay=0", flush=True)
+            return [{"params": [p for k, m in modules.items() if k != "embed"
+                                for p in m.parameters()],
+                     "lr": self.cfg.lr, "weight_decay": self.cfg.wd},
+                    {"params": list(modules["embed"].parameters()),
+                     "lr": self.cfg.lr, "weight_decay": 0.0}]
         return [{"params": [p for m in modules.values() for p in m.parameters()],
                  "lr": self.cfg.lr, "weight_decay": self.cfg.wd}]
 
@@ -64,19 +98,43 @@ class VICReg(SSLMethod):
     def training_step(self, modules, views, device, y=None):
         N, V = views.shape[:2]
         tok = modules["backbone"].forward_features(views.flatten(0, 1))
-        z = modules["projector"](tok[:, 0]).reshape(N, V, -1)              # loss input: CLS (trained)
+        # loss input: CLS (trained); D-043 conduit arms route it through the bare affine first
+        # (the expander then consumes emb-out — shared duty, mirroring lejepa's embed).
+        # emb_calib (D-044, Berker: the f2-comparable cell): lejepa's one-shot first-batch fold
+        # — per-dim (mu, sigma) of emb-out folded into the Linear so the floor's tap STARTS at
+        # (0, I) and its whole budget holds aniso from step 0. Extras-guarded across resume.
+        if self.cfg.get("emb_calib", False) and not getattr(self, "_emb_calibrated", False):
+            with torch.no_grad():
+                e0 = modules["embed"](tok[:, 0]).float()
+                mu, sd = e0.mean(0), e0.std(0).clamp_min(1e-6)
+                modules["embed"].weight.div_(sd.unsqueeze(1))
+                modules["embed"].bias.copy_((modules["embed"].bias - mu) / sd)
+            self._emb_calibrated = True
+        z_in = modules["embed"](tok[:, 0]) if "embed" in modules else tok[:, 0]
+        z = modules["projector"](z_in).reshape(N, V, -1)
         za, zb = z[:, 0], z[:, 1]
         inv = F.mse_loss(za, zb)
-        var = variance_term(za) + variance_term(zb)
-        cov = covariance_term(za) + covariance_term(zb)
-        loss = self.cfg.w_inv * inv + self.cfg.w_var * var + self.cfg.w_cov * cov
-        terms = {"inv": inv, "var": var, "cov": cov}
+        # E19 floorssl (Z1): the minimal method — vicreg's frame and MSE alignment kept, its
+        # var+cov anti-collapse REPLACED by the moment floor at z. Floor input pools the views
+        # (the floor's own E12/f2 convention — it reads batch moments, not per-view stats; and
+        # n = bs·V = 512 on the 128-d slice keeps the justified n/d' = 4). w_floor = equal-pull
+        # to the SHIPPED var+cov bundle's measured encoder pull (card E19 dose record).
+        if self.cfg.get("anticollapse", "varcov") == "floor":
+            reg = self.floor_z(z.reshape(N * V, -1))
+            loss = self.cfg.w_inv * inv + self.cfg.w_floor * reg
+            terms = {"inv": inv, "moment_kl": reg}
+        else:
+            var = variance_term(za) + variance_term(zb)
+            cov = covariance_term(za) + covariance_term(zb)
+            loss = self.cfg.w_inv * inv + self.cfg.w_var * var + self.cfg.w_cov * cov
+            terms = {"inv": inv, "var": var, "cov": cov}
         # E12 cross-method arm: additive moment floor at h — h_tap picks the placement:
         # "gap" (default; the audited h, off the head's input path) or "cls" (the head's actual
         # input — e12gvcls, Berker 2026-07-14: "both the inv and kl on cls if thats the feature
         # space"). vicreg's own var/cov terms stay at z untouched.
         gap = tok[:, 1:].mean(1)
-        h_feat = tok[:, 0] if self.cfg.get("h_tap", "gap") == "cls" else gap
+        h_feat = {"cls": tok[:, 0], "gap": gap,
+                  "emb": z_in}[self.cfg.get("h_tap", "gap")]     # "emb" = D-043 conduit tap
         if self.cfg.get("h_reg") == "moment":
             h_loss = self.floor(h_feat)
             loss = loss + self.cfg.h_lamb * h_loss
@@ -101,6 +159,12 @@ class VICReg(SSLMethod):
             terms["h_inv"] = hi_loss
         probe_feats = tok[:, 0].detach()             # monitor = declared h (projector-input CLS, D-036); _best aligns to audit
         return ({"loss": loss, **terms}, probe_feats, V)
+
+    def extras(self):
+        return {"emb_calibrated": getattr(self, "_emb_calibrated", False)}
+
+    def load_extras(self, extras):
+        self._emb_calibrated = extras.get("emb_calibrated", False)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):

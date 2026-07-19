@@ -1,0 +1,17 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.out,cka_linear,cross,0.5355157584182444,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.out,neighbor_jaccard,cross,0.3634764805026415,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.out,procrustes_distance,cross,0.7106409303507696,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.out,knn_label_agreement,cross,0.6306,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.tap1,cka_linear,cross,0.5862889541243101,,,50000,384x8192,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.tap1,neighbor_jaccard,cross,0.3826019278966647,,,50000,384x8192,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.tap1,procrustes_distance,cross,0.6629416542119237,,,50000,384x8192,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.pred.tap1,knn_label_agreement,cross,0.6452,,,50000,384x8192,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.out,cka_linear,cross,0.5725184539983766,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.40058359736238996,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.6814148741150309,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.6542,,,50000,384x256,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.7564894812706477,,,50000,384x4096,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.5175061987376228,,,50000,384x4096,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.49385970546591934,,,50000,384x4096,none
+in100.byol.s0.e20f.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,knn_label_agreement,cross,0.7064,,,50000,384x4096,none

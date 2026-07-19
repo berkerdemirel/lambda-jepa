@@ -19,7 +19,9 @@ FEAT = f"{ROOT}/features"
 CFG = {
     "lejepa": ("student.z.embed", "student.z.proj.out",
                [("ctrl", "in100.lejepa.s0.e17c.ext"), ("sigreg", "in100.lejepa.s0.hpull_sigreg.ext"),
-                ("sigreg_inv", "in100.lejepa.s0.hpull_sigreg_inv.ext")]),
+                ("sigreg_inv", "in100.lejepa.s0.hpull_sigreg_inv.ext"),
+                ("sigreg_t", "in100.lejepa.s0.hpull_sigreg_t.ext"),   # E18 (D-041)
+                ("sigreg3", "in100.lejepa.s0.hpull_sigreg3.ext")]),
     "simclr": ("student.h.cls", "student.z.proj.out",
                [("ctrl", "in100.simclr.s0.e17c.ext"), ("uniform", "in100.simclr.s0.hpull_uniform.ext"),
                 ("uniform_align", "in100.simclr.s0.hpull_uniform_align.ext")]),

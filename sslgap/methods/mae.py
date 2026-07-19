@@ -13,7 +13,7 @@ from sslgap.models.posembed import get_2d_sincos_pos_embed
 from timm.models.vision_transformer import Block
 
 from sslgap.data import ViewsDataset, minaug_stack
-from sslgap.methods._common import house_scheduler, trunk_arch
+from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import vit_tokens
@@ -68,6 +68,8 @@ class MAE(SSLMethod):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size, drop_path_rate=0.0)
         dec = mae_decoder(self.cfg.patch, 384, self.cfg.dec_dim, self.cfg.dec_depth,
                           self.cfg.dec_heads, self.n_patches)
+        if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
+            self.floor = MomentFloor()
         return nn.ModuleDict({"backbone": trunk, "decoder": dec})
 
     def arch(self):
@@ -106,11 +108,20 @@ class MAE(SSLMethod):
             target = (target - mu) / (var + 1e-6).sqrt()
         d = pred.shape[-1]
         idx = mask_idx[..., None].expand(-1, -1, d)
-        loss = ((torch.gather(pred, 1, idx) - torch.gather(target, 1, idx)) ** 2).mean()
+        recon = ((torch.gather(pred, 1, idx) - torch.gather(target, 1, idx)) ** 2).mean()
+        loss, terms = recon, {"recon": recon}
+        # E20 (calibrated zoo floor): moment floor at mae's TRAINING-TIME h — GAP over the
+        # visible-token latents of the masked forward (the only grad-carrying trunk output;
+        # declared/audited h is full-image GAP — deviation declared on the E20 card). Recon
+        # untouched.
+        if self.cfg.get("h_reg") == "moment":
+            h_loss = self.floor(cls_vis[:, 1:].mean(1))
+            loss = loss + self.cfg.h_lamb * h_loss
+            terms["h_moment_kl"] = h_loss
         # probe = full-image GAP so the monitor matches eval features; .clone() lifts the tensor
         # out of inference mode (Linear saves its input for backward -> probe grads need it).
         probe_feats = self.eval_features(modules, x, device).clone()
-        return ({"loss": loss, "recon": loss}, probe_feats, 1)
+        return ({"loss": loss, **terms}, probe_feats, 1)
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):

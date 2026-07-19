@@ -5,7 +5,12 @@ autocast, after any embed_calib fold (mirrors training_step order). Encoder = th
 computed in-conversation from these raw pulls and recorded on the card before launch (no
 mid-flight discretion once launched). Appends to results/diag/e12h_pull.csv.
 
-  sbatch slurm/e12h_pull.sbatch <train.py overrides> tag=<tag>
+Trajectory extension (E18/E19 cards, "dose matching is init-only"): `+ckpt=<path>` loads a saved
+checkpoint's module weights (arch-asserted, extras restored) before the measurement — the same
+first batch is then pulled AT that training state, giving per-term realized pressure along the
+run. Encode the checkpoint in tag= (e.g. tag=floorssl.ep25); schema unchanged.
+
+  sbatch slurm/e12h_pull.sbatch <train.py overrides> tag=<tag> [+ckpt=outputs/<run>_ep25.pt]
 """
 import csv
 import os
@@ -38,6 +43,16 @@ def main(cfg: DictConfig):
     seed_everything(cfg.seed)
     method = METHODS[cfg.method.name](cfg.method, frame)
     modules = method.build_modules().to(frame.device)
+    if cfg.get("ckpt"):
+        pay = torch.load(cfg.ckpt, map_location=frame.device, weights_only=False)
+        saved_arch = {k: v for k, v in pay["arch"].items() if k != "probe"}
+        assert saved_arch == method.arch(), (
+            f"pull-at-ckpt refused: {cfg.ckpt} arch != current method.arch()")
+        for role, sd in pay["modules"].items():
+            if role != "probe":
+                modules[role].load_state_dict(sd)
+        method.load_extras(pay.get("extras", {}))
+        print(f"[pull] loaded {cfg.ckpt} (epoch {pay['epoch'] + 1})", flush=True)
     loader = DataLoader(method.build_train_dataset(), batch_size=cfg.bs, shuffle=True,
                         drop_last=True, num_workers=0,
                         generator=torch.Generator().manual_seed(cfg.seed))

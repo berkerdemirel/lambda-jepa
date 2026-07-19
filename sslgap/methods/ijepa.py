@@ -19,7 +19,7 @@ from timm.models.vision_transformer import Block
 from sslgap.models.posembed import get_2d_sincos_pos_embed
 
 from sslgap.data import ViewsDataset, minaug_stack
-from sslgap.methods._common import house_scheduler, trunk_arch
+from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import ema_update, vit_tokens
@@ -106,6 +106,8 @@ class IJEPA(SSLMethod):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size, drop_path_rate=0.0)
         pred = ijepa_predictor(384, self.cfg.pred_depth, 6, self.n_patches)
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
+        if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
+            self.floor = MomentFloor()
         return nn.ModuleDict({"backbone": trunk, "predictor": pred, "teacher_backbone": t_trunk})
 
     def arch(self):
@@ -142,9 +144,17 @@ class IJEPA(SSLMethod):
                                .expand(-1, -1, tgt.shape[-1])).reshape(*tgt_idx.shape, -1)
             self._t_std = tt.float().std(-1).mean().item()
         pred = modules["predictor"](ctx, ctx_keep, tgt_idx)
-        loss = F.smooth_l1_loss(pred.float(), tgt.float())
+        jepa = F.smooth_l1_loss(pred.float(), tgt.float())
+        loss, terms = jepa, {"jepa": jepa}
+        # E20 (calibrated zoo floor): moment floor at ijepa's TRAINING-TIME student h — GAP
+        # over the context-encoder tokens (the grad branch; audited h is the EMA teacher GAP —
+        # deviation declared on the E20 card; the teacher inherits conditioning via EMA).
+        if self.cfg.get("h_reg") == "moment":
+            h_loss = self.floor(ctx.mean(1))
+            loss = loss + self.cfg.h_lamb * h_loss
+            terms["h_moment_kl"] = h_loss
         probe_feats = tt.mean(1).detach()      # teacher GAP = the audited branch (PROTOCOL §3),
-        return ({"loss": loss, "jepa": loss}, probe_feats, 1)  # free: tt already computed
+        return ({"loss": loss, **terms}, probe_feats, 1)  # free: tt already computed
 
     def train_mode(self, modules):
         modules["backbone"].train()

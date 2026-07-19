@@ -636,3 +636,145 @@ c005/c010/c015 ep100 ckpts available for converged scoring when we resume.
 
 Scope: IN-100 / ViT-S/16 / seed 0 / one dose point per arm (sigreg over-dose flag open: POS .615
 mid-run; lower-dose tax unmapped); f2/f7/f8 comparisons ride the E12 package lane (own control).
+
+### POST-CLOSURE ADDENDUM — T5 loose end: c015 μ-drift cadence (2026-07-17; RAW, mechanical; NO takeaway)
+
+D-039 left the c015 ‖μ‖² halving UNATTRIBUTED. Cadence extracts ep25/50/75 (jobs 62388945–47) +
+`experiments/e17_mu_drift.py` → `results/diag/e17_mu_drift.csv` (declared h = student.h.cls,
+train500):
+
+| ckpt | ‖μ‖² | tr Σ | E‖x‖² | mu_share | cos(μ, μ_ep100) | cos(μ, μ_ctrl) |
+|---|---|---|---|---|---|---|
+| ctrl (e17c) | 48.71 | 19.44 | 68.15 | .715 | −.07 | 1.00 |
+| c015 ep25 | **81.99** | 334.3 | 416.3 | .197 | .62 | .24 |
+| c015 ep50 | 35.63 | 355.0 | 390.6 | .091 | .72 | .11 |
+| c015 ep75 | 25.47 | 359.1 | 384.6 | .066 | .89 | −.02 |
+| c015 ep100 | 20.78 | 361.7 | 382.5 | .054 | 1.00 | −.07 |
+
+Mechanical: (i) hinge saturation is EARLY — trΣ reaches 334/362 by ep25; after ep25 trΣ and
+E‖x‖² are ~static. (ii) ‖μ‖² does not decay from the ctrl value — it first INFLATES to 82
+(1.7× ctrl) with the norm explosion, then decays ×3.9 (82→21) against the frozen scale
+background, decelerating (per-25-ep factors .43 / .72 / .82). (iii) the mean ROTATES while it
+shrinks: cos to the ctrl cone .24 at ep25 → −.07 at ep100 (the converged residual mean is
+ORTHOGONAL to the control's cone direction — not the old cone at reduced amplitude); even
+within-run, ep25→ep100 cos is only .62. Candidate mechanism (discussion material, NOT a
+takeaway): with per-dim variance gradient-defended by the saturated hinge and NOTHING in the
+loss defending a nonzero batch mean, weight decay erodes precisely the loss-orphaned mean
+component — predicting exactly this signature (decay that decelerates with the cosine-lr
+schedule + a residual mean that is a rotating transient, not a persistent offset).
+
+### POST-CLOSURE ADDENDUM 2 — reach v3 sweep read + o32 traversal (2026-07-17b; RAW; NO takeaway)
+
+Figure: `results/figures/e17/e17_reach_3axis.png` (from `results/diag/e17_reach.csv`, 16 runs ×
+100 classes, joined with e17_centered.csv — 13 runs have centered probes; f7/f8/c015 reach-only).
+
+- **Run-level margin_max@α\* couples to orbit tightness and anti-tracks kNN.** Median margin_max
+  rises near-monotonically with pos_c across the 13 joined runs; the high-kNN spaces (f2 60.5,
+  dino 59.9, uniform 55.9) sit at LOW pos_c and LOW margin_max; sigreg_inv (knn 40.8) at the
+  top. The α-sweep de-saturates the fixed-radius margin (all runs far above the y=x line vs
+  perc_margin@r_mean; spread-orbit spaces rescued from margin≈0), and α\* orders spaces by
+  operating point (f2 peaks at α=.62 and dies by α=.87; lejepa ctrl still climbing at α=1).
+- **T4 transport check:** within the ±inv family f2→f8→f7, margin_max runs .585→.652→.740 —
+  the exact INVERSE of T4's touch% (99.7/95.3/91.2, kNN 60.5/60.2/57.6). margin_max is a
+  null-calibrated inverse of touch%: T4's "kNN tracks touch%" transports as "kNN anti-tracks
+  margin_max within family", now collapse-safe. Q3 (standing readout + spec) is Berker's call.
+- **o32 traversal landed** (job 62396059; ctrl/f2/sigreg_inv on o32 stores, sigreg/C1 fall back
+  o8; `e17_traverse.png`). Walk (support distances over full 32-view clouds): f2 purity RISES
+  with denser clouds (78%/58% on classes 0/42 vs 71% top at o8) while its hops stay the most
+  expensive relative to d_inter (med 1.12–1.21×); sigreg_inv cheapest hops (.51–.63×), impure
+  (48%/37%); ctrl 54%/39% at .75–.78×. INSTRUMENT FIX before the aniso read: the cloud
+  top-eig-share null was hardcoded to (V=8, D=512) and the share used 8-view chunks — for o32
+  rows both understate anisotropy. Fixed same-day (per-run gauss null at the store's actual
+  V,D + full-cloud shares); corrected rerun job 62396106:
+  - Full-cloud shares vs MATCHED nulls: f2 .180, ctrl .357, sigreg_inv .451 vs V=32 null .049
+    (3.7× / 7.3× / 9.2× null) — anisotropy confirmation STRENGTHENS at denser clouds and the
+    f2 < ctrl < sigreg_inv ordering sharpens. (o8 rows for sigreg .427 / C1 .439 vs null .170 =
+    2.5×/2.6× — different V, ratios not directly comparable across provenance.)
+  - Axis alignment at full clouds: ctrl walk-adjacent |cos| .349 vs random-pair .228 — the
+    o8-based "class-global not filament-local" reading softens for ctrl (adjacent > random by
+    .12); sigreg_inv .323 vs .281 ≈ class-global; f2 low on both (.135/.096). Two pilot
+    classes only — wide error bars.
+
+**Cloud-intersection instrument (Berker's organization hypothesis, direct form; 07-17b;
+`experiments/e17_intersect.py` → e17_intersect.csv + e17_intersect.png).** Hypothesis as
+stated: correct organization ⇔ same-class cloud intersection beats the negs. Iterated v1→v4
+in-session; the nulls are findings:
+
+- **v1 (Schilling 1-NN mixing): ω ≈ .003–.02 in every space** — a view's nearest neighbor is
+  essentially always an own-cloud sibling; NO interpenetration at within-cloud spacing scale.
+- **v2 (view-in-r_mean-ball depth): ≈ 0 everywhere EXCEPT sigreg_inv** (ω_frn .055 > ω_same
+  .028, AUC .35): the collapsed-cone space is the only one with literal point interpenetration
+  — and it interpenetrates with NEGATIVES. High-d concentration: ball-touching (the
+  percolation criterion) almost never implies point-containment.
+- **v3 (signed ball-overlap depth on the centroid axis, (r_i+r_j−d)/(r_i+r_j)):** dynamic
+  range restored. Global-tail read: the 10 nearest foreign clouds (of ~9900) overlap DEEPER
+  than the top-20 same-class (of 99) in EVERY space (AUC .12–.30; e.g. ctrl ω_same −.008 vs
+  ω_frn .071; f2 .395 vs .413 — everything touching, foreign deeper at the tail; sigreg_inv
+  −.005 vs .255 — same-class balls don't even touch while negs overlap deep). Confound
+  identified before interpretation: 100× pool-size order-statistics advantage for the foreign
+  side ⇒ this contrast measures the extreme foreign tail kNN actually meets, NOT the fair
+  organization claim.
+- **v4 = pool-matched AUC (reach-null convention, 99-vs-99 candidates, B=3 draws) — LANDED
+  (job 62396575; e17_intersect.png + csv).** The fair "better than the negs": **AUC .854–.975
+  in EVERY space** — the hypothesis holds universally at matched pool and is therefore
+  necessary-not-discriminating as a run-level scalar. The discriminating object is the ω LEVEL
+  structure (panel 2): spaces split into a **touch regime** (ω_same > 0 — typical same-class
+  top-20 balls actually overlap: f2 +.397 the deepest; sigreg +.220; uniform +.211; dino ctrl
+  +.246; vicreg ctrl +.183; c015 +.261) vs a **gap regime** (ω_same < 0 — same-class typically
+  does NOT touch; discrimination is purely metric: lejepa ctrl −.019, C1 −.017, sigreg_inv
+  −.011, uniform_align −.041). Matched-pool negs are mostly deep-negative (lejepa ctrl −.60,
+  sigreg_inv −.69) while the GLOBAL-tail negs are positive and deeper than same-class
+  EVERYWHERE (v3 row above). Within-lejepa, kNN ordering tracks ω_same (f2 .40 > f8 .14 >
+  f7 .06 > ctrl/C1/sigreg_inv ≲ 0) with sigreg the exception (+.22, knn 48.1 — overlapping but
+  shape-taxed), i.e. touch-regime connectivity reads necessary-not-sufficient, T4's
+  threshold-like pattern again. Scope: cross-method ω levels carry the D-004 aug-family caveat
+  (per-method view pipelines set r_mean and cloud geometry); within-family reads are clean.
+  AUC ceiling compresses differences — read levels, not ranks, going forward.
+- **Touch fractions (the path readout; rerun 62396656 + explainer figure
+  `e17_intersect_explainer.png`):** fraction of the 20 nearest same-class clouds reachable
+  gap-free (ω>0 ⇔ free percolation edge): f2 1.00 · dino ctrl .97 · c015 .97 · uniform/byol
+  ctrl .93 · vicreg ctrl/sigreg .89 ‖ gap regime: sigreg_inv .56 · C1 .53 · lejepa ctrl .52 ·
+  uniform_align .49 (≈half link ⇒ SPARSE chains — still percolates: 10 linked neighbors per
+  instance ⇒ reach's perc_seed .87 for lejepa ctrl is consistent). Tail negs touch .77–1.00
+  EVERYWHERE (the 10 globally nearest foreigners essentially always overlap the anchor);
+  matched-pool negs touch .03–.08 in tight spaces vs .74–1.00 in open ones (f2 1.00 — in f2
+  literally everything touches everything; discrimination is depth-ranking, not touching,
+  the reach-anatomy ordering-vs-threshold resolution again).
+
+**Touch CENSUS (Berker's spec verbatim, superseding the nearest-20/pool-draw design;
+`experiments/e17_touch_census.py`, job 62396715 → e17_touch_census.csv +
+e17_touch_census.png).** Every anchor × every candidate, ω>0 counted: p_pos = P(random
+same-class cloud touches you | 99), p_neg = P(random negative touches you | ~9900), enrichment
+E = p_pos/p_neg (ratio of class means), purity = deg_pos/(deg_pos+deg_neg) vs base rate .0099.
+Aggregation: class rows = means over the class's ~100 anchors; run = median over classes;
+α=.75 rides along. RAW:
+
+| touch census α=1 | p_pos | p_neg | E | purity | knn200 |
+|---|---|---|---|---|---|
+| lejepa/ctrl | .129 | .0069 | 19.1 | .160 | 52.4 |
+| e12/C1 | .139 | .0103 | 15.1 | .131 | 53.1 |
+| lejepa/sigreg_inv | .165 | .0158 | 9.6 | .088 | 40.8 |
+| dino/protoce | .313 | .0388 | 8.5 | .079 | 55.7 |
+| simclr/uniform_align | .147 | .0247 | 5.9 | .056 | 52.1 |
+| e12/f7 | .273 | .0440 | 5.5 | .052 | 57.6 |
+| byol/align | .408 | .0956 | 4.1 | .039 | 51.4 |
+| lejepa/sigreg | .465 | .1252 | 3.7 | .035 | 48.1 |
+| simclr/ctrl | .372 | .0975 | 3.6 | .035 | 49.5 |
+| vicreg/ctrl | .454 | .1290 | 3.3 | .032 | 55.1 |
+| byol/ctrl | .517 | .1777 | 2.8 | .028 | 46.0 |
+| e12/f8 | .441 | .1711 | 2.5 | .024 | 60.2 |
+| dino/ctrl | .708 | .3606 | 1.9 | .019 | 59.9 |
+| simclr/uniform | .604 | .3489 | 1.7 | .017 | 55.9 |
+| vicreg/varcov_c015 | .743 | .4439 | 1.6 | .016 | 59.4 |
+| **e12/f2** | **.995** | **.9182** | **1.1** | **.011** | **60.5** |
+
+Observations on record (no takeaway): (i) E > 1 in all 16 runs — the weak form of the
+organization hypothesis is universal. (ii) Within-family, the kNN winner has HIGHER p_pos and
+LOWER enrichment/purity in 4 of 5 families (lejepa-E-wave, dino, simclr, vicreg; byol
+INVERTS: align 4.1/51.4 vs ctrl 2.8/46.0). (iii) f2 is touch-SATURATED at r_mean (p_pos .995,
+p_neg .918, purity .011 ≈ the .0099 base rate): its touching graph carries ~no class signal —
+the class signal lives in depth ordering among the touching (the reach-anatomy
+ordering-vs-threshold resolution, census form). (iv) α=.75 amplifies all enrichments
+(f2 1.8, ctrl 47.1) without changing the ordering. Caveats: o32 stores (ctrl/f2/sigreg_inv)
+vs o8 radii differ by the V-estimator bias ≈ 5% (small vs the measured contrasts);
+cross-method levels carry the D-004 aug-family scope.

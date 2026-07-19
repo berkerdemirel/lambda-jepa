@@ -2,6 +2,8 @@ method,tag,run,space,bt_h,bt_z,cone_z,knn200,knn200_ctr,knn20,knn20_ctr,pos_raw,
 lejepa,ctrl,in100.lejepa.s0.e17c.ext,student.z.embed,0.5123,0.5179,0.0006,52.38,52.86,55.24,55.66,0.9549,0.5836,0.8746,0.0034
 lejepa,sigreg,in100.lejepa.s0.hpull_sigreg.ext,student.z.embed,0.4,0.471,0.0035,48.12,48.28,50.74,50.94,0.7243,0.0053,0.7232,0.0011
 lejepa,sigreg_inv,in100.lejepa.s0.hpull_sigreg_inv.ext,student.z.embed,0.5005,0.4703,0.0081,40.8,40.58,44.88,44.72,0.8754,0.0035,0.875,-0.0001
+lejepa,sigreg_t,in100.lejepa.s0.hpull_sigreg_t.ext,student.z.embed,0.4313,0.4763,0.0036,47.6,47.44,49.76,49.94,0.7429,0.0049,0.742,0.0001
+lejepa,sigreg3,in100.lejepa.s0.hpull_sigreg3.ext,student.z.embed,0.4188,0.4723,0.0029,47.66,47.5,50.3,50.4,0.7653,0.0071,0.7648,0.0012
 simclr,ctrl,in100.simclr.s0.e17c.ext,student.h.cls,0.2934,0.2932,0.0004,49.54,51.46,52.36,53.24,0.8582,0.4832,0.7247,0.0022
 simclr,uniform,in100.simclr.s0.hpull_uniform.ext,student.h.cls,0.2104,0.2833,0.0004,55.88,55.88,56.06,56.46,0.6394,0.0018,0.639,0.001
 simclr,uniform_align,in100.simclr.s0.hpull_uniform_align.ext,student.h.cls,0.3106,0.2614,0.0005,52.06,52.12,52.98,53.08,0.7866,0.0024,0.7864,0.002

@@ -245,6 +245,10 @@ comparisons (f2/f7/f8) ride a slightly different training lane than the E17 arms
 internally controlled; cross-family effect sizes carry a lane offset); kNN convention is
 weighted-cosine (mean-sensitive — quantified and controlled via centered re-runs); the
 connectivity measure uses first-moment cloud proxies (radius/centroid), not support overlap.
+Augmentation families are per-method by design (recipe fidelity): the moment-floor-at-h result
+(f2) is established under LeJEPA's aug family (4 symmetric strong-photometric views) and its
+effect size need not transfer across aug families — the view pipeline also shapes the
+augmentation-cloud geometry that the connectivity findings measure.
 
 ## 7. Open next steps (agreed direction)
 

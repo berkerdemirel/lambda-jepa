@@ -29,15 +29,35 @@ from sslgap.methods._common import MomentFloor
 from sslgap.methods.base import SSLMethod
 
 
+def t_nu_cf(t, nu):
+    """CF of the UNIT-VARIANCE Student-t_ν at the knots t, as float32 constants (E18 declared-
+    prior arm). Standard t_ν has CF K_{ν/2}(√ν|u|)·(√ν|u|)^{ν/2} / (Γ(ν/2)·2^{ν/2−1}); scaling
+    to unit variance (u = t·√((ν−2)/ν)) keeps the moment-1/2 targets identical to the Gaussian
+    arm — only the tail/shape declaration changes. Needs ν > 4 (fit is by excess kurtosis)."""
+    import numpy as np
+    from scipy.special import gammaln, kv
+    u = t.double().numpy() * (nu - 2) ** 0.5          # √ν·√((ν−2)/ν)·t = √(ν−2)·t
+    pos = u > 0
+    logphi = np.zeros_like(u)                          # φ(0) = 1
+    logphi[pos] = (np.log(kv(nu / 2, u[pos])) + (nu / 2) * np.log(u[pos])
+                   - gammaln(nu / 2) - (nu / 2 - 1) * np.log(2.0))
+    return torch.from_numpy(np.exp(logphi)).float()
+
+
 class SIGReg(nn.Module):
     """Verbatim from the official script (unseeded slices, device-agnostic). standardize=True
     (E12 F-wave arm f4, D-027) z-scores each slice over the batch before the CF distance —
     kills the moment channel, isolating the shape/anti-CLT (cluster) response (R4c(d)'s listed
     intervention; framework-E7(i)); dead-slice division guarded by the std clamp (gradient
     vanishes at exact death — the term sees degeneracy but is not its fixer). Default path is
-    numerically identical to the port."""
+    numerically identical to the port.
 
-    def __init__(self, knots=17, n_slices=256, t_max=3.0, standardize=False):
+    nu (E18, agenda iv): declared-prior fork — the CF TARGET at the knots becomes the unit-
+    variance spherical t_ν's (slice-coherent: rotation invariance keeps one target for every
+    slice). The quadrature weights keep the Gaussian window so the integration measure — how
+    CF error is weighted across t — is byte-identical to the Gaussian arm; only phi swaps."""
+
+    def __init__(self, knots=17, n_slices=256, t_max=3.0, standardize=False, nu=None):
         super().__init__()
         self.n_slices = n_slices
         self.standardize = standardize
@@ -47,7 +67,7 @@ class SIGReg(nn.Module):
         weights[[0, -1]] = dt
         window = torch.exp(-t.square() / 2.0)
         self.register_buffer("t", t)
-        self.register_buffer("phi", window)
+        self.register_buffer("phi", window if nu is None else t_nu_cf(t, nu))
         self.register_buffer("weights", weights * window)
 
     def forward(self, proj):
@@ -134,7 +154,8 @@ class SpectralFloor(nn.Module):
 
 # h-side regularizer routing (E12 §Amendment + F-wave): cfg.h_reg -> wandb term key
 H_KEYS = {"sigreg": "h_sigreg", "moment": "h_moment_kl", "sigreg_std": "h_sigreg_std",
-          "moment_diag": "h_moment_diag", "spec_floor": "h_spec_floor"}
+          "moment_diag": "h_moment_diag", "spec_floor": "h_spec_floor",
+          "sigreg_t": "h_sigreg_t"}
 
 
 class LeJEPA(SSLMethod):
@@ -158,6 +179,8 @@ class LeJEPA(SSLMethod):
         h_reg = self.cfg.get("h_reg")
         if h_reg == "sigreg_std":
             self.sigreg_std = SIGReg(standardize=True)
+        elif h_reg == "sigreg_t":
+            self.sigreg_t = SIGReg(nu=self.cfg.sigreg_nu)
         elif h_reg == "moment_diag":
             self.diag_floor = DiagMomentFloor()
         elif h_reg == "spec_floor":
@@ -245,6 +268,7 @@ class LeJEPA(SSLMethod):
             h_loss = {"sigreg": lambda: self.sigreg.to(device)(emb_in),
                       "moment": lambda: self.floor(emb_in),
                       "sigreg_std": lambda: self.sigreg_std.to(device)(emb_in),
+                      "sigreg_t": lambda: self.sigreg_t.to(device)(emb_in),
                       "moment_diag": lambda: self.diag_floor(emb_in),
                       "spec_floor": lambda: self.spec_floor(emb_in)}[h_reg]()
             loss = loss + self.cfg.h_lamb * h_loss

@@ -25,7 +25,10 @@ KNN, LIN = "knn_v1_k200", "linear_raw_v2"
 M = {
     "lejepa": dict(ctrl="in100.lejepa.s0.e17c.ext",
                    arms=[("hpull_sigreg", "in100.lejepa.s0.hpull_sigreg.ext"),
-                         ("hpull_sigreg_inv", "in100.lejepa.s0.hpull_sigreg_inv.ext")],
+                         ("hpull_sigreg_inv", "in100.lejepa.s0.hpull_sigreg_inv.ext"),
+                         # E18 (D-041): declared-prior arm + 3% dose rider, same ctrl/frame
+                         ("hpull_sigreg_t", "in100.lejepa.s0.hpull_sigreg_t.ext"),
+                         ("hpull_sigreg3", "in100.lejepa.s0.hpull_sigreg3.ext")],
                    h="student.z.embed", z="student.z.proj.out",
                    chain=["student.z.embed", "student.z.proj.tap1", "student.z.proj.tap2",
                           "student.z.proj.out"], heads=["projector"]),
