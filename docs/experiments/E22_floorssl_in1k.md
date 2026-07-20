@@ -179,3 +179,18 @@ smoke 62448846. Expected ~30 min/ep → **100 ep ≈ 50 h; ETA ≈ Thu**.
   the certified statistics; SyncBN would change them); lr-scaling question at global-256 is a
   recipe fork to rule on; per-rank view-mean floor keeps the certified n=128; rank-0
   checkpointing/wandb. Occupies the full H100 cap while running. ~2–3 days build+validation.
+
+### Smoke un-gated on live curves (Berker 2026-07-21 ~01:10: "i dont wanna waste so much time
+### on the smoke … check the current curves to see if they look healthy, then launch")
+
+Read at step 3602 (~0.36 ep, wandb 399j3nzo), against the kill criteria: grad_norm max/median
+2.6× (bar 100×) · z-floor moment_kl 1.54→0.65 monotone DESCENDING (an implosion would spike
+the −logdet barrier, not descend) · probe CE 7.05→6.48, below the 1000-way chance level 6.91
+· inv plateau .39 ≈ the healthy vm2 formation band (the collapse signature — inv racing up
+WITH the monitor dying — absent) · h_moment_kl mild upward transient 1.01→1.25 (conditioner-
+dose pattern; an ep25-anatomy item). VERDICT healthy → all 16 links' afterok dropped
+(`scontrol update Dependency=singleton`); the chain now starts at slot handover
+unconditionally. The smoke keeps running to ~04:00 as a free A100 eval-path/ckpt record
+(gates nothing; scancel 62448846 to drop it). SLURM label note: `gap-train` on the smoke is
+just train.sbatch's job name (gap = sslgap), not a run identity — the run is
+`in1k.floorssl.s0.d256vm.smoke`.
