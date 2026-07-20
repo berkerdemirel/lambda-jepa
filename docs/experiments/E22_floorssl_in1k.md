@@ -194,3 +194,11 @@ unconditionally. The smoke keeps running to ~04:00 as a free A100 eval-path/ckpt
 (gates nothing; scancel 62448846 to drop it). SLURM label note: `gap-train` on the smoke is
 just train.sbatch's job name (gap = sslgap), not a run identity — the run is
 `in1k.floorssl.s0.d256vm.smoke`.
+
+### Third-H100 authorization (Berker 2026-07-21 ~01:20: "ah you dont need to wait for vm2 to
+### hand over, this is just a large scale peek so you can use 1 additional h100.")
+
+The 16 links were moved to their own singleton lane `h100-slotC` (scontrol rename, job IDs
+unchanged) — a per-cell exception to the standing ≤2-H100 cap on the D-021 precedent; the cap
+itself is unchanged as a rule. Three H100s now run concurrently: slotA vm2 (ends ~09:00),
+slotB e200, slotC E22. E22 training starts immediately; ETA ≈ Wed night–Thu.
