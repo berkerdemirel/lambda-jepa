@@ -24,11 +24,15 @@ from sslgap.methods.base import Frame
 
 @hydra.main(version_base=None, config_path="configs", config_name="train")
 def main(cfg: DictConfig):
+    # D-057: null num_workers -> one per allocated CPU (the input pipeline is the measured
+    # bottleneck at fixed small worker counts; e22_bench{,2}).
+    workers = (cfg.num_workers if cfg.num_workers is not None
+               else int(os.environ.get("SLURM_CPUS_PER_TASK", 8)))
     frame = Frame(name=cfg.frame.name, model_name=cfg.frame.model_name,
                   img_size=cfg.frame.img_size, dataset=cfg.frame.dataset,
                   data_root=cfg.frame.get("data_root"), epochs=cfg.frame.epochs,
                   seed=cfg.seed, grad_clip=cfg.method.get("grad_clip", cfg.frame.grad_clip),
-                  num_workers=cfg.num_workers, device=cfg.device)
+                  num_workers=workers, device=cfg.device)
     run_id = f"{frame.name}.{cfg.method.name}.s{cfg.seed}" + (f".{cfg.tag}" if cfg.tag else "")
     out_dir = os.path.expanduser(cfg.out_dir)
     os.makedirs(out_dir, exist_ok=True)

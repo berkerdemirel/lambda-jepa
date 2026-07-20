@@ -9,10 +9,11 @@ bs: 256
 num_classes: 10              # online-probe head width (imagenette 10; in100 100)
 probe_lr: 1e-3
 probe_wd: 1e-7
-num_workers: 8
-pin_memory: false            # loader-knob defaults = the original single-GPU behavior (official-port
-persistent_workers: false    # lineage); the input pipeline is measured INPUT-BOUND at these defaults
-prefetch_factor: 2           # (e22_bench.csv) — long runs override via CLI (E22: 28w/pin/persistent)
+num_workers: null            # null -> one worker per allocated CPU (SLURM_CPUS_PER_TASK); D-057
+pin_memory: true             # FAST defaults (D-057, Berker: "for the next potential in100 runs it
+persistent_workers: true     # should be the fast version please") — measured input-bound at the old
+prefetch_factor: 2           # 8w/no-pin/no-persist (e22_bench{,2}); portval-exact rerun would
+                             # override persistent_workers=false (D-011 lineage)
 eval_every: 1                # monitor eval every N epochs (final epoch always evaluated); D-056:
                              # default 1 = unchanged for every existing lane; E22 runs 2 (Berker)
 device: cuda
