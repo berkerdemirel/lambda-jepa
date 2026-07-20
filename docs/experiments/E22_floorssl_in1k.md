@@ -202,3 +202,12 @@ The 16 links were moved to their own singleton lane `h100-slotC` (scontrol renam
 unchanged) — a per-cell exception to the standing ≤2-H100 cap on the D-021 precedent; the cap
 itself is unchanged as a rule. Three H100s now run concurrently: slotA vm2 (ends ~09:00),
 slotB e200, slotC E22. E22 training starts immediately; ETA ≈ Wed night–Thu.
+
+### Realized tuned pace (first link, gpu274, 2026-07-21 ~01:45; RAW)
+
+Marginal rate over three 100 s windows at steps 967→2469: **4.80 / 4.79 / 4.71 steps/s**
+(cumulative 4.40 incl. startup) = 90% of the bench loader ceiling, ~3.9× the pre-tuning
+realized pace. **≈35–36 min/ep (eval every 2nd ep included) → 100 ep ≈ 60 h → ETA ≈ Wed
+afternoon/evening.** Residual gap to the ~6.2 b/s compute ceiling = main-process contention
+at 28w/28c — micro-tuning between 8h links is possible from realized data if ever worth it.
+Note: renamed links keep submission-time log paths (`outputs/h100-slotA_624494xx.out`).
