@@ -101,3 +101,50 @@ take their measured correction: **launch doses w_inv 33.6 · w_floor 33.6 · h_l
 (from 32.8/38.7/.617). Honest flag: the z-floor's two pairs disagree (0.99 vs 0.76) — the
 2-batch mean is what the locked rule pinned; the correction direction (z-floor demand reads
 harder on IN-1k batches) is the E19-T1-consistent read, magnitude noisy at n=2.
+
+### Input-pipeline benchmark + chain revision (2026-07-20 ~23:55; job 62448902; results/diag/e22_bench.csv; RAW)
+
+Trigger (Berker): "speed benchmarking playing with IO speed … if IO bound there's hope …
+workers, persistent workers, pin memory, async loading or sharded dataset. btw batch size =
+256 could work (if we do 2 h100s right?)".
+
+**Live probe first (dmon on the RUNNING jobs):** GPU duty ~20–35% on both — smoke/A100 sm%
+0/0/8/53/51/0/0/0/0/0, vm2/H100 0/0/36/84/75/0/0/0 — with 4 of 8 workers in D-state (NFS
+wait). INPUT-BOUND everywhere; even the IN-100 H100 pace (9.44 min/ep) was starvation.
+
+**Stage decomposition** (300 random IN-1k samples): NFS cold read 10.2 ms/img (cached 0.12)
+· JPEG decode ≈2.3 ms · **4× lejepa augs 18.2 ms — the dominant CPU term** · mean file 110 KB.
+
+**Loader grid** (bs 128 V=4, persistent workers, shuffle, 24-CPU node): 8w 2.2–2.3 b/s
+(= the shipped setting) · 12w 3.67 · 16w 3.3–3.4 · **24w 4.46 b/s (571 imgs/s)** · prefetch 6
+HURTS (−10–15%) · pin_memory ≈ neutral for loader throughput (its payoff is H2D overlap —
+transfers already run non_blocking).
+
+**GPU step** (A40): bs128 0.406 s/step (315 imgs/s, 16.8 GB) · bs256 0.798 s (321 imgs/s,
+**33.4 GB**). H100 demand ≈ 0.15–0.20 s/step (vm2's 0.572 end-to-end × the ~30% observed
+duty; A40/2.5 device factor agrees) ≈ 5–6.7 b/s = the rate the loader must beat.
+
+**REVISION (perf-only; loss math byte-untouched):** `train.py`'s DataLoaders gained cfg knobs
+`pin_memory` / `persistent_workers` / `prefetch_factor` with defaults = the old behavior for
+every existing lane (the old inline "persistent_workers=False: official" was D-011 port-exact
+lineage that had leaked into the shared loop — flag: CLAUDE.md hygiene says True; default
+ruling deferred to Berker). The 24 armed links were cancelled and the chain resubmitted as
+**16×8h links 62448964-79** with `num_workers=24 pin_memory=true persistent_workers=true`,
+`--cpus-per-task=28` (H100 nodes are 224c/8 GPUs = 28/GPU fair share), still afterok-gated on
+smoke 62448846 (the smoke validates data path + doses under the OLD loader knobs — declared
+acceptable: loader knobs cannot touch the loss). **Expected 4.5–6 b/s → ~30–40 min/ep →
+100 ep ≈ 50–67 h ≈ 2.1–2.8 days; revised ETA ≈ Thu evening–Fri** (was ~7 days). Conservative
+floor (no scaling win, bench 8w rate) = 127 h, inside the 128 h chain capacity.
+
+**Sharding verdict:** file-IO (10 ms, hideable by parallel workers — proven by the worker
+scan) is not the binding term; the aug CPU (18 ms) is — tar/webdataset shards would not
+reduce it → NOT built. The lever beyond worker scaling is GPU-side augmentation (uint8
+transfer ≈ ×4 smaller H2D + augs off the CPU) — a real build, only if >6 b/s is ever needed.
+
+**bs 256 / 2×H100 (the question answered):** bs 256 V=4 peaks at 33.4 GB → **fits ONE H100**;
+per-image GPU rate is identical (321 vs 316 imgs/s), so bs alone buys ~nothing, and while
+input-bound it buys exactly nothing. A ×2 wall-clock from two H100s means DDP, which the
+trainer does not have — new machinery with semantic forks (per-rank vs Sync BN in the
+expander; global-batch-256 lr scaling; the floor estimator's per-rank n) + its own validation
+discipline, and it would occupy the whole H100 cap. With the pipeline fix the single card is
+expected near-saturated; DDP is a separate decision if a future run needs it.

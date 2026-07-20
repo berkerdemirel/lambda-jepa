@@ -10,6 +10,9 @@ num_classes: 10              # online-probe head width (imagenette 10; in100 100
 probe_lr: 1e-3
 probe_wd: 1e-7
 num_workers: 8
+pin_memory: false            # loader-knob defaults = the original single-GPU behavior (official-port
+persistent_workers: false    # lineage); the input pipeline is measured INPUT-BOUND at these defaults
+prefetch_factor: 2           # (e22_bench.csv) — long runs override via CLI (E22: 24w/pin/persistent)
 device: cuda
 resume: true
 out_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs
