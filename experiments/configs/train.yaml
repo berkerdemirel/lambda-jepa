@@ -12,7 +12,9 @@ probe_wd: 1e-7
 num_workers: 8
 pin_memory: false            # loader-knob defaults = the original single-GPU behavior (official-port
 persistent_workers: false    # lineage); the input pipeline is measured INPUT-BOUND at these defaults
-prefetch_factor: 2           # (e22_bench.csv) — long runs override via CLI (E22: 24w/pin/persistent)
+prefetch_factor: 2           # (e22_bench.csv) — long runs override via CLI (E22: 28w/pin/persistent)
+eval_every: 1                # monitor eval every N epochs (final epoch always evaluated); D-056:
+                             # default 1 = unchanged for every existing lane; E22 runs 2 (Berker)
 device: cuda
 resume: true
 out_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs

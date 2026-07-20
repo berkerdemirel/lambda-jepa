@@ -148,3 +148,34 @@ trainer does not have — new machinery with semantic forks (per-rank vs Sync BN
 expander; global-batch-256 lr scaling; the floor estimator's per-rank n) + its own validation
 discipline, and it would occupy the whole H100 cap. With the pipeline fix the single card is
 expected near-saturated; DDP is a separate decision if a future run needs it.
+
+### Bench round 2 + final chain (2026-07-21 ~00:50; job 62448992; results/diag/e22_bench2.csv; Berker's picks applied)
+
+Worker scaling at the H100-node CPU share: 24w 4.20 · **28w 5.30 b/s (679 imgs/s)** · 32w 5.05
+(oversubscription dip). Pre-resize lever measured in memory (shorter-side 256, q87): decode
+1.86→0.54 ms · aug4 19.2→14.6 ms · file 123→**22.8 KB** — would clear the H100 compute ceiling
+(~6.2 b/s ≈ 27 min/ep). Realized "before" anchor: the smoke runs 1.23 steps/s (157 imgs/s) on
+the old 8-worker settings (wandb 399j3nzo).
+
+**Berker's rulings:** E22 stays FULL-RES (pre-resized copy NOT built — certified-pipeline
+comparability outranks the last ~15%); e200's 5 pending links retro-tuned (62449372-76,
+perf-only, its eval cadence untouched); eval_every=2 adopted for E22 (D-056; the knob gates
+ONLY the monitor eval — ckpt saves sit outside it after a first-cut `continue` was caught
+pre-commit that would have skipped `_last` and the odd cadence epochs ep25/75; early-window
+kill now reads ep2/4/6). **FINAL chain: 16×8h links 62449427-42** at
+`num_workers=28 pin_memory=true persistent_workers=true eval_every=2`, 28 CPUs, afterok on
+smoke 62448846. Expected ~30 min/ep → **100 ep ≈ 50 h; ETA ≈ Thu**.
+
+### PARKED builds (design notes; no build without a directive)
+
+- **GPU-side augmentation** (the >6 b/s lever): loader returns uint8 HWC (H2D 77 MB/step vs
+  308), RRC/flip/jitter/blur/solarize as torchvision-v2 or DALI device ops. Removes the
+  ~15–19 ms/img CPU term → loader ceiling >10 b/s at 8 workers. Forks to resolve: aug RNG
+  moves to a device stream (new stream semantics, pinned-seed reproducibility); blur/jitter
+  kernel parity vs the PIL implementations (distribution-level check before any certified
+  use). ~1–2 days build + smoke discipline.
+- **DDP 2×H100** (~×2 → ~1-day IN-1k): torchrun, per-rank bs 128 (global 256),
+  DistributedSampler; recommended per-rank BN (each rank's expander BN still sees 512 rows =
+  the certified statistics; SyncBN would change them); lr-scaling question at global-256 is a
+  recipe fork to rule on; per-rank view-mean floor keeps the certified n=128; rank-0
+  checkpointing/wandb. Occupies the full H100 cap while running. ~2–3 days build+validation.

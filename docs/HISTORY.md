@@ -324,3 +324,22 @@ SLURM-native waiter and landed R@z .243 vs the pooled d256 column's .386 — the
 pre-registered as P-vm-A — with the caveat that the anatomy reads the pooled z frame, which the
 view-mean floor never constrains; the run continues healthy (ep26 monitor .5176). d256e200 is
 on pace (ep30/200, .5164). Every takeaway on the above remains owed to the joint session.
+
+## 2026-07-20e (late) — E22 IN-1k launch + the speed program (D-055/D-056)
+
+The vm2 cell went to ImageNet-1k under Berker's directive as a single-cell scaling run
+(ladder gates untouched): new in1k_vits16 frame, counts verified, V=4 confirmed as lejepa's
+own IN-1k convention from the donor (dino donor: 2 global + 8 local ≈ the same pixel budget),
+doses via a pre-declared dataset-axis bridge at the vm2 ep25 held state (the z-floor ratio
+.868 left the band → 33.6/33.6/.587). His IO question then overturned the compute picture:
+live dmon showed BOTH running jobs at 20–35% GPU duty with half the workers in NFS D-state —
+every run to date has been input-bound, the IN-100 9.44 min/ep included. Benchmarks decomposed
+it (aug CPU dominates; NFS hideable; prefetch 6 hurts; 28 workers optimal at 5.30 b/s) and
+the loader gained config knobs with old-behavior defaults. The E22 chain was re-armed three
+times as measurements landed (final: 16×8h links 62449427-42, 28w/pin/persistent/eval_every=2,
+~30 min/ep, ETA ≈ Thu — from the naive 7-day estimate); e200's pending links were retro-tuned.
+Berker kept E22 full-res over the measured pre-resize lever (comparability outranks the last
+15%); GPU-side augs and DDP parked as design notes. Two walls honored on the way: bs 256 fits
+one H100 (33.4 GB) so the 2×H100 question is DDP machinery, not memory; and a first-cut
+eval_every `continue` would have silently skipped `_last` + the odd cadence checkpoints —
+caught before commit, saves moved outside the gate.

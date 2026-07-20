@@ -140,25 +140,28 @@ def main(cfg: DictConfig):
                 print(f"[train] INCIDENT: grad_norm {gn:.1f} > 100x running median "
                       f"{gnorm_med:.3f} at step {step} (WORKFLOW.md kill-trigger)", flush=True)
 
-        for m in modules.values():
-            m.eval()
-        probe.eval()
-        correct, n = 0, 0
-        with torch.inference_mode():
-            for views, y in val:
-                x = views.to(frame.device, non_blocking=True).flatten(0, 1)
-                y = y.to(frame.device, non_blocking=True)
-                with autocast(frame.device, dtype=torch.bfloat16):
-                    logits = probe(method.eval_features(modules, x, frame.device))
-                correct += (logits.argmax(1) == y).sum().item()
-                n += y.numel()
-        acc = correct / n
-        wandb.log({"test/acc": acc, "test/epoch": epoch}, step=step)
-        print(f"[train] {run_id} ep{epoch + 1}/{frame.epochs} probe_acc={acc:.4f}", flush=True)
-
-        if acc > best_acc:
-            best_acc = acc
-            save(f"{ckpt_base}_best.pt", epoch)
+        # D-056: monitor eval every eval_every epochs (final epoch always); ckpt saves are
+        # OUTSIDE the gate — _last/cadence must land every epoch regardless of eval cadence.
+        if (epoch + 1) % cfg.eval_every == 0 or epoch + 1 == frame.epochs:
+            for m in modules.values():
+                m.eval()
+            probe.eval()
+            correct, n = 0, 0
+            with torch.inference_mode():
+                for views, y in val:
+                    x = views.to(frame.device, non_blocking=True).flatten(0, 1)
+                    y = y.to(frame.device, non_blocking=True)
+                    with autocast(frame.device, dtype=torch.bfloat16):
+                        logits = probe(method.eval_features(modules, x, frame.device))
+                    correct += (logits.argmax(1) == y).sum().item()
+                    n += y.numel()
+            acc = correct / n
+            wandb.log({"test/acc": acc, "test/epoch": epoch}, step=step)
+            print(f"[train] {run_id} ep{epoch + 1}/{frame.epochs} probe_acc={acc:.4f}",
+                  flush=True)
+            if acc > best_acc:
+                best_acc = acc
+                save(f"{ckpt_base}_best.pt", epoch)
         save(last_path, epoch)
         if (epoch + 1) in cadence:
             save(f"{ckpt_base}_ep{epoch + 1}.pt", epoch)
