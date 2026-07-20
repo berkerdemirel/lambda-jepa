@@ -1,10 +1,12 @@
 # E12 — The moment floor: what shape regularization at h is for
 
-**Status: PRE-REGISTERED (Berker sign-off 2026-07-11: "rest got my pass you can start!", with the
-compute amendment "2 h100 is capped but gpu partition will likely to be free"). Predictions locked
-in this file BEFORE any arm has produced a number. First arm of OUR METHOD (direction A of the
-2026-07-11 design discussion); vehicle = M4's parked one-branch arm (LeJEPA lane), per HANDOVER
-note. Ledger row: D-026.**
+**Status: CLOSED — takeaways E12-T1…T9 in §AGREED TAKEAWAY (T9(i) OPEN per D-037); main arms +
+F/G/H waves all scored. Folded to current truth 2026-07-20 (D-053): superseded layers are
+lineage notes below; the pre-fold text is in git history. Originally PRE-REGISTERED (Berker
+sign-off 2026-07-11: "rest got my pass you can start!", with the compute amendment "2 h100 is
+capped but gpu partition will likely to be free"); predictions locked in this file BEFORE any
+arm produced a number. First arm of OUR METHOD (direction A of the 2026-07-11 design
+discussion); vehicle = M4's parked one-branch arm (LeJEPA lane). Ledger row: D-026 (archive).**
 
 ## Question
 
@@ -42,17 +44,14 @@ pre-launch on the real first batch at seed 0, **launched with the measured value
 (no mid-flight discretion; value recorded here + `results/diag/e12_equal_pull.csv`); (p4) peak lr
 3e-4 = the declared package lr (the healthy-datum value), with the kill rule live.
 
-## Arms (4 runs; run_ids `in100.lejepa.s0.e12{a1,a2,a3,c1}`)
+## Arms (4 runs; run_ids `in100.lejepa.s0.e12{a1,a2,a3,c1}`; table = the FINAL, amended arms)
 
-> **A2/A3 rows below are SUPERSEDED by the 2026-07-11 pre-full-launch amendment (§Amendment):
-> the h-side term is ADDITIVE on top of the shipped SIGReg@proj, not a replacement.**
-
-| arm | placement | regularizer | projector | λ | lr | init calib |
-|---|---|---|---|---|---|---|
-| **A1** package-Dlr (replication) | both terms at h (depth-0) | sliced-CF (SIGReg) | none (Identity) | 0.02 fixed (Dlr-faithful) | 3e-4 | yes |
-| **A2** sliced floor at h (method cell, CF form) | align at proj.out; SIGReg at h | sliced-CF | depth-3, spec-normed | equal-pull (measured) | 3e-4 | yes |
-| **A3** moment floor (thesis cell) | align at proj.out; floor at h | Gaussian-moment KL | depth-3, spec-normed | equal-pull (measured) | 3e-4 | yes |
-| **C1** buffered control (matched package) | all losses at proj.out (as shipped) | sliced-CF | depth-3, spec-normed | 0.02 (shipped) | 3e-4 | yes |
+| arm | loss (final, post-amendment) | projector | λ_h | lr | init calib |
+|---|---|---|---|---|---|
+| **A1** package-Dlr (replication) | both terms at h (depth-0), sliced-CF | none (Identity) | 0.02 fixed (Dlr-faithful) | 3e-4 | yes |
+| **A2** C1 + SIGReg@embed | 0.98·inv + 0.02·SIGReg@proj + λ_h·SIGReg@embed | depth-3, spec-normed | 0.0257 (equal-pull) | 3e-4 | yes |
+| **A3** C1 + MomentFloor@embed (thesis cell) | 0.98·inv + 0.02·SIGReg@proj + λ_h·MomentFloor@embed | depth-3, spec-normed | 0.4775 (equal-pull) | 3e-4 | yes |
+| **C1** buffered control (matched package) | all losses at proj.out (as shipped) | depth-3, spec-normed | — (z λ 0.02 shipped) | 3e-4 | yes |
 
 Existing reference rows (no new compute): `in100.lejepa.s0` (shipped-style M2 lane, lr 1e-3, no
 package — C1 vs it reads recipe sensitivity for free), `in100.randinit`, `in100.deitlite.s0`, rest
@@ -71,43 +70,24 @@ Gaussian read of q_h — a pure function of batch mean and covariance, hence bli
 all higher-order shape by construction; the logdet is the anti-degeneracy barrier. Estimator
 settings (d′, ε, n, per-dim normalization) are declared here and fixed.
 
-## AMENDMENT — 2026-07-11, pre-full-launch (Berker ⊕ Claude; approved "yes please do that")
+## Lineage — the lazy-projector amendment (2026-07-11, pre-full-launch; folded 2026-07-20)
 
-**Berker's catch, before any full arm ran:** in A2/A3 as pre-registered (regularizer MOVED to h,
-proj.out carrying only `inv`), the loss admits alignment-free minima — the projector can zero
-`inv` unilaterally. Spectral norm pins σ_max of each Linear at 1 but leaves BN-γ shrinkage and
-variation-subspace annihilation open; `inv` is scale-dependent, and with the z-side scale pin
-removed, shrinkage minimizes it without aligning anything. This is the framework's own fine print
-realized (alignment is a sufficiency surrogate only JOINTLY with a marginal term **in the same
-space**; R6 head-conditioning exposure σ_min(g)→0 binding, not just watched) — BYOL's
-"objective admits collapse" logic one level up, at the head. The same hole exists in the v2.0
-draft's Appendix-E assembled method → theory-note owed to the framework discussion.
-
-**Measured demonstration (2-ep smokes, jobs 62211226/62211227; forensic job 62211346,
-`outputs/e12-lazy_62211346.out`; wandb `e12a{2,3}smoke` kept as the failure record):** smoke `inv`
-0.098→0.0011 (A2) / 0.119→0.0038 (A3) in 2 warmup epochs — 15–50× below the shipped lane's
-END-of-100-ep value (0.053) at ~20% of peak lr; at ep2 proj.out across-image std 0.016/0.032
-(near-degenerate scale) with within-image (view) std ~1.9× LARGER than across-image — shrinkage,
-no semantic alignment, while the embedding grew to healthy scale under the floor: the arms were
-training floor-only encoders.
-
-**Amended arms (A1/C1 untouched; z-side now byte-identical across A2/A3/C1 — the h-term becomes
-the ONLY factor, a strictly cleaner design than the original):**
-
-- **A2 := C1 + SIGReg@embed** — L = 0.98·inv + 0.02·SIGReg@proj + λ_h·SIGReg@embed, λ_h = 0.0257.
-- **A3 := C1 + MomentFloor@embed** — L = 0.98·inv + 0.02·SIGReg@proj + λ_h·MomentFloor@embed,
-  λ_h = 0.4775.
-- λ_h values carry over from the equal-pull measurement unchanged (g_inv and g_reg_h come from
-  the same forward graph; the added proj term alters neither at init) — no re-measurement.
-- Rejected alternatives: moments-only guard at proj (re-opens a z-side confound vs C1);
-  scale-free/cosine alignment (deviates from the shipped alignment functional); dropping the
-  projector in method arms (collapses A2 into A1, loses the buffered-alignment axis).
-
-**Predictions and kills survive with wording changes only:** every "moved to h" reads "added at
-h"; the pure moved-placement cell remains A1 (safe: alignment and floor share the space — the Dlr
-equilibrium). P1's framework-E7(iii) reading now applies to the added trunk-direct h-term.
-Re-smoke criterion before full launch: A2/A3 `inv` tracks the shipped lane's early trajectory
-(epoch-1 scale ~0.1–0.2, no 100× collapse) and proj.out across-image std stays O(shipped).
+The arms table above is the AMENDED design (approved "yes please do that"); the original A2/A3
+MOVED the regularizer to h, with proj.out carrying only `inv`. **Berker's catch, before any full
+arm ran:** that loss admits alignment-free minima — spectral norm pins σ_max but leaves BN-γ
+shrinkage open, and `inv` is scale-dependent, so with the z-side scale pin removed the projector
+zeroes `inv` by shrinkage without aligning anything (alignment is a sufficiency surrogate only
+JOINTLY with a marginal term in the same space; the same hole existed in the v2.0 draft's
+Appendix-E method — theory-note owed). **Measured demonstration** (2-ep smokes; wandb
+`e12a{2,3}smoke` kept as the failure record): smoke `inv` 0.098→0.0011 (A2) / 0.119→0.0038 (A3)
+in 2 warmup epochs — 15–50× below the shipped lane's end-of-100-ep value (0.053) at ~20% of peak
+lr — with proj.out across-image std 0.016/0.032 and within-image (view) std ~1.9× LARGER than
+across: the arms were training floor-only encoders. The amendment makes the h-term the ONLY
+factor (z-side byte-identical across A2/A3/C1); λ_h values carry over unchanged (same forward
+graph at init). Rejected: moments-only guard at proj (re-opens a z-side confound vs C1);
+scale-free/cosine alignment (deviates from the shipped functional); dropping the projector
+(collapses A2 into A1). Predictions/kills survived with wording changes only ("moved to h" reads
+"added at h"; the pure moved-placement cell remains A1).
 
 ## Pre-registered predictions (locked 2026-07-11, before numbers; anchors in brackets)
 
@@ -271,11 +251,7 @@ P2–P4 + the probe-pair (kNN vs linear) M2 signature; discussion-first, no take
   weakens as class count grows). Raw observation for the E10-T4 travel discussion.
 - **P5 pending** (Varimax symptom read on A3/C1 not yet run). Battery cells not yet folded in.
 
-*(Proposed reading, NOT agreed: class structure at h lives overwhelmingly in the second moments —
-between-class anisotropy — so full second-moment calibration at the probed space scrubs semantics
-by construction; effrank ordering null 3.7 < C1 22 ≈ A1 22 < A2 76 < A3 275 tracks the
-suppression monotonically. The F-wave separates the candidate repairs: f5 = is it specifically
-decorrelation; f3 = is a one-sided rank floor free; f1/f2 = dose; f4 = pure cluster channel.)*
+*(The proposed reading that stood here was resolved into E12-T1/T5 — see AGREED TAKEAWAY.)*
 
 ### F-wave scoring — ALL ARMS at ep100 (2026-07-12; raw + mechanical outcomes; discussion owed)
 
@@ -322,13 +298,9 @@ All at h = z.embed; converged probes (D-020); class-align = `results/diag/e12_cl
   pressure. Also an instrument lesson: effrank (variance-weighted) and linear separability
   dissociate completely here.
 
-**Still owed:** battery fold-in for all arms (sliced three-reference decompositions, k̂, rank
-monitors — f3/f4 spectra especially); P5 Varimax read; seeds (everything here is n=1); joint
-discussion before ANY takeaway. Candidate-method note for the discussion (proposed, not agreed):
-**f2's configuration — C1 + moment-KL floor at h at λ≈.02 — is the best lejepa-family h we have
-ever measured on every probe**, and its term is R1's closed-form rate/calibration expression at
-gentle weight; dose-response (0 → .02 → .1 → .478 = .6456 → .6578 → .6338 → .5070 lin) suggests
-a λ* sweep + seeds as the obvious next compute.
+*(All items owed here landed: battery fold-in + P5 Varimax read below; takeaways in AGREED
+TAKEAWAY; the f2-as-candidate-method note became the E17→E19→E21 program. Dose-response
+0 → .02 → .1 → .478 = .6456 → .6578 → .6338 → .5070 lin. Seeds remain n=1, deferred per D-024.)*
 
 ### Floor-satisfaction table (Berker's panel request, 2026-07-12) + T3 confound datum
 

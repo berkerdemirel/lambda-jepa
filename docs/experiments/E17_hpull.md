@@ -1,8 +1,11 @@
 # E17 — h-pull: each method's OWN desideratum term at h (the desideratum-transfer matrix)
 
-**Status: COMPLETE — AGREED TAKEAWAY T1–T7 USER-APPROVED 2026-07-16 (§bottom; D-039 APPROVED).
-7 arms scored (6 + vicreg varcov@6× closure); reviewer-facing report:
-`docs/report/e17_desiderata_at_h_findings.md`. Original pre-registration below unchanged.**
+**Status: COMPLETE — AGREED TAKEAWAY T1–T7 USER-APPROVED 2026-07-16 (§bottom; D-039, now in the
+DECISIONS archive). 7 arms scored (6 + vicreg varcov@6× closure); reviewer-facing report:
+`docs/report/e17_desiderata_at_h_findings.md`. Original pre-registration below unchanged.
+Folded to current truth 2026-07-20 (D-053): the mid-flight amendment→refutation→sharpening
+layering is now the single §Mid-flight arm evolution block, and the superseded "vicreg — PARKED"
+section is folded into §vicreg CLOSURE; pre-fold text in git history.**
 
 *(Original status, 2026-07-14: predictions locked in this file BEFORE any arm produced a number.
 Vehicle = the "slight-desideratum-at-h" principle (`docs/theory/CALIBRATION_AT_H_GENERALIZATION.md`),
@@ -221,73 +224,44 @@ package f7's 454 — no embed_calib here) → E17 anchors on the shipped lane it
 - **Compute divergence from the goal (flagged to Berker):** chains on the **gpu partition in
   parallel** (F-wave/G-wave precedent), not the 2 H100 slots — 8 arms parallelize far better; f8
   still on an H100 slot.
-- Pending: smoke-pass gate → 8×100-ep chains (`scratchpad/e17_launch_chains.sh`) → per-arm
-  extract+probe+battery (`scratchpad/e17_score_pipeline.sh`) → score → **raw numbers to Berker**.
+- (Executed: chains → extraction → probes/battery → the scoring passes below.)
 
-### AMENDMENT — 2026-07-15 (Berker, mid-flight from the live curves): the "+inv" arm is redundant where h is already view-invariant
+### Mid-flight arm evolution (2026-07-15; folded 2026-07-20 from three stacked blocks: amendment → run-based refutation → sharpened priority)
 
-**Trigger:** Berker read vicreg's `h_inv` panel ≈ 0 ("obviously not necessary"). Check (control
-orbit stores, declared h across 8 views): **pos_cos@h is already 0.86–0.96 for EVERY method**
-(lejepa embed .955, byol cls .934, vicreg cls .921, simclr cls .858, dino cls .683). Same-image
-views are already aligned at h everywhere → a view-alignment pull at h (`h_inv`/`h_align`) has
-almost nothing to do. The margin@h is held down by **rand_cos** (the different-image cone: vicreg
-.71, byol .77, lejepa .58, simclr .48, dino .15), and lowering rand_cos is the **non-collapse
-term's** job (var/cov, SIGReg, uniformity decorrelate), not the inv term's.
+**Trigger:** Berker read vicreg's `h_inv` panel ≈ 0 ("obviously not necessary"). The control-based
+check agreed — pos_cos@h is already 0.86–0.96 for EVERY method (lejepa embed .955, byol cls .934,
+vicreg cls .921, simclr cls .858, dino cls .683), the margin held down by rand_cos (vicreg .71,
+byol .77, lejepa .58, simclr .48, dino .15) — suggesting the +inv arms were near-null and
+decorrelation the whole offloadable burden. **The RUNS refuted that read** (live ep16–20;
+matched-ep25 cleaner): under an ACTIVE non-collapse term the picture inverts — lejepa control POS
+.955/NEG .584 → hpull_sigreg POS .615/NEG .014 (SIGReg breaks the cone but drags same-image POS
+down with it) → hpull_sigreg_inv POS .807/NEG .011 (the inv term RECOVERS the alignment SIGReg
+destroyed, at NEG≈0); matched-ep25 control .979/.886 → sigreg .644/.008. simclr (~ep20): control
+.858/.483 → uniform .605/.015 → +align .706/.014. vicreg: control .921/.711 → hpull_varcov
+.748/.341 — var+cov is a WEAK decorrelator (cone only halved, vs SIGReg/uniformity → ~.015).
+**Lesson (stands): judge redundancy on the RUN — non-collapse term active — not the control**,
+whose POS is high only because nothing is decorrelating it yet. The +inv is a corrective for the
+non-collapse term's alignment cost, tolerable where that term already decorrelates well.
 
-**Reframing (proposed, for the eventual takeaway):** the offloadable head-burden at h is
-**DECORRELATION, not alignment** — alignment is already done at h. So the **non-collapse arms are
-the E17 test**; the `+inv` arms are a near-null control confirming alignment is already at h.
+**Final arm dispositions (Berker 2026-07-15):**
+- `hpull_varcov_inv` (vicreg) DROPPED/killed (h_inv≈0 in that lane).
+- `hpull_sigreg_inv` (lejepa) KEPT ("looks very good"; NEG≈0 satisfies his neg≈0→keep rule; POS
+  recovery is real work). Over-dose flag recorded: SIGReg@10% dropping POS to .615 is strong.
+- `hpull_align` (byol) REDESIGNED — the direct/no-predictor version was inert (student-CLS ≈
+  EMA-teacher-CLS: .999 same-view, gap .132); Berker: "add a linear to its h and do the pull
+  there" → small trainable `byol_h_predictor` = Linear(384→384), student-CLS → stop-grad
+  EMA-teacher-CLS; re-pulled, re-dosed, relaunched.
+- vicreg base resolution (Berker): **strengthen var+cov until it decorrelates, at the SMALLEST
+  pull that does so** (small-dose regime, E12-T2) — var+cov-only dose sweep 2×/4×/6× (h_lamb
+  .005/.010/.015), neg read at ep15 → the c015 CLOSURE below. Churn owned: the +inv was first
+  killed on a wrong "inv hurts" read, the wrong arm boosted, then over-boosted to 8×, before the
+  actual ask — always "strengthen the base var+cov's decorrelation, minimally." — was executed
+  (`hpull_varcov` itself was never killed, only `hpull_varcov_INV`).
+- Kept unchanged: the 4 non-collapse arms + simclr `hpull_uniform_align`.
 
-**Arm changes (Berker 2026-07-15):**
-- `hpull_varcov_inv` (vicreg) **DROPPED/killed** — confirmed h_inv≈0; ≈ identical to `hpull_varcov`.
-- `hpull_sigreg_inv` (lejepa) **HOLD** — decision by the sigreg-only run's **neg (rand_cos)**:
-  neg≈0 (SIGReg broke the cone) → +inv can stay; neg>0 → regularization matters more → **reduce the
-  inv pull** (shape-dominant, f8-style). Control embed baseline: pos 0.955, **neg 0.584** (big cone);
-  the deciding number is what `hpull_sigreg` does to neg (report pos/neg separately, from ep25).
-- `hpull_align` (byol) **REDESIGNED + relaunching** — the direct/no-predictor version was inert
-  (student-CLS ≈ EMA-teacher-CLS: 0.999 same-view, gap 0.132). Berker: "add a linear to its h and do
-  the pull there" → a small **linear predictor** (`byol_h_predictor` = Linear(384→384), student-side,
-  trainable) maps student-CLS to predict stop-grad EMA-teacher-CLS — byol's actual asymmetry, pull
-  measured through it. Re-pull → dose → smoke → relaunch.
-- Kept unchanged: the 4 non-collapse arms + simclr `hpull_uniform_align` (most alignment room,
-  pos .86 — under review). Non-collapse doses unchanged (NOT redundant — vicreg CLS h_cov grad 1945;
-  the 10%-of-strong-term magnitude stays an open dose question).
-
-### RUN-BASED CORRECTION — 2026-07-15 (live ep16–20): the +inv is NOT redundant where the non-collapse term drops POS
-
-The control-based redundancy read above is **REFUTED by the actual runs.** lejepa embed pos/neg,
-live: control POS 0.955 / NEG 0.584 → **hpull_sigreg POS 0.615 / NEG 0.014** (SIGReg breaks the cone
-but drags same-image POS down with it) → **hpull_sigreg_inv POS 0.807 / NEG 0.011** (the inv term
-RECOVERS the alignment SIGReg destroyed, at NEG≈0). Matched-ep25 confirms cleaner: control
-0.979/**0.886** (the early embed cone is huge) → hpull_sigreg 0.644/**0.008** — SIGReg is a *very
-strong* decorrelator, the opposite end from var+cov (which only halved its cone). That method-spread
-in decorrelation strength is the emerging E17 result. So the +inv is a **corrective for the non-collapse
-term's alignment cost**, not a near-null. **Lesson: judge redundancy on the RUN (non-collapse term
-active), not the control** — the control has POS already high because nothing is decorrelating it yet.
-`hpull_sigreg_inv` **KEPT** (Berker 2026-07-15: "looks very good"; NEG≈0 satisfies his neg≈0→keep
-rule, and POS recovery is real work). Open: SIGReg@10% dropping POS to 0.615 is strong (over-dose
-flag — the +inv partly compensates).
-
-Run-based re-check (CLS, ~ep20): **simclr** control POS .858/NEG .483 → hpull_uniform .605/**.015**
-→ +align .706/.014 (uniformity decorrelates well; +align recovers POS — **KEEP**). **vicreg** control
-.921/.711 → hpull_varcov .748/**.341** (var+cov drops POS but is a **WEAK decorrelator** — cone only
-halved, vs SIGReg/uniformity → ~.015).
-
-**SHARPENED PRIORITY (Berker 2026-07-15): the goal is DECORRELATION via each method's OWN non-collapse
-term.** The +inv is a *secondary corrective*, tolerable ONLY where the non-collapse term already
-decorrelates well (neg→~0) so the inv just recovers the POS it cost, without fighting the cone
-(lejepa, simclr). Where the non-collapse term is a **weak decorrelator** (vicreg var+cov, neg .341),
-adding inv on top of a *weak* var+cov hurts decorrelation. **Resolution (Berker 2026-07-15): the fix is on the base
-`hpull_varcov` — strengthen var+cov until it decorrelates, at the SMALLEST pull that does so** (not
-a big hammer; small-dose regime, E12-T2). Method: a var+cov-only dose sweep (2×/4×/6× = h_lamb
-.005/.010/.015), neg read at ep15, take the smallest with a broken cone; then launch the real
-`hpull_varcov` + `hpull_varcov_inv` at that one dose. (Churn log, owned: I first killed the +inv on a
-wrong "inv hurts" read, then boosted the wrong arm, then over-boosted to 8× — the actual ask was
-always "strengthen the base var+cov's decorrelation, minimally." NB: `hpull_varcov` (var+cov only)
-was never the thing killed — only `hpull_varcov_INV`.)
-**E17 deliverable, sharpened:** each own non-collapse term's *decorrelation strength* at h —
-SIGReg/uniformity strong (neg→~.015), var+cov weak (neg→.341); + the POS-recovery of the +inv where
-decorrelation succeeds.
+**E17 deliverable, sharpened (Berker 2026-07-15):** each own non-collapse term's decorrelation
+strength at h — SIGReg/uniformity strong (neg→~.015), var+cov weak (neg→.341) — plus the
+POS-recovery of the +inv where decorrelation succeeds.
 
 ## Numbers land below this line as they arrive; AGREED TAKEAWAY only after joint discussion.
 
@@ -558,18 +532,13 @@ churn leftover (o8-only store), purge-list candidate.
 Mechanism decomposition (v1L, `‖μ‖² / tr Σ / E‖x‖²`): ctrl 48.7 / 19.4 / 68.2 → c015 20.8 /
 **361.7** / 382.5. The var hinge saturates centered variance (tr → ~d), diluting the mean share to
 ~.12 alone; the residual mean halves via drift not attributable to the (mean-blind) term's gradient.
-**Correction log (owned): the ep15 sweep reads (.268 @6×, shallow curve) extrapolated to
+**Correction log (owned): the ep15 sweep reads (neg@ep15 — 2×(.005) .464 · 4×(.010) .318 ·
+6×(.015) .268; baseline 10%/.0026 → .341; control .711; shallow ~.05/doubling) extrapolated to
 "needs 15–20×" were WRONG at convergence — the cone broke at 6× by ep100.** The 1×-dose ep100
 behavior is UNKNOWN (baseline-dose run never extracted); the dose curve at convergence has one
-point. `hpull_varcov_inv` closed unlaunched (decision).
-
-### vicreg — PARKED (Berker 2026-07-15 "we will talk about this later"; superseded by the CLOSURE above)
-Own var+cov is a **weak decorrelator at h** (the E17 outlier). Dose sweep (var+cov only, all ran to
-ep100): neg@ep15 — 2×(.005) .464 · 4×(.010) .318 · 6×(.015) .268 (baseline 10%/.0026 → .341;
-control .711). Shallow curve (~.05/doubling) → needs ~15–20× (over-regularization, E12-T1) to break
-the cone. Open question (AskUserQuestion posed, deferred): take-the-finding@6× / confirm-at-ep40 /
-push-to-15–20×. `hpull_varcov` (var+cov only) + `hpull_varcov_inv` NOT yet run at a chosen dose;
-c005/c010/c015 ep100 ckpts available for converged scoring when we resume.
+point; c005/c010 ep100 ckpts retained for converged scoring if ever wanted. `hpull_varcov_inv`
+closed unlaunched (decision). *(The interim "vicreg — PARKED" section that stood below
+(Berker 2026-07-15 "we will talk about this later") is folded into this block, 2026-07-20.)*
 
 ## AGREED TAKEAWAY (jointly discussed 2026-07-16; Berker: "i approve t1-t7"; mirrored to D-039)
 
