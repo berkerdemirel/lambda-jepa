@@ -1,6 +1,7 @@
 # PROTOCOL.md — the fixed experimental frame
 
-**Version: v1-draft.5 (2026-07-14: D-036 — h redeclared as the projection input (pre-MLP); F1
+**Version: v1-draft.6 (2026-07-20: D-055 — `in1k_vits16` frame instantiated for the single-cell
+floorssl scaling run; ladder gates G-M2/G-M4 unchanged. prior: v1-draft.5 (2026-07-14: D-036 — h redeclared as the projection input (pre-MLP); F1
 methods SimCLR/BYOL/VICReg h moved trunk-GAP→trunk-CLS in §1/§3/F1; online monitor tap follows the
 declared h; trunk-GAP demoted to intermediate tap. prior: v1-draft.4, 2026-07-10: D-025 k̂ defect-rank estimator spec, §6 item 9; prior:
 v1-draft.3, 2026-07-09: D-020 convergence-guaranteed linear probes — v2 family is the
@@ -35,7 +36,7 @@ estimator discipline, adapted to this cluster and the binding data ladder (DECIS
 | `in100_vits16` | `vit_small_patch16_224` trunk | ImageNet-100 = `~/data/imagenet100` (CMC; D-002) | 224 | 100 | 2 (0,1) | **the controlled grid** |
 | `rn18_in100` | ResNet-18 | same IN-100 | 224 | per solo-learn recipe | 1 | port validation ONLY (vs solo-learn published numbers); never enters the audit matrix |
 | `in1k_public` | as released | ImageNet-1k `~/data/imagenet` (eval only) | as released | — | — | validation rung 3: "as papers report"; provenance flagged per ckpt |
-| `in1k_vits16` | (rung 4, post-M4; scoped later) | — | — | — | — | — |
+| `in1k_vits16` | `vit_small_patch16_224` trunk | ImageNet-1k `~/data/imagenet` (1,281,167 / 50,000 verified) | 224 | 100 | 1 (0) | **single-cell method scaling ONLY (D-055)** — audit-rung advancement still gated (G-M2/G-M4) |
 
 Frame owns (identical across methods within a frame): backbone topology; dataset+split; epoch
 budget (epochs-matched, D-004; pixels/epoch recorded as covariate); checkpoint cadence
