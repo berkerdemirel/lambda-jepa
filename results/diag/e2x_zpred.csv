@@ -1,0 +1,16 @@
+run,h_space,z_space,d_z,r2_total,r2_meandim,n_train,n_val
+in100.floorssl.s0.d16.ext,student.h.cls,student.z.proj.out,16,0.9234,0.9232,50000,5000
+in100.floorssl.s0.d32.ext,student.h.cls,student.z.proj.out,32,0.9207,0.9206,50000,5000
+in100.floorssl.s0.d64.ext,student.h.cls,student.z.proj.out,64,0.8808,0.8807,50000,5000
+in100.floorssl.s0.d128.ext,student.h.cls,student.z.proj.out,128,0.8066,0.8063,50000,5000
+in100.floorssl.s0.d256.ext,student.h.cls,student.z.proj.out,256,0.5782,0.5773,50000,5000
+in100.floorssl.s0.d512.ext,student.h.cls,student.z.proj.out,512,0.438,0.437,50000,5000
+in100.lejepa.s0.e20f.ext,student.h.cls,student.z.proj.out,16,0.9617,0.9616,50000,5000
+in100.lejepa.s0.ext,student.h.cls,student.z.proj.out,16,0.9494,0.9488,50000,5000
+in100.vicreg.s0.ext,student.h.cls,student.z.proj.out,2048,0.3671,0.367,50000,5000
+in100.dino.s0.e20f_lam008.ext,student.h.cls,student.z.dino.bottleneck,256,0.391,0.3854,50000,5000
+in100.dino.s0.ext,student.h.cls,student.z.dino.bottleneck,256,0.4065,0.4024,50000,5000
+null.randhead.d16,student.h.cls,randMLP(h),16,0.6513,0.6489,50000,5000
+null.randhead.d64,student.h.cls,randMLP(h),64,0.6531,0.6516,50000,5000
+null.randhead.d256,student.h.cls,randMLP(h),256,0.652,0.6503,50000,5000
+null.randhead.d2048,student.h.cls,randMLP(h),2048,0.6517,0.6499,50000,5000

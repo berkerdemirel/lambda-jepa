@@ -36,16 +36,19 @@ K_BATCHES, N_SLICES, D_SLICE, EPS = 4, 8, 128, 1e-4
 
 
 def slice_decomp(x):
-    """x [n, D] fp32, D >= D_SLICE: (cone, scale, aniso, total) averaged over fresh slices."""
+    """x [n, D] fp32: (cone, scale, aniso, total) averaged over fresh slices. The slice dim
+    is min(D_SLICE, D) — the D-050 small-z taps (D < 128) get the EXACT full-cov decomp
+    (rotation-invariant ⇒ the Q is a value-level no-op there); D >= 128 unchanged."""
+    ds = min(D_SLICE, x.size(1))
     mu_f, xc = x.mean(0), x - x.mean(0)
     parts = []
     for _ in range(N_SLICES):
-        Q, _ = torch.linalg.qr(torch.randn(x.size(1), D_SLICE, device=x.device))
+        Q, _ = torch.linalg.qr(torch.randn(x.size(1), ds, device=x.device))
         mu, pc = mu_f @ Q, xc @ Q
-        cov = pc.T @ pc / (x.size(0) - 1) + EPS * torch.eye(D_SLICE, device=x.device)
+        cov = pc.T @ pc / (x.size(0) - 1) + EPS * torch.eye(ds, device=x.device)
         m = cov.diagonal().mean()
-        logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum() / D_SLICE
-        cone = 0.5 * mu.square().sum() / D_SLICE
+        logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum() / ds
+        cone = 0.5 * mu.square().sum() / ds
         scale = 0.5 * (m - 1 - m.log())
         aniso = 0.5 * (m.log() - logdet)
         parts.append(torch.stack([cone, scale, aniso, cone + scale + aniso]))
@@ -66,10 +69,7 @@ def tap_stats(x, N, V):
     row = {"D": D, "n": N * V, "mu2_D": (mu @ mu / D).item(), "mbar": var.mean().item(),
            "w_raw": w_raw.item(), "R": R.item(), "pos": pos.mean().item(),
            "rand": rand.mean().item()}
-    if D >= D_SLICE:
-        row["cone"], row["scale"], row["aniso"], row["kl"] = slice_decomp(x)
-    else:
-        row["cone"] = row["scale"] = row["aniso"] = row["kl"] = float("nan")
+    row["cone"], row["scale"], row["aniso"], row["kl"] = slice_decomp(x)
     return row
 
 

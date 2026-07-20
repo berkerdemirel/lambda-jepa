@@ -24,7 +24,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
+from sslgap.methods._common import HingeFloor, MomentFloor, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -52,8 +52,30 @@ class FloorSSL(SSLMethod):
                                 drop_path_rate=self.cfg.drop_path)
         head = floorssl_head(384, self.cfg.expander_hidden, self.cfg.expander_dim,
                              norm=self.cfg.head_norm)
+        # z_floor axis (E21 fix session, D-049): "kl" = the symmetric MomentFloor (Sigma=I,
+        # the method's identity) | "hinge" = the one-sided HingeFloor (Sigma>=I) — Berker
+        # 2026-07-19: hinge VETOED as method ("vicreg with slicing"); diagnostic arm only.
+        # h-floor stays symmetric KL — the <=6%-share conditioner is the certified-GOOD
+        # regime (E19-T1/E20). The z estimator's slice cannot exceed the space: at
+        # expander_dim <= 128 (the D-050 small-z direction) the floor reads the EXACT full
+        # covariance — slice sampling noise vanishes by construction; at 2048 this is the
+        # unchanged d'=128 slice.
         self.floor_h = MomentFloor()
-        self.floor_z = MomentFloor()
+        # z_floor_batch payment axis (D-051; Berker 2026-07-20): "pooled" floors the bs*V
+        # batch — per direction it reads across-image + within-image (aug) variance, so aug
+        # spread pays the floor and competes with inv over the same quantity (the 2048-d
+        # collapse's 92%-aug-paid equilibrium lived in this channel). "view_mean" floors the
+        # per-image view means — reading across + within/V: the floor's demand lands on image
+        # spread, the aug-payment channel shrinks by V, and within-scatter control rests on
+        # inv alone (declared risk, P-vm-B). ESTIMATOR CO-DESIGN (the card's wall): view_mean
+        # drops the floor's n from bs*V to bs, so z_d_slice must keep n/d' >= 4 (bs=128 ->
+        # 32); d_draw stays the canonical min(128, D) so per-step RNG streams stay aligned
+        # across payment variants. h-floor stays pooled cls — single axis; the <=6%-share
+        # conditioner is the certified-GOOD regime.
+        d_canon = min(128, self.cfg.expander_dim)
+        d_z = self.cfg.get("z_d_slice") or d_canon
+        self.floor_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
+                        else MomentFloor(d_slice=d_z, d_draw=d_canon))
         return nn.ModuleDict({"backbone": trunk, "projector": head})
 
     def arch(self):
@@ -94,7 +116,9 @@ class FloorSSL(SSLMethod):
                   for u in range(V) for w in range(u + 1, V)) / (V * (V - 1) / 2)
         # term order mirrors the vicreg-class floorssl arms (z-floor drawn before h-floor)
         # so the per-step fresh-frame RNG sequence matches the migrated lineage.
-        reg_z = self.floor_z(z.reshape(N * V, -1))
+        zin = (z.mean(1) if self.cfg.get("z_floor_batch", "pooled") == "view_mean"
+               else z.reshape(N * V, -1))
+        reg_z = self.floor_z(zin)
         reg_h = self.floor_h(cls)
         loss = self.cfg.w_inv * inv + self.cfg.w_floor * reg_z + self.cfg.h_lamb * reg_h
         terms = {"inv": inv, "moment_kl": reg_z, "h_moment_kl": reg_h}

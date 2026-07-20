@@ -6,6 +6,9 @@ name: floorssl
 w_inv: 25.0
 w_floor: 45.0
 h_lamb: 0.65
+z_floor: kl        # kl = symmetric MomentFloor (Sigma=I) | hinge = one-sided HingeFloor (Sigma>=I, D-049)
+z_floor_batch: pooled  # pooled = floor the bs*V batch (aug variance pays) | view_mean = floor per-image view means (payment /V; D-051)
+z_d_slice: null    # z-floor slice width; null -> min(128, expander_dim). REQUIRED co-design under view_mean: n drops to bs, keep n/d' >= 4 (32 at bs=128)
 expander_hidden: 2048
 expander_dim: 2048
 head_norm: bn

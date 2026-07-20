@@ -1,0 +1,16 @@
+run,space,knn200_raw,knn200_centered
+in100.floorssl.s0.d16.ext,student.h.cls,0.517,0.5196
+in100.floorssl.s0.d32.ext,student.h.cls,0.577,0.5782
+in100.floorssl.s0.d64.ext,student.h.cls,0.6206,0.6188
+in100.floorssl.s0.d128.ext,student.h.cls,0.587,0.5882
+in100.floorssl.s0.d256.ext,student.h.cls,0.6276,0.628
+in100.floorssl.s0.d512.ext,student.h.cls,0.6208,0.6222
+in100.floorssl.s0.lejepa_augs2.ext,student.h.cls,0.1044,0.1062
+in100.lejepa.s0.e20f.ext,student.h.cls,0.6114,0.6114
+in100.lejepa.s0.e20f.ext,student.z.embed,0.6284,0.6288
+in100.lejepa.s0.ext,student.h.cls,0.5134,0.5312
+in100.lejepa.s0.ext,student.z.embed,0.524,0.5286
+in100.lejepa.s0.e12f2.ext,student.h.cls,0.5856,0.5884
+in100.lejepa.s0.e12f2.ext,student.z.embed,0.605,0.603
+in100.dino.s0.e20f_lam008.ext,teacher.h.cls,0.6296,0.6336
+in100.dino.s0.ext,teacher.h.cls,0.5994,0.609

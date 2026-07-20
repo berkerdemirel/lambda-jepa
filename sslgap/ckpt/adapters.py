@@ -163,8 +163,10 @@ class IjepaPredTaps(nn.Module):
 
 
 def _asm_projector(mods, ck):
-    """simclr / vicreg: single branch, projector taps off trunk CLS (what the trainer fed it);
-    h = student trunk-CLS = the projector input (D-036; was trunk-GAP under F1)."""
+    """simclr / vicreg / floorssl: single branch, projector taps off trunk CLS (what the trainer
+    fed it); h = student trunk-CLS = the projector input (D-036; was trunk-GAP under F1). FloorSSL
+    (E21 independent class) shares this layout exactly — backbone + projector nn.Sequential head,
+    same probed CLS, z = projector taps — so it assembles here, no floorssl-specific branch."""
     return ({"student": Branch(mods["backbone"], TVMLPTaps(mods["projector"], "proj"), "cls")},
             "student", "student.h.cls")
 
@@ -219,7 +221,8 @@ def _asm_lejepa(mods, ck):
             "student", "student.z.embed")
 
 
-_NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "byol": _asm_byol,
+_NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "floorssl": _asm_projector,
+               "byol": _asm_byol,
                "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa, "deitlite": _asm_deitlite, "pivot": _asm_pivot}
 
 

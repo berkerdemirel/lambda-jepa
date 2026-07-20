@@ -1,9 +1,9 @@
 run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,cka_linear,cross,0.3841259471603072,,,50000,384x512,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,neighbor_jaccard,cross,0.17693061676885208,,,50000,384x512,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,procrustes_distance,cross,0.8757711441114266,,,50000,384x512,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.out,knn_label_agreement,cross,0.4044,,,50000,384x512,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,cka_linear,cross,0.6706259099468235,,,50000,384x4096,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,neighbor_jaccard,cross,0.216524037400508,,,50000,384x4096,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,procrustes_distance,cross,0.7225537800307703,,,50000,384x4096,none
-in100.simclr.s0.ext,in100.train500.v1,student.h.gap~student.z.proj.tap1,knn_label_agreement,cross,0.4256,,,50000,384x4096,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.out,cka_linear,cross,0.4877052297556052,,,50000,384x512,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.317462356958487,,,50000,384x512,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.7628879259300065,,,50000,384x512,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.5546,,,50000,384x512,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.7792071867453427,,,50000,384x4096,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.42399749792690966,,,50000,384x4096,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.6183453774876231,,,50000,384x4096,none
+in100.simclr.s0.ext,in100.train500.v1,student.h.cls~student.z.proj.tap1,knn_label_agreement,cross,0.6152,,,50000,384x4096,none

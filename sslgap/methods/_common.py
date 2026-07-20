@@ -16,6 +16,44 @@ class MomentFloor(nn.Module):
     conditioner with an interior optimum near lambda~.02 at h; destination weights (~.5) scrub
     class structure — see the card before reusing at other weights."""
 
+    def __init__(self, d_slice=128, eps=1e-4, d_draw=None):
+        # d_draw: RNG-stream-parity discipline (the hinge-arm precedent — "per-step RNG
+        # streams stay aligned across floor variants"). A narrower slice (estimator co-design
+        # for small-n inputs, D-051 view-mean payment) still DRAWS the family's canonical
+        # frame shape and uses its first d_slice columns: Householder QR's leading k columns
+        # depend only on the first k input columns, so the sub-frame IS the fresh k-frame
+        # draw — same distribution, and the shared draw keeps h-floor slices matched across
+        # arms at matched steps. Default d_draw=None (== d_slice) is byte-identical to the
+        # historical behavior.
+        super().__init__()
+        self.d_slice, self.eps, self.d_draw = d_slice, eps, d_draw or d_slice
+
+    def forward(self, x):
+        with torch.autocast(x.device.type, enabled=False):
+            x = x.reshape(-1, x.size(-1)).float()
+            Q, _ = torch.linalg.qr(torch.randn(x.size(1), self.d_draw, device=x.device))
+            p = x @ Q[:, :self.d_slice]
+            mu = p.mean(0)
+            pc = p - mu
+            cov = pc.T @ pc / (p.size(0) - 1) + self.eps * torch.eye(self.d_slice, device=x.device)
+            logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum()
+            return 0.5 * (cov.diagonal().sum() + mu.square().sum() - self.d_slice - logdet) / self.d_slice
+
+
+class HingeFloor(nn.Module):
+    """E21 one-sided floor (D-049): vicreg's var-hinge generalized to fresh random slices —
+    per slice direction q, relu(1 - std(x @ q)), plus MomentFloor's cone term. Population
+    target set: Sigma >= I in the PSD order (every direction's variance >= 1) — a literal
+    floor: one-sided (nothing above it is ever penalized; anisotropy and content scale are
+    FREE), rotation-invariant in distribution (fresh slices — no exploitable gauge, unlike
+    vicreg's per-original-dim hinge). Slice mixing makes rank collapse visible without a cov
+    term: low-rank Sigma spreads direction-variances chi^2-like and the below-1 mass fires
+    the hinge. Diagonal (not eigenvalue) hinge BY CONSTRUCTION: at n/d'=4 the MP eigenvalue
+    spread [.26, 2.18] would give an eigen-hinge a ~10x estimator phantom; the diagonal
+    hinge's is ~.01 (E21 estimator rider). Same slice mechanics and per-forward RNG draw as
+    MomentFloor (randn -> QR, d'=128) — per-step RNG streams stay aligned across floor
+    variants. Bounded gradients (no logdet)."""
+
     def __init__(self, d_slice=128, eps=1e-4):
         super().__init__()
         self.d_slice, self.eps = d_slice, eps
@@ -26,10 +64,8 @@ class MomentFloor(nn.Module):
             Q, _ = torch.linalg.qr(torch.randn(x.size(1), self.d_slice, device=x.device))
             p = x @ Q
             mu = p.mean(0)
-            pc = p - mu
-            cov = pc.T @ pc / (p.size(0) - 1) + self.eps * torch.eye(self.d_slice, device=x.device)
-            logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum()
-            return 0.5 * (cov.diagonal().sum() + mu.square().sum() - self.d_slice - logdet) / self.d_slice
+            std = ((p - mu).square().sum(0) / (p.size(0) - 1) + self.eps).sqrt()
+            return torch.relu(1 - std).mean() + 0.5 * mu.square().sum() / self.d_slice
 
 
 def house_scheduler(optimizer, steps_per_epoch, total_steps, warmup_ep, eta_min):

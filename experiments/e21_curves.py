@@ -20,12 +20,24 @@ import numpy as np
 import wandb
 
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
-SPE_FALLBACK = {"in100.floorssl.s0.lejepa_augs": 390, "in100.floorssl.s0.nobn": 390,
+SPE_FALLBACK = {"in100.floorssl.s0.d16": 990, "in100.floorssl.s0.d32": 990,
+                "in100.floorssl.s0.d64": 990, "in100.floorssl.s0.d128": 990,
+                "in100.floorssl.s0.d256": 990, "in100.floorssl.s0.d512": 990,
+                "in100.floorssl.s0.laug_eps": 990, "in100.floorssl.s0.laug_hinge": 990,
+                "in100.floorssl.s0.lejepa_augs": 390, "in100.floorssl.s0.lejepa_augs2": 390,
                 "in100.vicreg.s0.floorssl_hz_v2": 390, "in100.dino.s0.e20f_lam06": 990,
                 "in100.dino.s0.e20f_lam008": 990, "in100.dino.s0.e12gd": 990,
                 "in100.dino.s0.e20f": 990, "in100.lejepa.s0.e12f2": 990,
                 "in100.lejepa.s0.e20f": 990, "in100.dino.s0": 990}
 EPM = [2, 5, 10, 25, 50, 75, 100]
+# fix-session live cells: the D-050 dim bracket (+ the D-049 hinge diagnostic until its
+# fork datum) vs the collapsed refs
+LIVE = [("in100.floorssl.s0.d16", "#7bb3d9"), ("in100.floorssl.s0.d32", "#3d65d0"),
+        ("in100.floorssl.s0.d64", "#2e4a9e"), ("in100.floorssl.s0.d128", "#1a2f6e"),
+        ("in100.floorssl.s0.d256", "#8a5cb8"), ("in100.floorssl.s0.d512", "#b8608a"),
+        ("in100.floorssl.s0.laug_hinge", "#2e8b57")]
+DEAD = [("in100.floorssl.s0.lejepa_augs", "#c9c9c9"), ("in100.floorssl.s0.lejepa_augs2", "#d4a0a0"),
+        ("in100.floorssl.s0.laug_eps", "#e0c0c0")]
 
 
 def ema(x, a=0.9):
@@ -91,18 +103,22 @@ def main():
     ep, v = P["in100.vicreg.s0.floorssl_hz_v2"].series("train/h_moment_kl")
     if ep is not None:
         a1.plot(ep, ema(v), color="#c9a227", lw=1.1, ls=":", label="hz_v2 stub (byol pair)")
-    for n, c in [("in100.floorssl.s0.lejepa_augs", "#3d65d0"), ("in100.floorssl.s0.nobn", "#c04f4f")]:
+    for n, c in DEAD:
+        ep, v = P[n].series("train/h_moment_kl")
+        if ep is not None:
+            a1.plot(ep, ema(v), color=c, lw=1.0, ls="--", label=f"{n.split('.')[-1]} (killed)")
+    for n, c in LIVE:
         ep, v = P[n].series("train/h_moment_kl")
         if ep is not None:
             a1.plot(ep, ema(v), color=c, lw=1.9, label=n.split(".")[-1])
     a1.set_title("hz cells: h_moment_kl (cls floor) vs f2/lejepa-e20f hold template", fontsize=9.5)
 
-    # B: hz z-side terms
-    for n, c in [("in100.floorssl.s0.lejepa_augs", "#3d65d0"), ("in100.floorssl.s0.nobn", "#c04f4f")]:
+    # B: hz z-side terms (laug_hinge's moment_kl is the HINGE value — semantics per-arm, E21 card)
+    for n, c in LIVE + DEAD[1:]:
         for key, ls, lw in [("train/moment_kl", "-", 1.9), ("train/inv", "-", 0.9)]:
             ep, v = P[n].series(key)
             if ep is not None:
-                a2.plot(ep, ema(v), color=c, ls=ls, lw=lw,
+                a2.plot(ep, ema(v), color=c, ls=ls, lw=lw if n.endswith(("eps", "hinge")) else lw * 0.5,
                         label=f"{n.split('.')[-1]} {key.split('/')[-1]}")
     ep, v = P["in100.vicreg.s0.floorssl_hz_v2"].series("train/moment_kl")
     if ep is not None:
@@ -120,14 +136,14 @@ def main():
                     label=n.split(".")[-1])
     a3.set_title("dino dose cells: h_moment_kl vs gd (.02) / e20f (.258)", fontsize=9.5)
 
-    # D: grad_norm envelope, hz cells (nobn K1 watch)
-    for n, c in [("in100.floorssl.s0.lejepa_augs", "#3d65d0"), ("in100.floorssl.s0.nobn", "#c04f4f")]:
+    # D: grad_norm envelope, live hz cells (incident watch)
+    for n, c in LIVE:
         ep, v = P[n].series("train/grad_norm")
         if ep is not None:
             a4.plot(ep, v, color=c, lw=0.6, alpha=0.55, label=f"{n.split('.')[-1]} grad_norm")
             a4.plot(ep, ema(v, 0.98), color=c, lw=1.8)
     a4.set_yscale("log")
-    a4.set_title("hz cells: grad_norm (raw + EMA .98) — nobn no-BN-pin watch", fontsize=9.5)
+    a4.set_title("hz cells: grad_norm (raw + EMA .98) — incident watch", fontsize=9.5)
 
     for ax in (a1, a2, a3, a4):
         ax.grid(alpha=0.15)
@@ -137,10 +153,17 @@ def main():
     fig.tight_layout()
     fig.savefig(f"{ROOT}/results/figures/e21/e21_curves.png", dpi=160)
 
+    # THE fork read (menu item 1): monitor probe_acc by epoch, live cells vs collapsed refs
+    print(f"\nmonitor fork table (collapse signature = ep3->4 fall; v1 peak .0868@3, laug2 "
+          f".0944@3->.0728@4):")
+    for n, _ in LIVE + DEAD:
+        pe = P[n].probe_by_ep()
+        cells = " ".join(f"e{e}:{pe[e]:.4f}" for e in sorted(pe) if e <= 12)
+        print(f"  {n.split('.')[-1]:14s} {cells if cells else 'no test rows yet'}")
+
     print(f"\n{'run':34s} {'ep':>6s} {'h_kl bot@ep':>13s} {'now':>6s} {'div':>4s} "
           f"{'z_kl now':>9s} {'inv now':>8s} {'gnorm med/max':>14s}")
-    for n in ["in100.floorssl.s0.lejepa_augs", "in100.floorssl.s0.nobn",
-              "in100.dino.s0.e20f_lam06", "in100.dino.s0.e20f_lam008"]:
+    for n in [nm for nm, _ in LIVE] + ["in100.dino.s0.e20f_lam06", "in100.dino.s0.e20f_lam008"]:
         ep, v = P[n].series("train/h_moment_kl")
         if ep is None:
             print(f"{n:34s} MISSING"); continue

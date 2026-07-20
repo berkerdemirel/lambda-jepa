@@ -25,11 +25,18 @@ METRICS = ["effective_rank|raw|full", "rankme|raw|full", "participation_ratio|ra
 PAIR_METRICS = None  # discovered from files (all metric|variant present in pairs csvs)
 
 
-def load(path):
+def load(path, manifest=None):
+    """manifest: substring filter on the manifest column — REQUIRED for pairs files, which
+    carry one row-block per aug stack (audit_v1/blur/foveal/own_<m>); a keyed dict without the
+    filter silently keeps whichever block is last in file order (the 2026-07-20 frame-mixing
+    bug: ctrl pairs read own/foveal stacks while lejepa-e20f read audit_v1). Cross-lane pair
+    comparisons are defined on the fixed audit_v1 stack (PROTOCOL §5)."""
     if not os.path.exists(path):
         return {}
     d = {}
     for r in csv.DictReader(open(path)):
+        if manifest and manifest not in r["manifest"]:
+            continue
         d[(r["space"], r["metric"] + "|" + r["variant"])] = float(r["value"])
     return d
 
@@ -39,8 +46,8 @@ def main():
     for lane in H_SPACE:
         arm = load(f"{ROOT}/results/battery/in100.{lane}.s0.e20f.ext.csv")
         ctl = load(f"{ROOT}/results/battery/in100.{lane}.s0.ext.csv")
-        arm_p = load(f"{ROOT}/results/battery/in100.{lane}.s0.e20f.ext.pairs.csv")
-        ctl_p = load(f"{ROOT}/results/battery/in100.{lane}.s0.ext.pairs.csv")
+        arm_p = load(f"{ROOT}/results/battery/in100.{lane}.s0.e20f.ext.pairs.csv", "@audit_v1")
+        ctl_p = load(f"{ROOT}/results/battery/in100.{lane}.s0.ext.pairs.csv", "@audit_v1")
         pair_metrics = sorted({k[1] for k in arm_p} & {k[1] for k in ctl_p})
         for role, space in [("h", H_SPACE[lane])] + ([("z", Z_SPACE[lane])] if lane in Z_SPACE else []):
             for met in METRICS:

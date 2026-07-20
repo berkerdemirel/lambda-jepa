@@ -279,6 +279,24 @@ order weaker (|g| .046/.012), so their calibrated cells ran hot (realized share 
 do not dose lanes — the dose curve (lam008/lam06, chains running) carries the dino fix per
 the declared fallback.
 
+**Dose cells LANDED (2026-07-20; ep100 → extract 62434437/440 → probes; offline
+teacher.h.cls, lin = linear_raw_v2 · knn = knn200 raw, ctrl centered .6080 for the knn_c
+convention; RAW, joint read owed):**
+
+| λ | 0 (ctrl) | .008 lam008 | .02 gd | .06 lam06 | .258 e20f | (.02+.04 gd2, two-tap) |
+|---|---|---|---|---|---|---|
+| lin | .6864 | **.6900** | .6852 | .6738 | .6610 | .6722 |
+| knn | .5994 (.6080c) | .6296 | **.6342** | .6286 | .6038 | .6272 |
+
+The five-point single-tap curve is complete: lin is monotone-declining in λ with the zero
+crossing between .008 and .02 — λ=.008 is the only lin-positive cell (+0.4 vs ctrl) — while
+knn peaks at λ=.02 (+2.6 vs centered ctrl) and stays +2.1..+2.2 at .008/.06. Pre-registered
+"curve peaks in [.008, .06]" verdict: TRUE on knn (interior peak .02), EDGE on lin (peak at
+the .008 boundary; the option "if .008 ≥ .02's gain the optimum is even lower" is the realized
+branch on lin). Online monitors ran .7092/.6980 (lam008/lam06) vs offline .6900/.6738 —
+monitor optimism again. T=6%-rule amendment discussion (dose curvature, per-lane optima ≪ T
+for dino) is QUEUED for the joint pass; no wording without Berker.
+
 ## Comparison pass (2026-07-19, HANDOVER priority ii; RAW — no takeaway)
 
 **(a) Anatomy decomposition at cadence** (e19_floor_anatomy argv mode extended with dino
@@ -311,12 +329,29 @@ toward Gaussian everywhere except dino (~flat .91/.89); EP drops an order of mag
 uniformity → −3.7..−3.9 (near-uniform sphere) from −0.8..−3.2; pairs: alignment (pos-pair
 distance²) WORSENS ~.65 vs .09–.28 ctrl and cos_invariance drops .67 vs .88–.95 — the floor
 trades h view-alignment for spread, zoo-wide. z-block: unmoved except simclr scale (above)
-and byol/dino mild effrank up (33.9/23, 91.5/80). CAVEAT: control batteries predate
-gauss_kl_full — backfill audits running (62420968–74; same features, current battery code);
-gauss columns + refreshed table land when they finish. Control-flavor note: comparison-pass
+and byol/dino mild effrank up (33.9/23, 91.5/80). CAVEAT RESOLVED (2026-07-19):
+the last backfill audit (62420969) COMPLETED and the table was regenerated with full
+gauss-ctrl columns (`results/compare/e20_battery_vs_ctrl.csv`, 18:21 build; aug-less lanes'
+z-block rows are "-" by design — no z heads in those comparisons). Control-flavor note: comparison-pass
 controls = `.s0.ext` extractions; the card's headline ctrl numbers for vicreg/dino/lejepa are
 e17c-flavor re-extractions of the SAME ckpt (probe deltas ≤ .002 — e.g. vicreg lin .6430 vs
 .6452, lejepa embed lin .6022 vs .6036).
+
+**CORRECTION (2026-07-20, found while building the E21/E20f metric figures): this section's
+PAIR numbers were frame-mixed.** `e20_battery_table.py`'s pairs loader was last-row-wins over
+the multi-manifest pairs files, so the compare CSV's h.pairs rows silently read whichever aug
+stack was last per file — `own_<m>` for simclr/byol/vicreg/dino/mae/ijepa, `foveal_v1` for
+the lejepa ctrl (no own block), `audit_v1` only for lejepa-e20f. Fixed at source (loader now
+filters `@audit_v1`, the PROTOCOL §5 cross-lane stack; `e20_battery_vs_ctrl.csv` regenerated
+2026-07-20). Corrected audit_v1 values at declared h — alignment arm/ctrl: lejepa .806/.090 ·
+byol .868/.133 · simclr .750/.285 · vicreg .879/.159 · dino 1.309/.639 · ijepa 1.654/1.089 ·
+mae 1.758/.563; cos_invariance arm/ctrl: lejepa .597/.955 · byol .566/.934 · simclr
+.625/.857 · vicreg .560/.921 · dino .346/.680 · ijepa .173/.456 · mae .121/.719. The
+paragraph's ".65 vs .09–.28 / .67 vs .88–.95" ranges are SUPERSEDED (they understated the
+arm-side alignment shift and overstated the aug-less controls' invariance — own/foveal stacks
+are gentler than audit_v1). The direction — arm less view-aligned than its control, every
+lane — is unchanged in the pure frame. Single-space metric rows (single-manifest files) were
+never affected. Gotcha carried: any keyed read of a `.pairs.csv` must filter its manifest.
 
 **(c) e17-score deep pass re-pointed** (`experiments/e20_score.py` → full text in
 `results/compare/e20_score.txt`; orbit @o8 stores extracted for arms + controls, jobs
