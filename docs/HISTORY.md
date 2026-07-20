@@ -295,3 +295,32 @@ cell is barrier×owner or shape×minority, every floorssl failure shape×owner) 
 session's map, SESSION_OPENER.md. New instruments: e20_battery_table · e20_score ·
 e20_pair_dprime · e20_centered_fig · e21_curves · e21_pull (frame bridge) ·
 e18_opposition · e18_inv_phase.
+
+## 2026-07-20d — the repo-cleaning session (D-053/D-054; five jobs, all executed)
+
+Berker's five cleaning jobs ran in one session, every destructive step behind his explicit
+approval. The ledger was split (D-053): 54 closed rows moved verbatim to
+docs/DECISIONS_ARCHIVE.md, each leaving a one-line index entry; retained rows were tightened
+with statuses and sign-off quotes preserved word-for-word; the five wording vetoes still open on
+E12-T7/T8 and E14-T1…T3 were released at archival. HISTORY sections before 2026-07-16 moved
+verbatim to docs/HISTORY_ARCHIVE.md. The closed cards E12 and E17 were folded to current truth
+as the pilot: superseded arm tables and the amendment→refutation stacks became single lineage
+blocks; takeaway sections and all number tables were verified byte-identical by script, and one
+dropped verbatim quote was caught and restored by that check. The metrics-consolidation rule
+became D-054 plus a CLAUDE.md style rule; the retroactive promotions (e2x_zpred → metrics/cross
+fulfilling D-015, e2x_classcos → metrics/pairs, the centered-kNN trio, the six-script pull
+family, shared figure readers) are PROPOSED and deliberately not executed. Deletions approved
+and done: 335 smoke ckpts, 14 dead-cell forensic ckpts, and the e12 restart backup — outputs
+267G→156G — with the e12gvismoke record kept per D-037; 672 pre-07-16 logs archived; the six
+.part battery shards and three spent prompt files removed. A near-miss worth remembering: the
+.ext2 probe CSVs looked superseded by suffix but are the CANONICAL post-D-036 re-extractions
+(the short .ext.csv files are the stale ones) — verified against the E12 card before any
+deletion; suffix heuristics don't decide deletions here. Spent one-shots of closed experiments
+(≤E18 era) moved to experiments/archive/ and slurm/archive/ by git mv (99 files; live
+instruments e12h_pull, e12_class_align, e13_pivot_rung0, defect_rank_validate stayed).
+features/ was left untouched — the purge question went unanswered, and nothing is deleted
+without Berker's word. Overnight arms meanwhile: d256vm2's ep25 anatomy auto-fired via the
+SLURM-native waiter and landed R@z .243 vs the pooled d256 column's .386 — the side the card
+pre-registered as P-vm-A — with the caveat that the anatomy reads the pooled z frame, which the
+view-mean floor never constrains; the run continues healthy (ep26 monitor .5176). d256e200 is
+on pace (ep30/200, .5164). Every takeaway on the above remains owed to the joint session.
