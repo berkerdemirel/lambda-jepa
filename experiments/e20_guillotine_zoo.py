@@ -103,8 +103,10 @@ QUANTS = [  # (name, getter, ylim: (0,1) | None=column-shared autoscale)
          mget("class_cos_same")(m, s), mget("class_cos_diff")(m, s)), (0, 1)),
 ]
 
-ZOO2 = "--zoo2" in sys.argv     # per-method gauss ylims + z-out d annotations (Berker: a
-                                 # 35+ simclr z cell must not crush the other rows' reads)
+ZOO2 = "--zoo2" in sys.argv     # per-method gauss ylims + z-out d annotations + NO gap
+                                 # station (Berker: parallel pooling readout, not a depth step)
+if ZOO2:
+    STATIONS = [s for s in STATIONS if s != "gap"]
 gk = mget("gauss_kl_total")
 gk_vals = [gk(mlab, st) for _, mem in FAMILIES for _, mlab, _, _ in mem
            for st in STATIONS if gk(mlab, st) is not None]
@@ -141,7 +143,7 @@ for row, (fam, members) in enumerate(FAMILIES):
         ax.set_xticks(range(len(STATIONS)))
         ax.set_xticklabels(STATIONS if row == len(FAMILIES) - 1 else [], fontsize=5.2,
                            rotation=45)
-        ax.axvline(4.5, color="#bbbbbb", lw=0.7, ls=":")
+        ax.axvline(STATIONS.index("cls") + 0.5, color="#bbbbbb", lw=0.7, ls=":")
         if row == 0:
             ax.set_title(qname, fontsize=8)
         if col == 0:
