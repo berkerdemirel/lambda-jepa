@@ -127,10 +127,26 @@ class FloorSSL(SSLMethod):
         # so the per-step fresh-frame RNG sequence matches the migrated lineage.
         zin = (z.mean(1) if self.cfg.get("z_floor_batch", "pooled") == "view_mean"
                else z.reshape(N * V, -1))
-        reg_z = self.cond_z(zin)
+        # queue_steps (D-064, vm4 "matched vm3"): a detached ring of the last k steps'
+        # conditioner inputs widens the moment estimate (view_mean n = bs -> (k+1)*bs) so the
+        # slice can stay at the family's canonical d'=128 — the estimator wall (D-051) removed
+        # by temporal accumulation instead of bs. Gradient flows only through the current
+        # rows; queue re-warms over k steps after every resume (declared).
+        q = int(self.cfg.get("queue_steps", 0) or 0)
+        if q:
+            zq = getattr(self, "_zq", [])
+            reg_z = self.cond_z(torch.cat([zin] + zq) if zq else zin)
+            self._zq = [zin.detach()] + zq[:q - 1]
+        else:
+            reg_z = self.cond_z(zin)
         hin = (cls.reshape(N, V, -1).mean(1)
                if self.cfg.get("h_floor_batch", "pooled") == "view_mean" else cls)
-        reg_h = self.cond_h(hin)
+        if q:
+            hq = getattr(self, "_hq", [])
+            reg_h = self.cond_h(torch.cat([hin] + hq) if hq else hin)
+            self._hq = [hin.detach()] + hq[:q - 1]
+        else:
+            reg_h = self.cond_h(hin)
         loss = self.cfg.w_inv * inv + self.cfg.w_floor * reg_z + self.cfg.h_lamb * reg_h
         terms = {"inv": inv, "moment_kl": reg_z, "h_moment_kl": reg_h}
         probe_feats = cls.detach()                    # declared h (projector-input CLS, D-036)

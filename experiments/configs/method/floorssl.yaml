@@ -11,6 +11,7 @@ z_floor_batch: pooled  # pooled = floor the bs*V batch (aug variance pays) | vie
 z_d_slice: null    # z-floor slice width; null -> min(128, expander_dim). REQUIRED co-design under view_mean: n drops to bs, keep n/d' >= 4 (32 at bs=128)
 h_floor_batch: pooled  # pooled = floor all bs*V view CLS (E20-certified regime) | view_mean = per-image mean CLS (D-058 vm3, symmetric payment with z)
 h_d_slice: null    # h-floor slice width; null -> 128. Same co-design under view_mean: 32 at bs=128 (first-32 sub-frame of the 128-draw)
+queue_steps: 0     # D-064: detached ring of last k conditioner inputs (vm4 "matched vm3": 3 -> n=512, d_slice 128 restored); 0 = off, byte-identical legacy path
 expander_hidden: 2048
 expander_dim: 2048
 head_norm: bn

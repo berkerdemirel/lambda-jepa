@@ -957,3 +957,44 @@ training cells' extract chains gated afterany on their final links (vm3 62469564
 station, 0–1 axes, ranks/d + d annotations, per-row gauss). Figure job 62523400 auto-fires
 when the last cell lands (~04:00). The rows read as: h-dose triplet (zonly 0× / vm3 1× /
 vm3x2 2×) · payment pair (vm2/vm3) · dim-bracket tail (d256/d128/d64).
+
+## vm4 — "matched vm3": the moment queue (D-064; Berker 2026-07-21: "you're right the
+## slicing dimension i forgot. can we keep that same as well? … we can accumulate batches
+## (4 times) to make that again 512/128 right?" + "so what i asked is to have a matched vm3")
+
+Cell `in100.floorssl.s0.d256vm4` = vm3-verbatim + `queue_steps=3` + `h_d_slice=128` +
+`z_d_slice=128`: each conditioner's moment estimate runs on [current bs=128 view-means
+(gradient-carrying) + the last 3 steps' 384 (detached ring)] = n=512 → the family's
+canonical d′=128 restored at BOTH taps — the D-051 estimator wall removed by temporal
+accumulation, NOT gradient accumulation (per-step updates and every other term untouched).
+Free properties: RNG-stream parity (the d_draw=128 frame was always drawn; vm4 uses all its
+columns), 3-step warm-up on the vm3 path (declared), queue re-warms after resume (declared;
+not persisted). Motivation measured this session: vm3's d′=32 h-conditioner delivered HALF
+vm2's conditioning at matched pull (h effrank 108 vs 196, spec-KL 1.05 vs .56, cone equal)
+and the z-side d′=32 produced the clean-frame tail cliff (97/256 dims <10⁻³·λ₁) — both the
+same sliced-under-enforcement mechanism (E12-T5 lesson 3).
+
+**Dose rule (pre-declared):** w_floor/h_lamb from vm3's 38.7/0.339 by the measured held-state
+ratios g_vm3/g_vm4 per term (e21_vm4pull, queue warmed on 3 seeded batches, measured on the
+4th; job 62528557); w_inv verbatim. **Gates:** default-path regression (queue_steps 0 ≡
+absent) + 2-ep smoke (new code path) → 2×8h gpu chain with afterany links (the fixed
+convention).
+
+**Pre-registered predictions (pick: A):**
+- **P-vm4-A** — the estimator was the whole story: h conditioning recovers to ~vm2's level
+  (effrank@h ≈ 196-class, spec-KL ≈ .56-class), the z tail cliff heals (dims <10⁻³·λ₁ → ~0),
+  probes ≥ vm2 (view-mean payment + full-width conditioning = the best of both).
+- **P-vm4-B** — partial recovery: staleness bias of the detached ring costs some conditioning
+  work; lands between vm3 and vm2.
+- **P-vm4-C** — the queue destabilizes early training (stale moments mis-aim the barrier
+  during warmup); kill criteria standing.
+
+### vm4 gate record (job 62528557; e21_vm4pull.csv; RAW)
+
+Default-path regression PASS (queue_steps 0 ≡ absent). Filled-queue bridge at vm2 ep25:
+g_vm3/g_vm4 = .1331/.0326 = **4.08** (z) · .3585/.0641 = **5.59** (h) — the z ratio is the
+pure gradient-leverage dilution (current rows are 128 of 512 ⇒ ×4), h adds the 32→128 slice
+redistribution (×1.4, the inverse of the vm3 concentration). Rule applied: **launch
+w_inv 32.8 · w_floor 157.8 · h_lamb 1.894** (realized per-step trunk pull = vm3's by
+construction; the per-sample dose now integrates over 4 steps — once live, thrice stale —
+a declared semantic of the queue, priced by P-vm4-B).
