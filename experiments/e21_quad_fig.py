@@ -19,6 +19,8 @@ ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 #        label       run                                color      declared-h        loss-terminal z
 RUNS = [("d64", "in100.floorssl.s0.d64.ext", "#3d65d0", "student.h.cls", "student.z.proj.out"),
         ("d256", "in100.floorssl.s0.d256.ext", "#1b2c60", "student.h.cls", "student.z.proj.out"),
+        ("d256vm2", "in100.floorssl.s0.d256vm2.ext", "#6a3fb5", "student.h.cls", "student.z.proj.out"),
+        ("d256e200", "in100.floorssl.s0.d256e200.ext", "#0f7b8a", "student.h.cls", "student.z.proj.out"),
         ("e20f", "in100.lejepa.s0.e20f.ext", "#2e8b57", "student.h.cls", "student.z.proj.out"),
         ("ctrl", "in100.lejepa.s0.ext", "#8c8c8c", "student.h.cls", "student.z.proj.out"),
         ("dino λ.008", "in100.dino.s0.e20f_lam008.ext", "#d4820a", "teacher.h.cls", "student.z.dino.bottleneck"),
@@ -137,7 +139,7 @@ if nulls:  # d-flat random-head null (measured .651-.653 over d 16..2048): bars 
     ax[11].text(0.02, sum(nulls) / len(nulls), " random-head null (d-flat)",  # than random,
                 fontsize=5.2, color="#777777", va="bottom")                   # below = beastlier
 
-fig.suptitle("E21 comparison: floorssl d64 · d256 vs lejepa e20f · ctrl vs dino λ.008 · ctrl — offline probes + battery + head/class reads, ep100 (RAW)",
+fig.suptitle("E21 comparison: floorssl d64 · d256 · d256vm2 · d256e200(ep200) vs lejepa e20f · ctrl vs dino λ.008 · ctrl — offline probes + battery + head/class reads (RAW)",
              fontsize=10, y=0.995)
 fig.tight_layout(rect=(0, 0.05, 1, 0.965))
 fig.text(0.01, 0.005,

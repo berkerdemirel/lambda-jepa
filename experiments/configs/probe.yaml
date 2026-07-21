@@ -10,3 +10,4 @@ seed: 0
 hydra:
   run:
     dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}
+space: null                 # set to one stored space for per-space parallel landings

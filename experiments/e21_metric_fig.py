@@ -24,7 +24,9 @@ DIMS = [16, 32, 64, 128, 256, 512]
 FLOOR = [(d, f"in100.floorssl.s0.d{d}.ext") for d in DIMS]
 LAUG2 = (2048, "in100.floorssl.s0.lejepa_augs2.ext")  # collapsed @ep4 (contrast, not ep100)
 CTRLS = [("lejepa ctrl (sigreg)", 16, "in100.lejepa.s0.ext", "#2e8b57", "s"),
-         ("vicreg ctrl (var+cov)", 2048, "in100.vicreg.s0.ext", "#d4820a", "D")]
+         ("vicreg ctrl (var+cov)", 2048, "in100.vicreg.s0.ext", "#d4820a", "D"),
+         ("d256vm2 (view-mean floor)", 256, "in100.floorssl.s0.d256vm2.ext", "#6a3fb5", "^"),
+         ("d256e200 (200-ep budget)", 256, "in100.floorssl.s0.d256e200.ext", "#0f7b8a", "v")]
 Z, H = "student.z.proj.out", "student.h.cls"
 BLUE, RED = "#3d65d0", "#c23b3b"
 

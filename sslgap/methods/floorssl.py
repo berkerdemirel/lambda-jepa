@@ -60,7 +60,12 @@ class FloorSSL(SSLMethod):
         # expander_dim <= 128 (the D-050 small-z direction) the floor reads the EXACT full
         # covariance — slice sampling noise vanishes by construction; at 2048 this is the
         # unchanged d'=128 slice.
-        self.floor_h = MomentFloor()
+        # h_floor_batch (D-058, vm3; Berker: "you cannot justify such asymmetry"): pooled
+        # (default — the E20-certified conditioner regime) | view_mean — symmetric payment
+        # with the z-floor. Same estimator co-design as z: view-mean drops the h-floor's n
+        # to bs -> h_d_slice=32, drawn as the first-32 sub-frame of the canonical 128-frame
+        # (per-step RNG streams stay aligned across payment variants).
+        self.floor_h = MomentFloor(d_slice=self.cfg.get("h_d_slice") or 128, d_draw=128)
         # z_floor_batch payment axis (D-051; Berker 2026-07-20): "pooled" floors the bs*V
         # batch — per direction it reads across-image + within-image (aug) variance, so aug
         # spread pays the floor and competes with inv over the same quantity (the 2048-d
@@ -119,7 +124,9 @@ class FloorSSL(SSLMethod):
         zin = (z.mean(1) if self.cfg.get("z_floor_batch", "pooled") == "view_mean"
                else z.reshape(N * V, -1))
         reg_z = self.floor_z(zin)
-        reg_h = self.floor_h(cls)
+        hin = (cls.reshape(N, V, -1).mean(1)
+               if self.cfg.get("h_floor_batch", "pooled") == "view_mean" else cls)
+        reg_h = self.floor_h(hin)
         loss = self.cfg.w_inv * inv + self.cfg.w_floor * reg_z + self.cfg.h_lamb * reg_h
         terms = {"inv": inv, "moment_kl": reg_z, "h_moment_kl": reg_h}
         probe_feats = cls.detach()                    # declared h (projector-input CLS, D-036)

@@ -23,6 +23,7 @@ ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 SPE_FALLBACK = {"in100.floorssl.s0.d16": 990, "in100.floorssl.s0.d32": 990,
                 "in100.floorssl.s0.d64": 990, "in100.floorssl.s0.d128": 990,
                 "in100.floorssl.s0.d256": 990, "in100.floorssl.s0.d512": 990,
+                "in100.floorssl.s0.d256vm2": 990, "in100.floorssl.s0.d256e200": 990,
                 "in100.floorssl.s0.laug_eps": 990, "in100.floorssl.s0.laug_hinge": 990,
                 "in100.floorssl.s0.lejepa_augs": 390, "in100.floorssl.s0.lejepa_augs2": 390,
                 "in100.vicreg.s0.floorssl_hz_v2": 390, "in100.dino.s0.e20f_lam06": 990,
@@ -35,7 +36,8 @@ EPM = [2, 5, 10, 25, 50, 75, 100]
 LIVE = [("in100.floorssl.s0.d16", "#7bb3d9"), ("in100.floorssl.s0.d32", "#3d65d0"),
         ("in100.floorssl.s0.d64", "#2e4a9e"), ("in100.floorssl.s0.d128", "#1a2f6e"),
         ("in100.floorssl.s0.d256", "#8a5cb8"), ("in100.floorssl.s0.d512", "#b8608a"),
-        ("in100.floorssl.s0.laug_hinge", "#2e8b57")]
+        ("in100.floorssl.s0.laug_hinge", "#2e8b57"),
+        ("in100.floorssl.s0.d256vm2", "#6a3fb5"), ("in100.floorssl.s0.d256e200", "#0f7b8a")]
 DEAD = [("in100.floorssl.s0.lejepa_augs", "#c9c9c9"), ("in100.floorssl.s0.lejepa_augs2", "#d4a0a0"),
         ("in100.floorssl.s0.laug_eps", "#e0c0c0")]
 

@@ -858,3 +858,42 @@ d256 cell's ep1 (warmup lr is total-epochs-independent: the e200 run's first ~10
 the SAME trajectory as d256's on matched arch — a free reproduction check, and the declared
 "ep100 not comparable" caveat gets its complement: comparable THROUGH warmup, diverging as
 the cosine phases separate).** Chain proceeds on slotB.
+
+## vm3 — symmetric view-mean payment at BOTH taps (D-058; Berker 2026-07-21: "do it as vm3.
+## i thought when we were talking about d->32 you meant h level. you cannot justify such
+## asymmetry. use one h100 and do imagenet100")
+
+Cell `in100.floorssl.s0.d256vm3` = d256vm2-VERBATIM + `h_floor_batch=view_mean` +
+`h_d_slice=32`: the h-floor's input moves from pooled view-CLS (n=N·V=512, d′=128) to
+per-image view-mean CLS (n=N=128, d′=32) — the z-side estimator co-design applied
+IDENTICALLY at h, with the 32-slice drawn as the first-32 sub-frame of the canonical
+128-frame so per-step RNG streams stay aligned with vm2 at matched steps. Everything else
+vm2-verbatim (z view-mean d′=32; w_inv 32.8, w_floor 38.7; lejepa V=4; bn head; fast loader
+defaults; eval every epoch for curve comparability with vm2).
+
+**Dose rule (pre-declared before the bridge numbers):** h_lamb′ = 0.617 ·
+g_h(pooled)/g_h(view_mean) at the vm2 ep25 held state (`e21_vm3pull`, job 62469436; the
+vmpull precedent — measured ratio applied outright); w_inv/w_floor unchanged (their terms
+are byte-identical across the h axis). **Launch gate:** the default-path regression (new
+keys absent ≡ explicit pooled/128, pinned-RNG step) must print PASS.
+
+**Pre-registered predictions (Claude's pick: A):**
+- **P-vm3-A** — at the ~6%-share conditioner dose the h payment axis is second-order:
+  probes + ep25 anatomy within noise of vm2 (the asymmetry was harmless).
+- **P-vm3-B** — symmetry helps h: view-means take the aug noise out of the h-floor's moment
+  estimate → cone removal per unit dose improves; h probes ≥ vm2, h-cone ≤ vm2.
+- **P-vm3-C** — the h-floor weakens or destabilizes: n=128 estimator noise at h / reduced
+  effective demand → the cone persists at h, or early-window instability.
+
+Kill criteria: house incident rule; monitor ≤2×chance at ep≥3 falling; z-var implosion
+watch; h_moment_kl runaway watch. Compute: 1 H100 (slotA lane, free post-vm2), 2-ep smoke
+gate (NEW code path — the additive h knobs) → 2×8h singleton links; at the tuned loader
+≈4 min/ep → ~7 h, lands tonight.
+
+### vm3 bridge record (job 62469436; e21_vm3pull.csv; RAW)
+
+Default-path regression PASS (absent keys ≡ explicit pooled/128, pinned-RNG step). Held-state
+h-floor pulls at vm2 ep25: g_h(pooled, d′128) = 0.1967 · g_h(view_mean, d′32) = 0.3585 — the
+view-mean h-floor pulls ×1.82 per unit weight (aug-averaged means, stronger trunk gradient).
+Pre-declared rule applied: **h_lamb = 0.617 × 0.1967/0.3585 = 0.339** (conditioner share
+preserved); w_inv 32.8 / w_floor 38.7 verbatim. Launch: smoke → 2×8h slotA chain.

@@ -21,6 +21,7 @@ OUT = f"{ROOT}/results/diag/e21_centered.csv"
 H = "student.h.cls"
 RUNS = [(f"in100.floorssl.s0.d{d}.ext", H) for d in (16, 32, 64, 128, 256, 512)] + \
        [("in100.floorssl.s0.lejepa_augs2.ext", H)] + \
+       [("in100.floorssl.s0.d256vm2.ext", H), ("in100.floorssl.s0.d256e200.ext", H)] + \
        [(r, sp) for r in ("in100.lejepa.s0.e20f.ext", "in100.lejepa.s0.ext",
                           "in100.lejepa.s0.e12f2.ext")
         for sp in (H, "student.z.embed")] + \

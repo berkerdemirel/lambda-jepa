@@ -37,6 +37,8 @@ def main(cfg: DictConfig):
 
     rows = []
     spaces = sorted(set(store.spaces(cfg.run_id, man_tr)) & set(store.spaces(cfg.run_id, man_va)))
+    if cfg.get("space"):                 # per-space parallel landing (same probes, wall / #spaces)
+        spaces = [s for s in spaces if s == cfg.space]
     for space in spaces:
         Xtr = np.asarray(store.get(cfg.run_id, man_tr, space), dtype=np.float32)
         Xva = np.asarray(store.get(cfg.run_id, man_va, space), dtype=np.float32)
@@ -61,7 +63,8 @@ def main(cfg: DictConfig):
                  for k, v in res.items()]
     out_dir = os.path.join(cfg.results_root, "probes")
     os.makedirs(out_dir, exist_ok=True)
-    pd.DataFrame(rows).to_csv(os.path.join(out_dir, f"{cfg.run_id}.csv"), index=False)
+    suffix = f".part_{cfg.space}" if cfg.get("space") else ""
+    pd.DataFrame(rows).to_csv(os.path.join(out_dir, f"{cfg.run_id}{suffix}.csv"), index=False)
     print(f"[probe] done: {cfg.run_id} -> {out_dir}")
 
 
