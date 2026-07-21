@@ -924,3 +924,10 @@ instead (the E22 pattern). Est. ~7 min/ep on A40-class → ~12 h.
 
 Readout: probes + the spectra instrument (e21_spectra_fig / the tail stats) on x2 vs vm3-1×
 vs vm2 vs pooled — the dose-response of the tail cliff.
+
+### vm3x2 fork verdict (ep3–8, 2026-07-21 ~15:20; RAW)
+
+CLEARED: ep3 .1446 → ep8 .2594 rising (single flat step ep5), no incident, ≫ the 2×-chance
+kill — P-x2-C did not fire. Matched-epoch anchor: vm2 read .1704/.2798 at ep3/8 — vm3x2
+slightly below, same healthy shape. Dose verdict (P-x2-A vs B) waits on the ep100 landing +
+the spectra/tail read vs vm3-1×.
