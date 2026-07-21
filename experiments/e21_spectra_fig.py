@@ -1,6 +1,6 @@
 """Eigenvalue-spectrum figure for the quad roster (Berker 2026-07-21: "a figure for each
 method in quad, where we see the distribution of cov eigenvalues … i wanna identify the sort
-of discrepancy between rankme and effective rank"). Per run × per space, two normalized
+of discrepancy between rankme and effective rank"). Per run × per space, three normalized
 spectra on one log-log panel: CENTERED covariance eigenvalue shares (lambda_i/sum — what
 effective_rank exp-entropies; solid) and UNCENTERED singular-value shares (sigma_i/sum — what
 rankme exp-entropies; dashed), ranks on x. The two effective counts are marked as ticks on
@@ -90,7 +90,7 @@ fig.suptitle("E21 spectra: centered covariance eigenvalue shares (solid = what e
 fig.tight_layout(rect=(0, 0.035, 1, 0.96))
 fig.text(0.01, 0.005, "train500 clean features (no augs) · top = declared h, bottom = each run's loss-terminal z · "
          "dashed-above-solid at rank 1 = mean/cone component (uncentered only) · solid tail steeper than dashed = the σ→σ² "
-         "squaring — the two causes of the rankme↔effrank gap · tail cliff = dead-direction concentration, smooth power law = "
+         "squaring; rankme−rankme_c isolates centering, rankme_c−effrank isolates squaring · tail cliff = dead-direction concentration, smooth power law = "
          "content-flavored anisotropy", fontsize=6, color="#555555")
 out = f"{ROOT}/results/figures/e21/e21_eig_spectra.png"
 os.makedirs(os.path.dirname(out), exist_ok=True)
