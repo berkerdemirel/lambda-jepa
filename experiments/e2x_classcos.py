@@ -16,6 +16,8 @@ FEAT = f"{ROOT}/features"
 OUT = f"{ROOT}/results/diag/e2x_classcos.csv"
 RUNS = [("in100.floorssl.s0.d64.ext", "student.h.cls"),
         ("in100.floorssl.s0.d256.ext", "student.h.cls"),
+        ("in100.floorssl.s0.d256vm2.ext", "student.h.cls"),
+        ("in100.floorssl.s0.d256e200.ext", "student.h.cls"),
         ("in100.lejepa.s0.e20f.ext", "student.h.cls"),
         ("in100.lejepa.s0.ext", "student.h.cls"),
         ("in100.dino.s0.e20f_lam008.ext", "teacher.h.cls"),

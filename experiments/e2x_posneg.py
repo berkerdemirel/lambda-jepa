@@ -23,7 +23,8 @@ RUNS = [f"in100.{m}.s0.ext" for m in ZOO] + [f"in100.{m}.s0.e20f.ext" for m in Z
        ["in100.dino.s0.e12gd.ext", "in100.dino.s0.e12gd2.ext",
         "in100.dino.s0.e20f_lam06.ext", "in100.dino.s0.e20f_lam008.ext"] + \
        [f"in100.floorssl.s0.d{d}.ext" for d in (16, 32, 64, 128, 256, 512)] + \
-       ["in100.floorssl.s0.lejepa_augs2.ext", "in100.lejepa.s0.e12f2.ext"]
+       ["in100.floorssl.s0.lejepa_augs2.ext", "in100.lejepa.s0.e12f2.ext",
+        "in100.floorssl.s0.d256vm2.ext", "in100.floorssl.s0.d256e200.ext"]
 
 rows = []
 print(f"{'run':40s} {'space':22s} {'pos_cos':>8s} {'rand_cos':>9s} {'margin':>7s}")

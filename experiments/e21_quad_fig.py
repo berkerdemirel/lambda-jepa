@@ -130,14 +130,8 @@ bar_panel(ax[9], "z: gauss_kl_full.total", "moment-KL to N(0,I) per dim",
           [(lab, bval(lab, z, "gauss_kl_full.total|raw|full"), c) for lab, run, c, h, z in RUNS])
 dumbbell_panel(ax[10], "pair cos @loss-terminal z", "rand ○ → pos ● (audit_v1)",
                [(lab, *pn_pair(run, z), c) for lab, run, c, h, z in RUNS])
-bar_panel(ax[11], "z from h, linear: val R²", "OLS h→z (1 = head affine in effect)",
-          [(lab, (lambda r: float(r["r2_total"]) if r else None)(ZP.get((run,))), c)
-           for lab, run, c, h, z in RUNS], fmt="{:.3f}")
-nulls = [float(r["r2_total"]) for k, r in ZP.items() if k[0].startswith("null.randhead")]
-if nulls:  # d-flat random-head null (measured .651-.653 over d 16..2048): bars above = head
-    ax[11].axhline(sum(nulls) / len(nulls), ls="--", color="#999999", lw=1)   # more linear
-    ax[11].text(0.02, sum(nulls) / len(nulls), " random-head null (d-flat)",  # than random,
-                fontsize=5.2, color="#777777", va="bottom")                   # below = beastlier
+fig.delaxes(ax[11])   # z-from-h R² panel REMOVED (D-060, Berker: a many-to-little map reads
+                      # high R² — not a head-beastliness metric; e2x_zpred.csv stays as record
 
 fig.suptitle("E21 comparison: floorssl d64 · d256 · d256vm2 · d256e200(ep200) vs lejepa e20f · ctrl vs dino λ.008 · ctrl — offline probes + battery + head/class reads (RAW)",
              fontsize=10, y=0.995)
@@ -145,8 +139,8 @@ fig.tight_layout(rect=(0, 0.05, 1, 0.965))
 fig.text(0.01, 0.005,
          "lejepa-lane four are aug-matched (lejepa V=4 family); dino pair trains under its own multi-crop recipe — cross-lane rows are cross-recipe · 100-ep endpoint reads, "
          "monitors still climbing at cut (E20-T2 caveat) · declared h: student.h.cls / teacher.h.cls (dino); lejepa declared-embed probe numbers on e21_probe_vs_dim.png · "
-         "z row: floorssl z.proj.out (owned floor space) / lejepa 16-d sigreg out / dino 256-d student bottleneck (head lives on the student branch — z-pred R² pairs "
-         "student h→student z for ALL runs) · pairs audit_v1; rand = cross-view different-image · class-cos exact over all train pairs, label-conditioned",
+         "z row: floorssl z.proj.out (owned conditioner space) / lejepa 16-d sigreg out / dino 256-d student bottleneck · pairs audit_v1; rand = cross-view "
+         "different-image · class-cos exact over all train pairs, label-conditioned",
          fontsize=5.8, color="#555555")
 out = f"{ROOT}/results/figures/e21/e21_quad.png"
 fig.savefig(out, dpi=160)

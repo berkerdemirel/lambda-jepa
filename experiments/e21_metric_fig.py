@@ -1,6 +1,7 @@
 """E21 D-050 dim-bracket figures (Berker 2026-07-20: metric figures "separately comparing the
-controls"). (a) e21_metric_panel.png — the battery read across the method's out-dim dial
-d ∈ {16..512} (x = the run's z out-dim, log2) against the two references the dial interpolates:
+controls"). (a) e21_metric_panel.png — the battery read as BAR PANELS over the cell roster (Berker
+2026-07-21: "too many special symbols just make bar plots") — d16..512 · laug2* · vm2 · e200*
+against the two references the dial interpolates:
 lejepa ctrl (sigreg, z=16) and vicreg ctrl (var+cov, z=2048), plus the collapsed 2048-d cell
 (lejepa_augs2 @ep4 kill state — NOT ep100; contrast only) once its battery lands. Top row = each
 run's loss-terminal z (dims differ — dim-comparable stats only: effrank/d, per-dim moment-KL,
@@ -82,78 +83,62 @@ PANELS = [  # (space, key, title, sub, transform: (value, d) -> plotted)
     (Z, "gauss_kl_full.total|raw|full", "z: gauss_kl_full.total", "moment-KL to N(0,I) per dim (Σ=I floor read)", None),
     (Z, "kurt_topeig.worst|raw|full", "z: kurt_topeig.worst", "max |excess kurt| top-10 eigdirs", None),
     (Z, "variance_floor.min_over_mean_std|raw|full", "z: min/mean per-dim std", "scale-floor health (0 = dead dims)", None),
-    (Z, "POSNEG", "z: pair pos-cos ● / rand-cos ○", "audit_v1 stack", None),
+    (Z, "POSNEG", "z: pair cosines", "pos solid / rand light (audit_v1)", None),
     (H, "effective_rank|raw|full", "h.cls: effective_rank", "of 384 (arch-matched)", None),
     (H, "kurt_topeig.worst|raw|full", "h.cls: kurt_topeig.worst", "max |excess kurt| top-10 eigdirs", None),
     (H, "uniformity|raw|full", "h.cls: uniformity", "Wang–Isola (lower = more spread)", None),
     (H, "gauss_kl_full.total|raw|full", "h.cls: gauss_kl_full.total", "moment-KL to N(0,I) per dim", None),
-    (H, "POSNEG", "h.cls: pair pos-cos ● / rand-cos ○", "audit_v1 stack", None),
+    (H, "POSNEG", "h.cls: pair cosines", "pos solid / rand light (audit_v1)", None),
 ]
 
 
-def series(space, key, tf):
-    """(xs, ys) over the healthy floorssl cells + single points for laug2/ctrls."""
-    def one(b, xdim):
-        if b is None:
-            return None
-        got = b.get((space, key))
-        return None if got is None else (tf(*got) if tf else got[0])
-    xs, ys = [], []
-    for d, run in FLOOR:
-        v = one(runs[run], d)
-        if v is not None:
-            xs.append(d), ys.append(v)
-    pts = {"laug2": one(laug2, 2048),
-           "ctrl": [(lab, x, one(b, x), c, m) for lab, x, b, c, m in ctrls]}
-    return xs, ys, pts
+DIMCOLS = ["#7bb3d9", "#3d65d0", "#2e4a9e", "#1a2f6e", "#8a5cb8", "#b8608a"]
+ORDER = [("vm2", "d256vm2 (view-mean floor)"), ("e200*", "d256e200 (200-ep budget)"),
+         ("lejepa\nctrl", "lejepa ctrl (sigreg)"), ("vicreg\nctrl", "vicreg ctrl (var+cov)")]
+cmap = {lab: (run, c) for lab, x, run, c, m in CTRLS}
+ALL = [(f"d{d}", run, runs[run], col) for (d, run), col in zip(FLOOR, DIMCOLS)]
+ALL += [("laug2*", LAUG2[1], laug2, RED)]
+ALL += [(short, cmap[full][0], batt(cmap[full][0]), cmap[full][1]) for short, full in ORDER]
 
 
-def draw(ax, space, key, tf):
+def bar_panel(ax, space, key, title, sub, tf):
+    """Bars over the categorical cell roster (Berker 2026-07-21: "too many special symbols
+    just make bar plots"); POSNEG = paired bars, pos solid / rand light."""
     if key == "POSNEG":
-        for pk, ls, fill in [("pos_cos", "-", True), ("rand_cos", "--", False)]:
-            xs = [d for d, run in FLOOR if pncos(run, space, pk) is not None]
-            ys = [pncos(run, space, pk) for _, run in FLOOR if pncos(run, space, pk) is not None]
-            ax.plot(xs, ys, ls, marker="o", color=BLUE, mfc=BLUE if fill else "none",
-                    ms=4.5, lw=1.2)
-            v = pncos(LAUG2[1], space, pk)
+        for i, (lab, run, b, c) in enumerate(ALL):
+            pos, rand = pncos(run, space, "pos_cos"), pncos(run, space, "rand_cos")
+            if pos is not None:
+                ax.bar(i - 0.19, pos, width=0.36, color=c)
+            if rand is not None:
+                ax.bar(i + 0.19, rand, width=0.36, color=c, alpha=0.38)
+    else:
+        for i, (lab, run, b, c) in enumerate(ALL):
+            g = None if b is None else b.get((space, key))
+            v = None if g is None else (tf(*g) if tf else g[0])
             if v is not None:
-                ax.plot([2048], [v], "x", color=RED, ms=7, mew=2 if fill else 1)
-            for lab, x, run, c, m in CTRLS:
-                v = pncos(run, space, pk)
-                if v is not None:
-                    ax.plot([x], [v], m, color=c, mfc=c if fill else "none", ms=6)
-        return
-    xs, ys, pts = series(space, key, tf)
-    ax.plot(xs, ys, "-o", color=BLUE, ms=4.5, lw=1.2)
-    if pts["laug2"] is not None:
-        ax.plot([2048], [pts["laug2"]], "x", color=RED, ms=8, mew=2)
-    for lab, x, v, c, m in pts["ctrl"]:
-        if v is not None:
-            ax.plot([x], [v], m, color=c, ms=6)
-
-
-fig, axes = plt.subplots(2, 5, figsize=(16.5, 6.2), facecolor="white")
-for ax, (space, key, title, sub, tf) in zip(axes.ravel(), PANELS):
-    draw(ax, space, key, tf)
-    ax.set_xscale("log", base=2)
-    ax.set_xticks(DIMS + [2048])
-    ax.set_xticklabels([str(d) for d in DIMS] + ["2048"], fontsize=6.5, rotation=45)
-    if space == Z:
-        ax.axvline(181, color="#bbbbbb", lw=0.7, ls=":")  # exact (≤128) | sliced (≥256) floor estimator
+                ax.bar(i, v, width=0.62, color=c)
+                ax.text(i, v, f"{v:.3g}", ha="center",
+                        va="bottom" if v >= 0 else "top", fontsize=5.2)
+    ax.set_xticks(range(len(ALL)))
+    ax.set_xticklabels([a[0] for a in ALL], fontsize=5.6, rotation=45)
     ax.set_title(f"{title}\n{sub}", fontsize=8)
-    ax.tick_params(length=0, labelsize=7)
-    ax.margins(y=0.18)
+    ax.axhline(0, color="#666666", lw=0.6)
+    ax.margins(y=0.2)
+    ax.tick_params(length=0, labelsize=6.5)
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
-axes[0, 0].text(181, axes[0, 0].get_ylim()[1], " exact | sliced", fontsize=5.5,
-                color="#999999", va="top")
-fig.suptitle("E21 (D-050): battery metrics vs out-dim — floorssl d16–512 (blue) · lejepa ctrl z=16 (green ■) · "
-             "vicreg ctrl z=2048 (orange ◆) · collapsed 2048 laug2 @ep4 (red ×, contrast only) — RAW",
+
+
+fig, axes = plt.subplots(2, 5, figsize=(17.5, 6.4), facecolor="white")
+for ax, (space, key, title, sub, tf) in zip(axes.ravel(), PANELS):
+    bar_panel(ax, space, key, title, sub, tf)
+fig.suptitle("E21 battery metrics per cell — floorssl d16–512 · laug2* (collapsed @ep4, contrast) · vm2 (view-mean) · "
+             "e200* (200-ep budget) · lejepa/vicreg ctrls — RAW",
              fontsize=10, y=0.995)
 fig.tight_layout(rect=(0, 0.03, 1, 0.965))
-fig.text(0.01, 0.005, "top row: each run's loss-terminal z (student.z.proj.out; dims differ — dim-comparable stats only) · "
-         "bottom row: trunk h.cls, 384-d all runs · pairs under the fixed audit_v1 stack · "
-         "floorssl cells + laug2 @ep100/ep4 under lejepa V=4; ctrls under their own recipes",
+fig.text(0.01, 0.005, "top row: each run's loss-terminal z (dims differ — dim-comparable stats only) · "
+         "bottom row: trunk h.cls, 384-d all runs · pairs under the fixed audit_v1 stack (pos solid / rand light) · "
+         "floorssl cells under lejepa V=4; ctrls under their own recipes · e200* carries its declared 200-ep schedule",
          fontsize=6.5, color="#555555")
 out = f"{ROOT}/results/figures/e21/e21_metric_panel.png"
 fig.savefig(out, dpi=160)
