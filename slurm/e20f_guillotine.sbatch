@@ -13,6 +13,7 @@ set -e
 for N in 25 50 75 100; do
   RUN=in100.lejepa.s0.e20f.ep${N}.extL
   P=(results/probes/${RUN}.part_*.csv)
+  [ -e "${P[0]}" ] || continue           # already merged on a prior pass
   head -1 "${P[0]}" > results/probes/${RUN}.csv
   tail -n +2 -q "${P[@]}" >> results/probes/${RUN}.csv
   rm results/probes/${RUN}.part_*.csv

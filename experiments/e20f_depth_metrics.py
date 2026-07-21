@@ -51,8 +51,9 @@ for ep, run in CKPTS:
              "gauss_kl_total": round(g["total"], 4),
              "class_cos_same": round(cs, 4), "class_cos_diff": round(cd, 4)}
         try:
-            V = np.asarray(S.get(run, MAN_O, sp), dtype=np.float32)
-            pm = pair_margin(V[:, 0], V[:, 1])
+            A = np.asarray(S.get(run, MAN_O, f"{sp}.view0"), dtype=np.float32)
+            B = np.asarray(S.get(run, MAN_O, f"{sp}.view1"), dtype=np.float32)
+            pm = pair_margin(A, B)
             r["pos_cos"], r["rand_cos"] = round(pm["pos_cos"], 4), round(pm["rand_cos"], 4)
         except Exception:
             r["pos_cos"] = r["rand_cos"] = None
