@@ -946,3 +946,14 @@ h-conditioner's value, the E20 zoo direction, survives at the vm3 config) · P-z
 difference (redundant: the z-conditioner's backflow through the BN head already conditions
 h) · P-zonly-C — h improves (the h term was taxing at this config). Readout: probes + the
 depth/spectra instruments vs vm3-1× (both land ~tonight/tomorrow).
+
+### floorssl-family guillotine ARMED (Berker 2026-07-21: "when in100 runs land, do the same
+### figure between the models: vm3zonly, vm3x2, vm3, vm2, d256, d128 and d64 runs")
+
+Full pipeline session-independent: 4 landed cells extracting now (H100 audit lanes); the 3
+training cells' extract chains gated afterany on their final links (vm3 62469564 · vm3x2
+62475575 · zonly 62493742) — everything flows to `e21_vm_depth_metrics.csv` and
+`results/figures/e21/e21_guillotine_vm.png` (7 cell rows × 8 quantities, zoo2 rules: no gap
+station, 0–1 axes, ranks/d + d annotations, per-row gauss). Figure job 62523400 auto-fires
+when the last cell lands (~04:00). The rows read as: h-dose triplet (zonly 0× / vm3 1× /
+vm3x2 2×) · payment pair (vm2/vm3) · dim-bracket tail (d256/d128/d64).
