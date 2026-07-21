@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import MomentFloor, ema_momentum, house_scheduler, trunk_arch
+from sslgap.methods._common import SpectralConditioner, ema_momentum, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import ema_update
@@ -40,7 +40,7 @@ class BYOL(SSLMethod):
         if self.cfg.get("h_align", 0.0):      # E17: linear predictor at h (byol's own mechanism)
             mods["h_predictor"] = byol_h_predictor(384)
         if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         return nn.ModuleDict(mods)
 
     def arch(self):

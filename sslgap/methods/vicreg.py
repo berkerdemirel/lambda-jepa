@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch.nn.utils.parametrizations import spectral_norm
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
+from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -48,9 +48,9 @@ class VICReg(SSLMethod):
         proj = vicreg_expander(384, self.cfg.expander_hidden, self.cfg.expander_dim,
                                spec_norm=self.cfg.get("spec_norm", False))
         if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         if self.cfg.get("anticollapse", "varcov") == "floor":   # E19 floorssl (no RNG either)
-            self.floor_z = MomentFloor()
+            self.floor_z = SpectralConditioner()
         mods = {"backbone": trunk, "projector": proj}
         # E19c conduit arms (D-043): a BARE affine between cls and the expander — the lejepa emb
         # topology transplanted (no BN: the whole point; no init calibration: stricter than f2's

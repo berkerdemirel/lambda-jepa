@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import MultiCropDataset
-from sslgap.methods._common import MomentFloor, ema_momentum, house_scheduler, trunk_arch
+from sslgap.methods._common import SpectralConditioner, ema_momentum, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.heads import DINOHead, DINOLinearHead
@@ -46,7 +46,7 @@ class DINO(SSLMethod):
         t_head = copy.deepcopy(head).requires_grad_(False)
         self.center = torch.zeros(self.cfg.K)
         if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         mods = {"backbone": trunk, "projector": head,
                 "teacher_backbone": t_trunk, "teacher_projector": t_head}
         if self.cfg.get("h_protoce", 0.0):        # E17 h-pull (D-039): small linear proto-head @h

@@ -2,14 +2,18 @@
 for our method and we dont rely on vicreg's architecture. i want to see both versions, one
 copying vicreg part (expander BN etc) and the other should try the bn free way").
 
-L = w_inv·MSE(z_a, z_b) + w_floor·MomentFloor(z pooled) + h_lamb·MomentFloor(cls)
+L = w_inv·MSE(z_a, z_b) + w_floor·SpectralConditioner(z pooled) + h_lamb·SpectralConditioner(cls)
 
-The three-term recipe from the E19/E20 lineage: MSE alignment at z; the moment floor as the
-SOLE anti-collapse at z (destination duty, E19-T2 doses); the moment floor at declared h
-(cls = projector input, D-036) at calibrated share (E19-T1 dose law). head_norm switch:
+The three-term recipe from the E19/E20 lineage: MSE alignment at z; the TWO-SIDED spectral
+conditioner as the SOLE anti-collapse at z (destination duty, E19-T2 doses); the same
+conditioner at declared h (cls = projector input, D-036) at calibrated share (E19-T1 dose
+law). NAMING (D-059): nothing here is floored — the KL term taxes Σ deviations from I in
+both directions; "floor" survives only in FROZEN identifiers (method key/run-ids `floorssl`,
+cfg keys `w_floor`/`z_floor*`/`h_floor_batch`, logged term keys `moment_kl`/`h_moment_kl`) —
+those are provenance/continuity, not claims. head_norm switch:
   "bn"   — vicreg's expander verbatim (Linear-BN-ReLU ×2 + Linear). With seed-0 construction
            this class is BYTE-IDENTICAL in init to the vicreg-class floorssl_hz arms
-           (same call order: trunk → head Linears/BNs; MomentFloor draws no construction
+           (same call order: trunk → head Linears/BNs; SpectralConditioner draws no construction
            RNG) — verified by the migration byte-check (E21 card).
   "none" — the BN-free head (Linear-ReLU ×2 + Linear): the D-043/E19-T1 conduit hypothesis
            at full depth — without the BN firewall the z-floor's conditioning can reach back
@@ -24,7 +28,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import HingeFloor, MomentFloor, house_scheduler, trunk_arch
+from sslgap.methods._common import HingeFloor, SpectralConditioner, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -52,7 +56,7 @@ class FloorSSL(SSLMethod):
                                 drop_path_rate=self.cfg.drop_path)
         head = floorssl_head(384, self.cfg.expander_hidden, self.cfg.expander_dim,
                              norm=self.cfg.head_norm)
-        # z_floor axis (E21 fix session, D-049): "kl" = the symmetric MomentFloor (Sigma=I,
+        # z_floor axis (E21 fix session, D-049): "kl" = the symmetric SpectralConditioner (Sigma=I,
         # the method's identity) | "hinge" = the one-sided HingeFloor (Sigma>=I) — Berker
         # 2026-07-19: hinge VETOED as method ("vicreg with slicing"); diagnostic arm only.
         # h-floor stays symmetric KL — the <=6%-share conditioner is the certified-GOOD
@@ -65,7 +69,7 @@ class FloorSSL(SSLMethod):
         # with the z-floor. Same estimator co-design as z: view-mean drops the h-floor's n
         # to bs -> h_d_slice=32, drawn as the first-32 sub-frame of the canonical 128-frame
         # (per-step RNG streams stay aligned across payment variants).
-        self.floor_h = MomentFloor(d_slice=self.cfg.get("h_d_slice") or 128, d_draw=128)
+        self.cond_h = SpectralConditioner(d_slice=self.cfg.get("h_d_slice") or 128, d_draw=128)
         # z_floor_batch payment axis (D-051; Berker 2026-07-20): "pooled" floors the bs*V
         # batch — per direction it reads across-image + within-image (aug) variance, so aug
         # spread pays the floor and competes with inv over the same quantity (the 2048-d
@@ -79,8 +83,8 @@ class FloorSSL(SSLMethod):
         # conditioner is the certified-GOOD regime.
         d_canon = min(128, self.cfg.expander_dim)
         d_z = self.cfg.get("z_d_slice") or d_canon
-        self.floor_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
-                        else MomentFloor(d_slice=d_z, d_draw=d_canon))
+        self.cond_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
+                        else SpectralConditioner(d_slice=d_z, d_draw=d_canon))
         return nn.ModuleDict({"backbone": trunk, "projector": head})
 
     def arch(self):
@@ -123,10 +127,10 @@ class FloorSSL(SSLMethod):
         # so the per-step fresh-frame RNG sequence matches the migrated lineage.
         zin = (z.mean(1) if self.cfg.get("z_floor_batch", "pooled") == "view_mean"
                else z.reshape(N * V, -1))
-        reg_z = self.floor_z(zin)
+        reg_z = self.cond_z(zin)
         hin = (cls.reshape(N, V, -1).mean(1)
                if self.cfg.get("h_floor_batch", "pooled") == "view_mean" else cls)
-        reg_h = self.floor_h(hin)
+        reg_h = self.cond_h(hin)
         loss = self.cfg.w_inv * inv + self.cfg.w_floor * reg_z + self.cfg.h_lamb * reg_h
         terms = {"inv": inv, "moment_kl": reg_z, "h_moment_kl": reg_h}
         probe_feats = cls.detach()                    # declared h (projector-input CLS, D-036)

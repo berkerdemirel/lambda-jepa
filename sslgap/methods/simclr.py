@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, simclr_stack
-from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
+from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -53,7 +53,7 @@ class SimCLR(SSLMethod):
                                 drop_path_rate=self.cfg.drop_path)
         proj = simclr_projector(384, self.cfg.proj_hidden, self.cfg.proj_dim)
         if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         return nn.ModuleDict({"backbone": trunk, "projector": proj})
 
     def arch(self):

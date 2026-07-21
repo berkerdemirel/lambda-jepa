@@ -13,7 +13,7 @@ from sslgap.models.posembed import get_2d_sincos_pos_embed
 from timm.models.vision_transformer import Block
 
 from sslgap.data import ViewsDataset, minaug_stack
-from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
+from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import vit_tokens
@@ -69,7 +69,7 @@ class MAE(SSLMethod):
         dec = mae_decoder(self.cfg.patch, 384, self.cfg.dec_dim, self.cfg.dec_depth,
                           self.cfg.dec_heads, self.n_patches)
         if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         return nn.ModuleDict({"backbone": trunk, "decoder": dec})
 
     def arch(self):

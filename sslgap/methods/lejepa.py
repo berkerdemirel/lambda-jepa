@@ -15,7 +15,7 @@ scale; probe is the online monitor only.
 
 Arm machinery riding on the port (all off by default; defaults reproduce the port byte-exactly):
 E10 (sigreg_at / proj_depth / embed_calib, D-016/D-021) and E12 (spec_norm on the projector,
-floor=moment → MomentFloor, D-026 — see docs/experiments/E12_moment_floor.md).
+floor=moment → SpectralConditioner, D-026 — see docs/experiments/E12_moment_floor.md).
 """
 import timm
 import torch
@@ -25,7 +25,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torchvision.ops import MLP
 
 from sslgap.data import ViewsDataset
-from sslgap.methods._common import MomentFloor
+from sslgap.methods._common import SpectralConditioner
 from sslgap.methods.base import SSLMethod
 
 
@@ -105,10 +105,10 @@ def lejepa_projector(proj_dim, emb_dim=512, hidden=2048, depth=3, spec_norm=Fals
     return mlp
 
 
-# MomentFloor moved to sslgap/methods/_common.py (E12 cross-method arms, 2026-07-12);
+# SpectralConditioner moved to sslgap/methods/_common.py (E12 cross-method arms, 2026-07-12);
 # imported at the top so all existing references keep working.
 
-class DiagMomentFloor(nn.Module):
+class DiagSpectralConditioner(nn.Module):
     """E12 F-wave arm f5 (D-027): per-dim Gaussian-moment calibration, full-D, no joint term.
     0.5·(mean(mu²) + mean(var − 1 − log var)). The AFFINE-ABSORBABLE calibration cell: the
     encoder can comply exactly via a diagonal rescale + bias of the emb Linear (information-
@@ -167,7 +167,7 @@ class LeJEPA(SSLMethod):
 
     def build_modules(self):
         # creation order mirrors the official script: backbone-with-emb, then projector.
-        # (spec_norm and MomentFloor consume no RNG at construction — init streams unshifted.)
+        # (spec_norm and SpectralConditioner consume no RNG at construction — init streams unshifted.)
         enc = lejepa_encoder(self.frame.model_name, self.frame.img_size,
                              emb_dim=self.cfg.emb_dim, drop_path=self.cfg.drop_path)
         proj = lejepa_projector(self.cfg.proj_dim, emb_dim=self.cfg.emb_dim,
@@ -175,14 +175,14 @@ class LeJEPA(SSLMethod):
                                 spec_norm=self.cfg.get("spec_norm", False))
         self.sigreg = SIGReg()
         if self.cfg.get("floor", "sigreg") == "moment" or self.cfg.get("h_reg") == "moment":
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         h_reg = self.cfg.get("h_reg")
         if h_reg == "sigreg_std":
             self.sigreg_std = SIGReg(standardize=True)
         elif h_reg == "sigreg_t":
             self.sigreg_t = SIGReg(nu=self.cfg.sigreg_nu)
         elif h_reg == "moment_diag":
-            self.diag_floor = DiagMomentFloor()
+            self.diag_floor = DiagSpectralConditioner()
         elif h_reg == "spec_floor":
             self.spec_floor = SpectralFloor()
         return nn.ModuleDict({"encoder": enc, "projector": proj})
@@ -251,7 +251,7 @@ class LeJEPA(SSLMethod):
                   "embed": emb.reshape(N, V, -1).transpose(0, 1),
                   "cls": cls.reshape(N, V, -1).transpose(0, 1) if sig_at == "cls" else None}[sig_at]
         # E12 (D-026): floor ∈ {sigreg (default), moment} picks the regularizer applied to sig_in
-        # — same routing, different term. "moment" = MomentFloor (arm A3, the thesis cell).
+        # — same routing, different term. "moment" = SpectralConditioner (arm A3, the thesis cell).
         if self.cfg.get("floor", "sigreg") == "moment":
             reg_key, reg_loss = "moment_kl", self.floor(sig_in)
         else:

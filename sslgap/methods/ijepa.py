@@ -19,7 +19,7 @@ from timm.models.vision_transformer import Block
 from sslgap.models.posembed import get_2d_sincos_pos_embed
 
 from sslgap.data import ViewsDataset, minaug_stack
-from sslgap.methods._common import MomentFloor, house_scheduler, trunk_arch
+from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import ema_update, vit_tokens
@@ -107,7 +107,7 @@ class IJEPA(SSLMethod):
         pred = ijepa_predictor(384, self.cfg.pred_depth, 6, self.n_patches)
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
         if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
-            self.floor = MomentFloor()
+            self.floor = SpectralConditioner()
         return nn.ModuleDict({"backbone": trunk, "predictor": pred, "teacher_backbone": t_trunk})
 
     def arch(self):
