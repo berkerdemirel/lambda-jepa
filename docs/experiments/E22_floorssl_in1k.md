@@ -211,3 +211,39 @@ realized pace. **≈35–36 min/ep (eval every 2nd ep included) → 100 ep ≈ 6
 afternoon/evening.** Residual gap to the ~6.2 b/s compute ceiling = main-process contention
 at 28w/28c — micro-tuning between 8h links is possible from realized data if ever worth it.
 Note: renamed links keep submission-time log paths (`outputs/h100-slotA_624494xx.out`).
+
+## vm3 at IN-1k (D-061; Berker 2026-07-21: "also launch another imagenet1k with 256vm3
+## setting. (you can use one h100)")
+
+Cell `in1k.floorssl.s0.d256vm3` = the E22 cell + the D-058 symmetric payment
+(`h_floor_batch=view_mean h_d_slice=32`) — both conditioners on per-image view means at
+d′=32. Lane `h100-slotB` (free since e200 finished; fleet back to three H100s: vm3-in100 on
+slotA until ~18:30 · E22 on slotC · this). Fast loader + eval_every=2 (the E22 conventions).
+
+**Doses (pre-declared):** w_inv/w_floor transplant E22's measured dataset bridge (the terms
+are byte-identical between vm2/vm3 configs): 33.6/33.6 expected, re-measured in the same job.
+The vm-h term's dataset ratio is UNMEASURED (E22 bridged the pooled h term) →
+`e22_vm3pull` (job 62473849): full vm3 config at the vm2 ep25 held state, IN-100 vs IN-1k,
+2 common-RNG batch pairs; rule as E22 — per-term w(in1k) = w_vm3-in100 · g_in100/g_in1k,
+applied only if a mean ratio leaves [0.90, 1.10]; vm3-in100 doses = 32.8/38.7/0.339. The
+bridge job doubles as the mechanics gate (full training_step fwd+bwd on real IN-1k batches
+under the exact config; both component paths — vm3 code, in1k frame — already smoked) →
+chain launches UNGATED with the early-curve watch (the E22 pattern Berker set).
+
+**Pre-registered predictions (pick: A):**
+- **P-1kvm3-A** — healthy; early window tracks E22 within noise (the h payment axis is
+  second-order at conditioner share, at scale too).
+- **P-1kvm3-B** — the symmetric h payment shows at scale: h_kl (own frame) lower than E22's,
+  clean-frame h effrank lower (the vm spectral signature extending to h), probes ≥ E22.
+- **P-1kvm3-C** — instability the IN-100 vm3 didn't show: the n=128 h estimator under
+  IN-1k's diversity (kill criteria standing, E22's set).
+
+Time: the E22 measured pace applies (~36 min/ep) → ~60 h → ETA ≈ Fri morning. 16×8h links.
+
+### vm3-1k bridge record (job 62473849; e22_vm3pull.csv; RAW)
+
+Mean g_in100/g_in1k over 2 common-RNG pairs: inv **1.025** · z-conditioner **0.868** ·
+h-conditioner(view-mean@32) **1.014** — the two byte-identical terms REPRODUCE E22's ratios
+to 3 decimals (in-job consistency check), and in100-b0's g_h 0.3585 reproduces the morning
+vm3pull exactly. The z ratio again leaves the band → rule fires on all terms from the
+vm3-in100 doses (32.8/38.7/0.339): **launch w_inv 33.6 · w_floor 33.6 · h_lamb 0.344**.
