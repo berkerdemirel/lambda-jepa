@@ -5,9 +5,9 @@ lives on e20_dino_dose.png). Probe bars at each run's DECLARED h (trunk CLS; tea
 dino) — the ◆ embed overlays were removed per his parse feedback; lejepa declared-embed
 numbers live on e21_probe_vs_dim.png. Pair cosines as M1-grammar dumbbells (rand ○ → pos ●,
 audit_v1). Two metrics added on his ask: (a) class-cos dumbbells (diff-class ○ → same-class
-●, e2x_classcos.csv — label-conditioned structure at declared h); (b) z-from-h linear
-predictability (val R² of OLS h→z, e2x_zpred.csv — scale-invariant; 1 = the head is affine
-in effect, low = "beast" MLP). RAW, no takeaway; convergence caveat on-figure (E20-T2)."""
+●, e2x_classcos.csv — label-conditioned structure at declared h); (b) paired rankme/d
+(h solid · z light — the uncentered twin of the effrank panels; replaced the z-pred R²
+panel cancelled by D-060). RAW, no takeaway; convergence caveat on-figure (E20-T2)."""
 import csv
 import os
 

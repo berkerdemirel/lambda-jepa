@@ -1,6 +1,8 @@
 run,space,cos_same,cos_diff,gap,n
 in100.floorssl.s0.d64.ext,student.h.cls,0.268,0.0133,0.2546,50000
 in100.floorssl.s0.d256.ext,student.h.cls,0.2126,0.0144,0.1982,50000
+in100.floorssl.s0.d256vm2.ext,student.h.cls,0.2908,0.0147,0.2761,50000
+in100.floorssl.s0.d256e200.ext,student.h.cls,0.2419,0.0136,0.2284,50000
 in100.lejepa.s0.e20f.ext,student.h.cls,0.2948,0.0244,0.2705,50000
 in100.lejepa.s0.ext,student.h.cls,0.8849,0.7763,0.1087,50000
 in100.dino.s0.e20f_lam008.ext,teacher.h.cls,0.2606,0.0831,0.1775,50000
