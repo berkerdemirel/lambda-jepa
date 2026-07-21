@@ -66,34 +66,34 @@ def curve(ax, ep, c, get, ls="-"):
         ax.plot(xs, ys, ls, marker="o", color=c, ms=3.5, lw=1.2)
 
 
-def mget(key, cast=float):
+def mget(key, per_d=False):
     def g(ep, st):
         r = M.get((ep, st))
         if r is None or r.get(key) in (None, "", "None"):
             return None
-        return cast(r[key])
+        return float(r[key]) / float(r["d"]) if per_d else float(r[key])
     return g
 
 
 PANELS = [
     ("linear probe (raw v2)", lambda ep, st: P.get((ep, st, "linear_raw_v2"))),
     ("kNN200", lambda ep, st: P.get((ep, st, "knn_v1_k200"))),
-    ("rankme", mget("rankme")),
-    ("effective_rank", mget("effective_rank")),
+    ("rankme / d", mget("rankme", per_d=True)),
+    ("effrank / d", mget("effective_rank", per_d=True)),
     ("gauss_kl_full.total (per dim)", mget("gauss_kl_total")),
     ("pos invariance (pos_cos, o8 audit_v1)", mget("pos_cos")),
     ("random invariance (rand_cos)", mget("rand_cos")),
-    ("class cos — same (solid) / diff (dashed)", None),
+    ("class margin (same−diff)",
+     lambda ep, st: (lambda a, b: None if a is None or b is None else a - b)(
+         mget("class_cos_same")(ep, st), mget("class_cos_diff")(ep, st))),
 ]
 
 fig, axes = plt.subplots(2, 4, figsize=(17.5, 7), facecolor="white")
 for ax, (title, get) in zip(axes.ravel(), PANELS):
     for lab, ep, c in CKPTS:
-        if get is not None:
-            curve(ax, ep, c, get)
-        else:
-            curve(ax, ep, c, mget("class_cos_same"))
-            curve(ax, ep, c, mget("class_cos_diff"), ls="--")
+        curve(ax, ep, c, get)
+    if title != "gauss_kl_full.total (per dim)":
+        ax.set_ylim(0, 1)                     # bounded quantities on a shared 0-1 axis (D-060-round rule)
     ax.set_xticks(range(len(STATIONS)))
     ax.set_xticklabels(STATIONS, fontsize=6.4, rotation=45)
     ax.axvline(4.5, color="#bbbbbb", lw=0.8, ls=":")
@@ -109,7 +109,7 @@ fig.suptitle("e20f cadence guillotine — eight quantities vs depth station, ep2
 fig.tight_layout(rect=(0, 0.03, 1, 0.955))
 fig.text(0.01, 0.005, ".extL diagnostic stores (raw+knn probe subset; not the landing convention) · metrics from train500.v1L "
          "clean features via sslgap.metrics (rankme uncentered SVs; effrank centered eigs; gauss_kl_full = moment-KL to N(0,I)) · "
-         "pos/rand from o8 audit_v1 views 0/1 (pair_margin) · class-cos exact label-conditioned means · declared h = embed",
+         "pos/rand from o8 audit_v1 views 0/1 (pair_margin) · class-cos reported as the margin same−diff (components in the CSV) · declared h = embed",
          fontsize=5.8, color="#555555")
 out = f"{ROOT}/results/figures/e20/e20f_guillotine.png"
 os.makedirs(os.path.dirname(out), exist_ok=True)

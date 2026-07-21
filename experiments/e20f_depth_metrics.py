@@ -1,4 +1,5 @@
-"""Depth-metric curves for the e20f cadence guillotine (Berker 2026-07-21: rankme, effrank,
+"""Depth-metric curves vs station (parametric over runs; argv: OUT_CSV then
+label=run_id pairs — default = the e20f cadence set). Originally the e20f cadence guillotine (Berker 2026-07-21: rankme, effrank,
 gaussianity, pos/rand invariance, class-cos — all vs depth station, per checkpoint). Pure
 functions REUSED from sslgap.metrics (D-054): rankme, effective_rank, gauss_kl_full,
 pair_margin. Clean stats from the train500.v1L stores; pos/rand from views 0/1 of the
@@ -19,7 +20,9 @@ from sslgap.metrics.spectra import effective_rank, rankme
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 S = FeatureStore(f"{ROOT}/features")
 MAN_L, MAN_O = "in100.train500.v1L", "in100.pairs100.v1@audit_v1.o8"
-CKPTS = [(ep, f"in100.lejepa.s0.e20f.ep{ep}.extL") for ep in (25, 50, 75, 100)]
+OUT = f"{ROOT}/results/diag/e20f_depth_metrics.csv" if len(sys.argv) < 2 else     f"{ROOT}/results/diag/{sys.argv[1]}"
+CKPTS = ([(a.split("=", 1)[0], a.split("=", 1)[1]) for a in sys.argv[2:]] if len(sys.argv) > 2
+         else [(str(ep), f"in100.lejepa.s0.e20f.ep{ep}.extL") for ep in (25, 50, 75, 100)])
 
 
 def class_cos(X, y):
@@ -46,7 +49,7 @@ for ep, run in CKPTS:
         lam = np.clip(np.linalg.eigvalsh(np.cov(X.astype(np.float64), rowvar=False)), 0, None)
         cs, cd = class_cos(X, y)
         g = gauss_kl_full(X)
-        r = {"ep": ep, "space": sp, "rankme": round(rankme(X), 2),
+        r = {"ep": ep, "space": sp, "d": X.shape[1], "rankme": round(rankme(X), 2),
              "effective_rank": round(effective_rank(lam), 2),
              "gauss_kl_total": round(g["total"], 4),
              "class_cos_same": round(cs, 4), "class_cos_diff": round(cd, 4)}
@@ -59,8 +62,8 @@ for ep, run in CKPTS:
             r["pos_cos"] = r["rand_cos"] = None
         rows.append(r)
         print(r, flush=True)
-with open(f"{ROOT}/results/diag/e20f_depth_metrics.csv", "w", newline="") as f:
+with open(OUT, "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=list(rows[0]))
     w.writeheader()
     w.writerows(rows)
-print("wrote e20f_depth_metrics.csv", flush=True)
+print("wrote", OUT, flush=True)
