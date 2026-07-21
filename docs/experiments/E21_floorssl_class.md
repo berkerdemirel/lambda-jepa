@@ -931,3 +931,18 @@ CLEARED: ep3 .1446 → ep8 .2594 rising (single flat step ep5), no incident, ≫
 kill — P-x2-C did not fire. Matched-epoch anchor: vm2 read .1704/.2798 at ep3/8 — vm3x2
 slightly below, same healthy shape. Dose verdict (P-x2-A vs B) waits on the ep100 landing +
 the spectra/tail read vs vm3-1×.
+
+## z-only ablation — d256vm3zonly (D-063; Berker 2026-07-21: "launch an ablation on gpu
+## partition where we apply our loss only after mlp (not on h). very low priority")
+
+Cell `in100.floorssl.s0.d256vm3zonly` = vm3-VERBATIM with **h_lamb=0**: the loss lives only
+after the MLP (inv@z + z-conditioner); the h-conditioner still computes (weight zero) so the
+per-step RNG stream stays vm3-aligned — the cleanest single-axis h-ablation. w_inv 32.8 /
+w_floor 38.7 verbatim (the h term carried ~1% of total pull; no re-balance). gpu partition,
+2×8h afterok links, no smoke (weight-zero axis on the validated path; standing kills).
+
+**Pre-registered predictions (pick: A):** P-zonly-A — h probes drop vs vm3-1× (the ~6%-share
+h-conditioner's value, the E20 zoo direction, survives at the vm3 config) · P-zonly-B — no
+difference (redundant: the z-conditioner's backflow through the BN head already conditions
+h) · P-zonly-C — h improves (the h term was taxing at this config). Readout: probes + the
+depth/spectra instruments vs vm3-1× (both land ~tonight/tomorrow).
