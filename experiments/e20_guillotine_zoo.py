@@ -8,6 +8,7 @@ depth order (dec.tap2->tap1, tap5->tap2, tap8->z.out; declared); ijepa z = poole
 dino's e20f = the calibrated overshoot dose as run (E20-T1). RAW, no takeaway."""
 import csv
 import os
+import sys
 
 import matplotlib
 matplotlib.use("Agg")
@@ -102,11 +103,18 @@ QUANTS = [  # (name, getter, ylim: (0,1) | None=column-shared autoscale)
          mget("class_cos_same")(m, s), mget("class_cos_diff")(m, s)), (0, 1)),
 ]
 
-# column-shared range for unbounded quantities
+ZOO2 = "--zoo2" in sys.argv     # per-method gauss ylims + z-out d annotations (Berker: a
+                                 # 35+ simclr z cell must not crush the other rows' reads)
 gk = mget("gauss_kl_total")
 gk_vals = [gk(mlab, st) for _, mem in FAMILIES for _, mlab, _, _ in mem
            for st in STATIONS if gk(mlab, st) is not None]
 GK_LIM = (0, max(gk_vals) * 1.08) if gk_vals else None
+
+
+def row_gk_lim(members):
+    vals = [gk(mlab, st) for _, mlab, _, _ in members for st in STATIONS
+            if gk(mlab, st) is not None]
+    return (0, max(vals) * 1.12) if vals else GK_LIM
 
 fig, axes = plt.subplots(len(FAMILIES), len(QUANTS), figsize=(2.45 * len(QUANTS), 2.0 * len(FAMILIES)),
                          facecolor="white")
@@ -121,7 +129,15 @@ for row, (fam, members) in enumerate(FAMILIES):
                     ax.plot(xs, ys, ls, marker="o", color=c, ms=2.6, lw=1.0,
                             label=lab if (col == 0 and ls == "-") else None)
             draw(get)
-        ax.set_ylim(*(ylim if ylim else GK_LIM))
+        ax.set_ylim(*(ylim if ylim else (row_gk_lim(members) if ZOO2 else GK_LIM)))
+        if ZOO2 and qname in ("rankme / d", "effrank / d"):
+            for lab, mlab, run, c in members:          # annotate the z-out dimension so the
+                r = M.get((mlab, "z.out"))             # fraction is interpretable per lane
+                v = get(mlab, "z.out")
+                if r is not None and v is not None:
+                    ax.annotate(f"d={r['d']}", (STATIONS.index("z.out"), v), fontsize=4.6,
+                                color=c, xytext=(2, 3), textcoords="offset points")
+                    break
         ax.set_xticks(range(len(STATIONS)))
         ax.set_xticklabels(STATIONS if row == len(FAMILIES) - 1 else [], fontsize=5.2,
                            rotation=45)
@@ -135,10 +151,10 @@ for row, (fam, members) in enumerate(FAMILIES):
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
 fig.suptitle("E20 zoo guillotine — 7 method rows × 8 quantity columns, e20f floor arm (colored) vs control (grey) vs depth; "
-             "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl column-shared "
+             "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl per-method rows (zoo2) or column-shared "
              "(L-taps = trunk cls readouts; dotted = trunk|head; class-cos as the MARGIN same−diff) — RAW",
              fontsize=9.5, y=0.998)
 fig.tight_layout(rect=(0, 0.008, 1, 0.98))
-out = f"{ROOT}/results/figures/e20/e20_guillotine_zoo.png"
+out = f"{ROOT}/results/figures/e20/e20_guillotine_zoo{'2' if ZOO2 else ''}.png"
 fig.savefig(out, dpi=150)
 print("wrote", out)
