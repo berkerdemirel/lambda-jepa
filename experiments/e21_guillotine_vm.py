@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 STATIONS = ["L03", "L06", "L09", "gap", "cls", "embed", "tap1", "tap2", "z.out"]
 FAMILIES = [
+    ("vm4 (matched vm3)", [("vm4", "vm4", "in100.floorssl.s0.d256vm4.extL", "#c23b3b")]),
     ("vm3zonly (h 0×)", [("zonly", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#0f7b8a")]),
     ("vm3x2 (h/z 2×)", [("x2", "vm3x2", "in100.floorssl.s0.d256vm3x2.extL", "#d4820a")]),
     ("vm3 (symmetric)", [("vm3", "vm3", "in100.floorssl.s0.d256vm3.extL", "#8a5cb8")]),
