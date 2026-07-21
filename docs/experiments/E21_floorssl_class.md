@@ -897,3 +897,30 @@ h-floor pulls at vm2 ep25: g_h(pooled, d′128) = 0.1967 · g_h(view_mean, d′3
 view-mean h-floor pulls ×1.82 per unit weight (aug-averaged means, stronger trunk gradient).
 Pre-declared rule applied: **h_lamb = 0.617 × 0.1967/0.3585 = 0.339** (conditioner share
 preserved); w_inv 32.8 / w_floor 38.7 verbatim. Launch: smoke → 2×8h slotA chain.
+
+## vm3 dose arm — d256vm3x2 (D-062; Berker 2026-07-21: "launch one on gpu partition (higher
+## dose h/z)", following the z tail-cliff read: vm2's clean-frame z has 97/256 dims below
+## 10⁻³·λ₁, slope −3.19 vs pooled 0/256, −0.36 — the sliced view-mean floor under-enforces
+## the native spectrum, E12-T5 lesson 3 at the estimator-co-design wall)
+
+Cell `in100.floorssl.s0.d256vm3x2` = vm3-verbatim + BOTH conditioner doses ×2:
+**w_inv 32.8 · w_floor 77.4 · h_lamb 0.678** (×2 = the declared conservative first step above
+1×; base = vm3 not vm2 — the symmetric payment is the method identity per D-058; the pairing
+baseline is vm3-in100 @1× landing tonight, making this a clean single-axis dose contrast).
+gpu partition (all three H100s busy), 2×8h afterok-chained links, fast loader, no smoke (no
+new code/frame; dose-only on the validated vm3 path) — early-curve watch + standing kills
+instead (the E22 pattern). Est. ~7 min/ep on A40-class → ~12 h.
+
+**Pre-registered predictions (Claude's pick: B):**
+- **P-x2-A** — the tail lifts AND probes hold: clean-frame z dims<10⁻³·λ₁ falls toward the
+  pooled cell's 0 while lin/knn stay ≥ vm3-1× ⇒ "we were regularizing less than we should"
+  (Berker's instinct) — the cliff was recoverable for free.
+- **P-x2-B** — the tail lifts but probes DROP vs vm3-1× ⇒ the E12-T2 interior optimum on the
+  dose axis: the cliff is where the content lives-or-doesn't-care; more spectrum policing
+  taxes it.
+- **P-x2-C** — early-window collapse: doubling the z-owner share squeezes inv below its
+  ownership threshold (the D-048 lesson inverted). Kill criteria standing (monitor ≤2×chance
+  ep≥3 falling; z-var implosion; incident rule).
+
+Readout: probes + the spectra instrument (e21_spectra_fig / the tail stats) on x2 vs vm3-1×
+vs vm2 vs pooled — the dose-response of the tail cliff.
