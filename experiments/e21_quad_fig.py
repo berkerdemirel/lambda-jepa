@@ -130,8 +130,24 @@ bar_panel(ax[9], "z: gauss_kl_full.total", "moment-KL to N(0,I) per dim",
           [(lab, bval(lab, z, "gauss_kl_full.total|raw|full"), c) for lab, run, c, h, z in RUNS])
 dumbbell_panel(ax[10], "pair cos @loss-terminal z", "rand ○ → pos ● (audit_v1)",
                [(lab, *pn_pair(run, z), c) for lab, run, c, h, z in RUNS])
-fig.delaxes(ax[11])   # z-from-h R² panel REMOVED (D-060, Berker: a many-to-little map reads
-                      # high R² — not a head-beastliness metric; e2x_zpred.csv stays as record
+# freed by the cancelled z-pred panel (D-060) -> rankme (Berker 2026-07-21: "did you add
+# rankme as well? it would be good to have"): normalized rankme/d, h solid vs z light —
+# the uncentered/cone-sensitive twin of the effrank panels (they dissociate; METRICS.md).
+for i, (lab, run, c, h, z) in enumerate(RUNS):
+    vh = bval(lab, h, "rankme|raw|full", lambda v, d: v / d)
+    vz = bval(lab, z, "rankme|raw|full", lambda v, d: v / d)
+    if vh is not None:
+        ax[11].bar(i - 0.19, vh, width=0.36, color=c)
+    if vz is not None:
+        ax[11].bar(i + 0.19, vz, width=0.36, color=c, alpha=0.38)
+ax[11].set_xticks(range(len(RUNS)))
+ax[11].set_xticklabels([lab for lab, *_ in RUNS], fontsize=5.8, rotation=30)
+ax[11].set_title("rankme / d — h solid · z light\nuncentered SV entropy (cone-sensitive)",
+                 fontsize=7.6)
+ax[11].margins(y=0.26)
+ax[11].tick_params(length=0, labelsize=6.5)
+for s in ("top", "right"):
+    ax[11].spines[s].set_visible(False)
 
 fig.suptitle("E21 comparison: floorssl d64 · d256 · d256vm2 · d256e200(ep200) vs lejepa e20f · ctrl vs dino λ.008 · ctrl — offline probes + battery + head/class reads (RAW)",
              fontsize=10, y=0.995)

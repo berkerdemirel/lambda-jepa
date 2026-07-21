@@ -80,11 +80,13 @@ def pncos(run, space, key):
 
 PANELS = [  # (space, key, title, sub, transform: (value, d) -> plotted)
     (Z, "effective_rank|raw|full", "z: effrank / d", "1 = isotropic, →0 collapsed/aniso", lambda v, d: v / d),
-    (Z, "gauss_kl_full.total|raw|full", "z: gauss_kl_full.total", "moment-KL to N(0,I) per dim (Σ=I floor read)", None),
+    (Z, "rankme|raw|full", "z: rankme / d", "uncentered SV entropy (cone-sensitive)", lambda v, d: v / d),
+    (Z, "gauss_kl_full.total|raw|full", "z: gauss_kl_full.total", "moment-KL to N(0,I) per dim (Σ=I conditioner read)", None),
     (Z, "kurt_topeig.worst|raw|full", "z: kurt_topeig.worst", "max |excess kurt| top-10 eigdirs", None),
     (Z, "variance_floor.min_over_mean_std|raw|full", "z: min/mean per-dim std", "scale-floor health (0 = dead dims)", None),
     (Z, "POSNEG", "z: pair cosines", "pos solid / rand light (audit_v1)", None),
     (H, "effective_rank|raw|full", "h.cls: effective_rank", "of 384 (arch-matched)", None),
+    (H, "rankme|raw|full", "h.cls: rankme", "uncentered SV entropy (cone-sensitive)", None),
     (H, "kurt_topeig.worst|raw|full", "h.cls: kurt_topeig.worst", "max |excess kurt| top-10 eigdirs", None),
     (H, "uniformity|raw|full", "h.cls: uniformity", "Wang–Isola (lower = more spread)", None),
     (H, "gauss_kl_full.total|raw|full", "h.cls: gauss_kl_full.total", "moment-KL to N(0,I) per dim", None),
@@ -129,7 +131,7 @@ def bar_panel(ax, space, key, title, sub, tf):
         ax.spines[s].set_visible(False)
 
 
-fig, axes = plt.subplots(2, 5, figsize=(17.5, 6.4), facecolor="white")
+fig, axes = plt.subplots(2, 6, figsize=(20.5, 6.4), facecolor="white")
 for ax, (space, key, title, sub, tf) in zip(axes.ravel(), PANELS):
     bar_panel(ax, space, key, title, sub, tf)
 fig.suptitle("E21 battery metrics per cell — floorssl d16–512 · laug2* (collapsed @ep4, contrast) · vm2 (view-mean) · "
