@@ -6,6 +6,8 @@ in100.floorssl.s0.d128.ext,student.h.cls,0.587,0.5882
 in100.floorssl.s0.d256.ext,student.h.cls,0.6276,0.628
 in100.floorssl.s0.d512.ext,student.h.cls,0.6208,0.6222
 in100.floorssl.s0.lejepa_augs2.ext,student.h.cls,0.1044,0.1062
+in100.floorssl.s0.d256vm2.ext,student.h.cls,0.6526,0.653
+in100.floorssl.s0.d256e200.ext,student.h.cls,0.7008,0.7008
 in100.lejepa.s0.e20f.ext,student.h.cls,0.6114,0.6114
 in100.lejepa.s0.e20f.ext,student.z.embed,0.6284,0.6288
 in100.lejepa.s0.ext,student.h.cls,0.5134,0.5312
