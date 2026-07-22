@@ -267,3 +267,17 @@ validated; gate = the bridge dry-run + the early-curve watch, the E22 pattern).
   image reappears in the queue window never — pure cross-image staleness) and conditioning
   work lands between vm2-1k and the IN-100 vm4 pattern.
 - **P-1kvm4-C** — instability the IN-100 cell didn't show; kill criteria standing (E22 set).
+
+### vm4-1k bridge record (job 62593375; e22_vm4pull_1k; RAW) + launch
+
+Warmed-queue held-state pulls, mean of 2 common-RNG batches (per-batch values in the .out):
+inv g_in100/g_in1k = .17725/.21610 = **.820** · moment_kl .03115/.03805 = **.819** ·
+h_moment_kl .06765/.07630 = **.887** — all three OUTSIDE the [0.90, 1.10] band (both
+batches agree in direction; IN-1k pulls harder per unit weight on every term — unlike the
+vm2/vm3 bridges, where ratios sat near parity). The locked rule fired on all terms:
+**w(in1k) = 32.8×.820 / 157.8×.819 / 1.894×.887 = 26.9 / 129.2 / 1.679**.
+
+Chain LAUNCHED: h100-slotA links **62593427–62593442** (16×8h singleton, --exclude=gpu277,
+28 CPUs, fast loader explicit, eval_every=2), ARGS = the vm3-1k pattern + queue_steps=3 +
+d_slice 128 both taps + the doses above. Verified 16/16 in queue at submit. ETA at the vm2
+pace (~36 min/ep): ~2.5 days of lane time.
