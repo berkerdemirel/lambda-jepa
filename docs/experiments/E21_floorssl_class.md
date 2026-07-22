@@ -998,3 +998,27 @@ redistribution (×1.4, the inverse of the vm3 concentration). Rule applied: **la
 w_inv 32.8 · w_floor 157.8 · h_lamb 1.894** (realized per-step trunk pull = vm3's by
 construction; the per-sample dose now integrates over 4 steps — once live, thrice stale —
 a declared semantic of the queue, priced by P-vm4-B).
+
+## AGREED TAKEAWAY — E21-T2 (Berker 2026-07-22: "accumulating across batches and computing
+## the slice apparently helped! this is our takeaway"; wording delegated, veto open)
+
+**The view-mean correction was right but its estimator wall was real, and temporal
+accumulation removes it.** The payment correction (D-051, vm2) forced the conditioner's
+sample from bs·V=512 to bs=128 and hence the slice from d′=128 to 32 — and the narrow slice
+measurably halves conditioning work at matched pull: it cannot hold h or z high-rank
+(vm3 h-effrank 108 vs vm2's 196 at equal realized pull; the clean-frame z tail cliff —
+97/256 dims below 10⁻³·λ₁ — in every d′=32 cell; and dose does not substitute for width:
+vm3x2's doubled dose lifted the tail only partially and moved no probe). Accumulating the
+conditioner's INPUTS across steps — a detached 3-step ring of view-means, moments computed
+on the 512-row union, gradient through the current 128 only, doses re-bridged for the ¼
+gradient leverage (×4.08 z / ×5.59 h) — restores the full slice under view-mean payment and
+removes the wall: vm4 holds BOTH spaces high-rank (h 202.6/384 past vm2's 196; z 250.5/256,
+zero dead dims) and posts the family-record probes (.7202 lin / .6626 knn — beating vm2
++1.0/+1.0 and vm3 +1.9/+3.2; monitor best .7312). The payment mechanism underneath (the
+pooled demand defends within-image aug scatter; view-mean frees inv to drain it) shows as a
+variance REALLOCATION invisible to every marginal metric: within-class 237→210,
+between-class 61→82, B/W .257→.388, class-cos margin .199→.269 — only label-aware
+second-order reads separate the d256/vm4 near-twins. Operating recipe: view-mean payment +
+full-width queued estimation at both taps. Scope: IN-100 / seed 0 / queue length 3 /
+equal-pull-bridged (not per-cell-tuned) doses — Berker's standing caveat; staleness priced
+only at these settings; IN-1k confirmation pending (vm3-1k mid-flight; vm4-1k unlaunched).
