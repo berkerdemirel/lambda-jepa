@@ -247,3 +247,23 @@ h-conditioner(view-mean@32) **1.014** — the two byte-identical terms REPRODUCE
 to 3 decimals (in-job consistency check), and in100-b0's g_h 0.3585 reproduces the morning
 vm3pull exactly. The z ratio again leaves the band → rule fires on all terms from the
 vm3-in100 doses (32.8/38.7/0.339): **launch w_inv 33.6 · w_floor 33.6 · h_lamb 0.344**.
+
+## vm4 at IN-1k (D-065; Berker 2026-07-22: "launch in1k for vm4" — the E21-T2 operating
+## recipe at scale)
+
+Cell `in1k.floorssl.s0.d256vm4` = the E22 frame + the full vm4 config (view-mean payment
+both taps, d′=128 both, queue_steps=3). Lane h100-slotA (free post-vm3-in100), 16×8h
+singleton links, **--exclude=gpu277 everywhere** (the black-hole node), fast loader,
+eval_every=2. Doses by the composed bridge (`e22_vm4pull_1k`, job 62593375): per-term
+w(in1k) = w_vm4-in100 (32.8/157.8/1.894) × g_in100/g_in1k measured with the queue warmed at
+the vm2 ep25 held state; band rule [0.90, 1.10] as E22. No smoke (config-only composition of
+two validated paths — the vm4 code smoked at IN-100 this morning, the in1k frame long
+validated; gate = the bridge dry-run + the early-curve watch, the E22 pattern).
+
+**Pre-registered predictions (pick: A):**
+- **P-1kvm4-A** — the E21-T2 recipe scales: healthy end-to-end; probes ≥ the E22 vm2 cell at
+  matched epochs; both spaces high-rank at the ep-cadence anatomy (the vm4 signature).
+- **P-1kvm4-B** — partial: queue staleness interacts with the 10× data diversity (each
+  image reappears in the queue window never — pure cross-image staleness) and conditioning
+  work lands between vm2-1k and the IN-100 vm4 pattern.
+- **P-1kvm4-C** — instability the IN-100 cell didn't show; kill criteria standing (E22 set).
