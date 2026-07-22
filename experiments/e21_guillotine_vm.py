@@ -14,15 +14,17 @@ import matplotlib.pyplot as plt
 
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 STATIONS = ["L03", "L06", "L09", "gap", "cls", "embed", "tap1", "tap2", "z.out"]
-FAMILIES = [
-    ("vm4 (matched vm3)", [("vm4", "vm4", "in100.floorssl.s0.d256vm4.extL", "#c23b3b")]),
-    ("vm3zonly (h 0×)", [("zonly", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#0f7b8a")]),
-    ("vm3x2 (h/z 2×)", [("x2", "vm3x2", "in100.floorssl.s0.d256vm3x2.extL", "#d4820a")]),
-    ("vm3 (symmetric)", [("vm3", "vm3", "in100.floorssl.s0.d256vm3.extL", "#8a5cb8")]),
-    ("vm2 (z-only vm)", [("vm2", "vm2", "in100.floorssl.s0.d256vm2.extL", "#6a3fb5")]),
-    ("d256 (pooled)", [("d256", "d256", "in100.floorssl.s0.d256.extL", "#1a2f6e")]),
-    ("d128", [("d128", "d128", "in100.floorssl.s0.d128.extL", "#3d65d0")]),
-    ("d64", [("d64", "d64", "in100.floorssl.s0.d64.extL", "#7bb3d9")]),
+FAMILIES = [   # Berker 2026-07-22: zonly = the grey CONTROL in every row
+    ("d256 (pooled)", [("zonly ctrl", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#8c8c8c"),
+                       ("d256", "d256", "in100.floorssl.s0.d256.extL", "#1a2f6e")]),
+    ("vm2", [("zonly ctrl", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#8c8c8c"),
+             ("vm2", "vm2", "in100.floorssl.s0.d256vm2.extL", "#6a3fb5")]),
+    ("vm3", [("zonly ctrl", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#8c8c8c"),
+             ("vm3", "vm3", "in100.floorssl.s0.d256vm3.extL", "#8a5cb8")]),
+    ("vm3x2", [("zonly ctrl", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#8c8c8c"),
+               ("vm3x2", "vm3x2", "in100.floorssl.s0.d256vm3x2.extL", "#d4820a")]),
+    ("vm4 (matched vm3)", [("zonly ctrl", "vm3zonly", "in100.floorssl.s0.d256vm3zonly.extL", "#8c8c8c"),
+                           ("vm4", "vm4", "in100.floorssl.s0.d256vm4.extL", "#c23b3b")]),
 ]
 
 
@@ -143,7 +145,7 @@ for row, (fam, members) in enumerate(FAMILIES):
         ax.tick_params(length=0, labelsize=5.6)
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
-fig.suptitle("floorssl family guillotine — h-dose triplet (zonly/vm3/vm3x2) · payment pair (vm2/vm3) · dim bracket (d256/128/64) — 8 quantities vs depth; "
+fig.suptitle("floorssl family guillotine — d256 · vm2 · vm3 · vm3x2 · vm4 rows, zonly (no h-conditioner) as the grey control in every row — 8 quantities vs depth; "
              "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl per-method rows (zoo2) or column-shared "
              "(L-taps = trunk cls readouts; dotted = trunk|head; class-cos as the MARGIN same−diff) — RAW",
              fontsize=9.5, y=0.998)
