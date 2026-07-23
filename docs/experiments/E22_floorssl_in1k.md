@@ -299,3 +299,14 @@ the in100 frame's per-class density; 500k rows), `in1k.val.v1` (full 50k),
 global-estimator size; per-class pair claims not made at this rung). Numbers land RAW under
 this frame; if the parameters are amended, re-extraction is one job. vm3-1k/vm4-1k reuse
 the same frame + machinery when they land.
+
+### vm2-1k landing numbers (jobs 62626403-05, 2026-07-24; RAW, frame = D-066 PROPOSED)
+
+Probes (val 50k, 1000-way; full table results/probes/): **h.cls linear .6211** (l2_v2; raw
+.6088, house .6020) · h.cls kNN k20 **.5399** · h.gap linear .506/kNN .327 · z.proj.tap1
+linear .573 · z.proj.out linear .474/kNN .385. Online-monitor best was .6254 (trains with
+the model on aug batches; the frozen-feature probe reading ~.62 is the family-comparable
+number). Battery (train500 store): h.cls (d384) rankme **345.5** effrank **282.6**
+(/d: .900/.736) · z.proj.tap1 (d2048) rankme 1291.8 effrank 277.7 · z.proj.out (d256)
+rankme **164.3** effrank **133.0** (/d: .642/.520). Full CSVs in results/battery/. No
+cross-cell reads until vm3/vm4-1k land (matched frame, joint discussion).
