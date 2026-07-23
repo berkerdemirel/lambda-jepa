@@ -29,16 +29,18 @@ def _manifests(cfg, frame, manifest_dir):
                                                            os.path.join(manifest_dir, name + ".csv"))
         source = lambda kw: _Source("hf-imagenette", split=kw["split"])
     else:
+        # manifest names are dataset-keyed (D-066): in100 names byte-identical to pre-D-066
+        tag = {"imagenet100": "in100", "imagenet1k": "in1k"}[ds]
         root = os.path.expanduser(frame["data_root"])
         if cfg.get("linspace_n"):                       # parity manifests (CAMPAIGN_LOG rule)
-            train_spec = (f"in100.linspace{cfg.linspace_n}.v1",
+            train_spec = (f"{tag}.linspace{cfg.linspace_n}.v1",
                           dict(sub="train", per_class=None, linspace_n=cfg.linspace_n))
         else:
-            train_spec = (f"in100.train{cfg.train_per_class}.v1",
+            train_spec = (f"{tag}.train{cfg.train_per_class}.v1",
                           dict(sub="train", per_class=cfg.train_per_class, linspace_n=None))
         specs = {"train": train_spec,
-                 "val": ("in100.val.v1", dict(sub="val", per_class=None, linspace_n=None)),
-                 "pairs": (f"in100.pairs{cfg.pairs_per_class}.v1",
+                 "val": (f"{tag}.val.v1", dict(sub="val", per_class=None, linspace_n=None)),
+                 "pairs": (f"{tag}.pairs{cfg.pairs_per_class}.v1",
                            dict(sub="train", per_class=cfg.pairs_per_class, linspace_n=None))}
         build = lambda name, kw: build_manifest_imagefolder(
             os.path.join(root, kw["sub"]), os.path.join(manifest_dir, name + ".csv"),

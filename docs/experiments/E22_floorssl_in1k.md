@@ -281,3 +281,21 @@ Chain LAUNCHED: h100-slotA links **62593427–62593442** (16×8h singleton, --ex
 28 CPUs, fast loader explicit, eval_every=2), ARGS = the vm3-1k pattern + queue_steps=3 +
 d_slice 128 both taps + the doses above. Verified 16/16 in queue at submit. ETA at the vm2
 pace (~36 min/ep): ~2.5 days of lane time.
+
+### vm2-1k LANDED (2026-07-23 20:04) + the in1k eval frame (D-066 PROPOSED)
+
+Training finished clean: **best online probe .6254** (ep92 read .6170, monotone to the end;
+100/100 epochs, chain drained with links to spare). Cadence ckpts ep25/50/75/100+best+last
+on disk.
+
+**Landing audit fired** (extract 62626403 → probe 62626404 + battery 62626405) under a
+newly DECLARED in1k eval frame — none existed for this rung, and `extract.py` hardcoded
+`in100.*` manifest names for every imagefolder dataset (latent trap: the existing IN-100
+CSVs would have been silently reused — IN-100 images audited under an in1k run_id). Fix:
+manifest names are now dataset-keyed (`in100.*` byte-identical, `in1k.*` new; loud KeyError
+on unknown datasets). Frame parameters (PROPOSED, D-066): `in1k.train500.v1` (500/class =
+the in100 frame's per-class density; 500k rows), `in1k.val.v1` (full 50k),
+`in1k.pairs10.v1` (10/class → 10k pairs images = the in100 pairs frame's TOTAL n — matched
+global-estimator size; per-class pair claims not made at this rung). Numbers land RAW under
+this frame; if the parameters are amended, re-extraction is one job. vm3-1k/vm4-1k reuse
+the same frame + machinery when they land.
