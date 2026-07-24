@@ -310,3 +310,12 @@ number). Battery (train500 store): h.cls (d384) rankme **345.5** effrank **282.6
 (/d: .900/.736) · z.proj.tap1 (d2048) rankme 1291.8 effrank 277.7 · z.proj.out (d256)
 rankme **164.3** effrank **133.0** (/d: .642/.520). Full CSVs in results/battery/. No
 cross-cell reads until vm3/vm4-1k land (matched frame, joint discussion).
+
+### vm4-1k PAUSED at ep74 (2026-07-24 14:08)
+
+Cancelled mid-run (all 11 slotA links) to free H100s for Berker's rebuttal jobs. NOT a
+result — a compute yield. State: `outputs/in1k.floorssl.s0.d256vm4_last.pt` epoch 74, step
+750675, best_acc **.5847** (online monitor; ep62 frozen probe read .5520), modules+optim
+intact, moment queue re-warms on resume (declared, `extras` empty by design). Resume:
+`bash slurm/resume_vm4_1k.sh` — same args → same run_id → auto-resume from ep74; ~26 epochs
+(~16h) left. No landing audit until it finishes.
