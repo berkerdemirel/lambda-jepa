@@ -319,3 +319,24 @@ result — a compute yield. State: `outputs/in1k.floorssl.s0.d256vm4_last.pt` ep
 intact, moment queue re-warms on resume (declared, `extras` empty by design). Resume:
 `bash slurm/resume_vm4_1k.sh` — same args → same run_id → auto-resume from ep74; ~26 epochs
 (~16h) left. No landing audit until it finishes.
+
+### vm3-1k LANDED (2026-07-24) — the d′=32 wall arm at scale (landing 62629948-50; RAW, D-066 frame)
+
+Training clean, best online **.6176** (100/100 ep). Frozen probes (val 50k, 1000-way):
+h.cls **lin .6211** (l2_v2; raw .6089) · h.cls **kNN k20 .5035** / k200 .4567 · z.proj.out
+lin .466 / kNN .387. Battery (train500): h.cls (d384) rankme 278.3 (.725) **effrank 153.4
+(.400)** · z.proj.out (d256) rankme 162.7 (.636) effrank 132.3 (.517). Full CSVs in
+results/. RAW — the 3-cell joint read (vm2/vm3/vm4) waits on vm4-1k finishing its last 26 ep
+and on joint discussion.
+
+**Side-by-side so far (RAW, NO takeaway; frozen v2 probes + train500 battery):**
+| cell | online best | h.cls lin | h.cls kNN | h effrank/384 | z.out lin | z.out effrank/256 |
+|---|---|---|---|---|---|---|
+| vm2-1k (relaxed z, strict h) | .6254 | .6211 | **.5399** | **.736** | .474 | .520 |
+| vm3-1k (symmetric, d′=32 wall) | .6176 | .6211 | .5035 | .400 | .466 | .517 |
+| vm4-1k (symmetric, queue d′=128) | .5847@ep74 | — | — | — | — | — |
+
+Flags for the joint read: h.cls LINEAR is identical (.6211) across vm2/vm3 — the linear
+probe does not separate them; the separation lives in **kNN (.5399 vs .5035)** and **h
+effrank (.736 vs .400/d)** — the same label-aware / geometry axis E21-T2 identified at
+IN-100. vm4's numbers complete the picture when it lands.
