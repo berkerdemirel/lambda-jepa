@@ -15,6 +15,8 @@ queue_steps: 0     # D-064: detached ring of last k conditioner inputs (vm4 "mat
 expander_hidden: 2048
 expander_dim: 2048
 head_norm: bn
+head_depth: null   # E23 (D-067): K identity-init ResBlocks (Linear adapter + K blocks + Linear out; 0 = linear projector); null = legacy expander
+mlp_wd: null       # E23 (D-067): separate projector weight decay (own param group); null = legacy single group
 drop_path: 0.1
 lr: 1e-3
 wd: 5e-2

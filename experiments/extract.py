@@ -36,8 +36,11 @@ def _manifests(cfg, frame, manifest_dir):
             train_spec = (f"{tag}.linspace{cfg.linspace_n}.v1",
                           dict(sub="train", per_class=None, linspace_n=cfg.linspace_n))
         else:
-            train_spec = (f"{tag}.train{cfg.train_per_class}.v1",
-                          dict(sub="train", per_class=cfg.train_per_class, linspace_n=None))
+            # train_per_class=null -> the FULL train split, named "<tag>.train.v1" (D-066
+            # standard frame; avoids the "trainNone" edge)
+            tpc = cfg.train_per_class
+            train_spec = (f"{tag}.train{tpc}.v1" if tpc else f"{tag}.train.v1",
+                          dict(sub="train", per_class=tpc, linspace_n=None))
         specs = {"train": train_spec,
                  "val": (f"{tag}.val.v1", dict(sub="val", per_class=None, linspace_n=None)),
                  "pairs": (f"{tag}.pairs{cfg.pairs_per_class}.v1",

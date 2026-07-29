@@ -59,9 +59,31 @@ class DinoHeadTaps(nn.Module):
         return {"dino.tap1": t1, "dino.tap2": t2, "dino.bottleneck": m[4](t2)}
 
 
+class ResBlock(nn.Module):
+    """Identity-init residual MLP block: x + W2·ReLU([BN](W1·x)), W2 zero-init — so a head of
+    ANY block count computes the same function at init (the E23 depth-ladder invariant; depth
+    differences are pure capacity/trainability, never init). norm="bn" places BN inside the
+    branch only (vicreg expander order, Linear-BN-ReLU)."""
+
+    def __init__(self, dim, norm="none"):
+        super().__init__()
+        layers = [nn.Linear(dim, dim)]
+        if norm == "bn":
+            layers.append(nn.BatchNorm1d(dim))
+        layers += [nn.ReLU(inplace=True), nn.Linear(dim, dim)]
+        nn.init.zeros_(layers[-1].weight)
+        nn.init.zeros_(layers[-1].bias)
+        self.f = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return x + self.f(x)
+
+
 class TVMLPTaps(nn.Module):
     """z-taps through a torchvision.ops.MLP (the lejepa projector: Linear-BN-ReLU blocks
-    + final Linear[+Dropout]). Taps = post-activation hidden states; "out" = final linear output."""
+    + final Linear[+Dropout]). Taps = post-activation hidden states; "out" = final linear
+    output. Residual heads tap per BLOCK output (post-add) — same "hidden state after the
+    k-th nonlinear stage" semantics."""
 
     def __init__(self, mlp: nn.Sequential, prefix="proj"):
         super().__init__()
@@ -76,7 +98,7 @@ class TVMLPTaps(nn.Module):
             x = layer(x)
             if isinstance(x, tuple):  # no torchvision layer returns tuples; guard for exotic mlps
                 x = x[0]
-            if isinstance(layer, (nn.ReLU, nn.GELU)):
+            if isinstance(layer, (nn.ReLU, nn.GELU, ResBlock)):
                 k += 1
                 out[f"{self.prefix}.tap{k}"] = x
         out[f"{self.prefix}.out"] = x
