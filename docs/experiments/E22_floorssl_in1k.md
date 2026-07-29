@@ -365,3 +365,16 @@ stores are needed. **No new figure code.**
   linear-ties-but-kNN-separates gap (vm2/vm3 both .6211 linear; kNN .5399 vs .5035) becomes a
   DEPTH TRAJECTORY — the figure shows WHERE along h→z the separation emerges = the leakage
   gradient made visible. RAW; the 3-cell takeaway waits for vm4-1k + joint discussion.
+
+### D-066 REVISED → the STANDARD full eval (Berker 2026-07-29: "why not full 1k eval on 50k?")
+
+Correction: the val eval was ALWAYS the full 50k (the reported val_acc is on all 50k). What
+the first-draft frame subsampled was (a) the probe TRAIN set → 500/class = 500k of 1.28M, and
+(b) the structural battery, which `audit.py` ran on that 500k train sample rather than the
+clean 50k val. Rationale (match in100 per-class density) was weak; dropped. **Standard frame:
+probe FIT on full 1.28M train → eval on 50k val; battery on full 50k val; pairs bumped.**
+Feasible (GPU-SGD probe fits a 24GB card even at 2048-d; store << budget; only a probe
+walltime bump). **⇒ the vm2/vm3-1k probe+battery numbers above are under the SUPERSEDED
+subsampled frame** and are re-run pending (gpu partition; vm4 on landing). Kept: the
+dataset-keyed manifest fix. Re-run is one extract (train_per_class=null → full) + battery with
+`train_manifest=in1k.val.v1` + a probe walltime bump.
