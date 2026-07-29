@@ -340,3 +340,28 @@ Flags for the joint read: h.cls LINEAR is identical (.6211) across vm2/vm3 — t
 probe does not separate them; the separation lives in **kNN (.5399 vs .5035)** and **h
 effrank (.736 vs .400/d)** — the same label-aware / geometry axis E21-T2 identified at
 IN-100. vm4's numbers complete the picture when it lands.
+
+## IN-1k eval = the E20/E21 guillotine-zoo, 3-cell (Berker 2026-07-29; PLAN, taps TBD-jointly)
+
+Repeat the guillotine (metrics × depth, one row per cell, zoo2 rules) for the IN-1k family.
+Machinery already exists — `experiments/e21_guillotine_vm.py` encodes every rule Berker set
+(0–1 axes for bounded quantities, ranks ÷ per-station d with z-out d-annotation, per-row
+gauss_kl ylims, class-cos-as-margin, no gap station). Only a new FAMILIES list + the depth
+stores are needed. **No new figure code.**
+
+- **Rows = vm2 / vm3 / vm4** (the estimator-payment axis at scale). **Control gap flagged:**
+  at IN-100 the grey control was zonly/d256-pooled; neither was run at IN-1k, so either no
+  grey control (vm2 as the visual reference) or a new d256-pooled-1k run (a full cell — likely
+  not worth it). Recommend: no control, vm2 reference.
+- **Depth stations (ViT-S/16 @ 1k):** backbone L03/L06/L09 + cls, then head cls→tap1(2048)→
+  z.out(256) — same fractional depth as the IN-100 `[3,6,9]`+cls. **Requires L-tap
+  re-extraction:** vm2/vm3 landed as plain `.ext` (no h_layers); the guillotine reads `.extL`
+  stores. That re-extraction is a **gpu-partition** job (A40/L40S) — it does NOT touch the
+  rebuttal H100s. Ready to fire for vm2/vm3 now once the tap set is agreed; vm4 rides its
+  landing. Then run the depth-metrics instrument → an `in1k` depth-metrics CSV → render.
+- **Two synergies with E23:** (a) the **pos-invariance column across depth IS the orbit-radius
+  trajectory** (pos-cos = orbit tightness) — this guillotine doubles as the first
+  orbit-leakage instrument at scale, feeding the E23 study directly; (b) the measured
+  linear-ties-but-kNN-separates gap (vm2/vm3 both .6211 linear; kNN .5399 vs .5035) becomes a
+  DEPTH TRAJECTORY — the figure shows WHERE along h→z the separation emerges = the leakage
+  gradient made visible. RAW; the 3-cell takeaway waits for vm4-1k + joint discussion.
