@@ -15,8 +15,8 @@ queue_steps: 0     # D-064: detached ring of last k conditioner inputs (vm4 "mat
 expander_hidden: 2048
 expander_dim: 2048
 head_norm: bn
-head_stages: null  # E23 rev2 (D-067am): K bottleneck stages (bare adapter + K x [Lin(w->m)-BN-ReLU-Lin(m->w)-BN-ReLU] + bare out; 0 = linear projector); null = legacy expander
-stage_m: 256       # E23 rev2: per-stage bottleneck width — the fine capacity dial
+head_layers: null  # E23 rev3: legacy-anatomy ladder — K hidden BN-ReLU layers ((2, width=hidden) ≡ the bn expander byte-identically; 0 = bare linear projector); null = legacy expander
+head_width: null   # E23 rev3: middle-layer width, the fine capacity dial (null = expander_hidden)
 mlp_wd: null       # E23 (D-067): separate projector weight decay (own param group); null = legacy single group
 drop_path: 0.1
 lr: 1e-3

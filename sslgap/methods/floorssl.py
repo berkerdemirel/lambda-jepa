@@ -58,13 +58,31 @@ def floorssl_res_head(in_dim=384, hidden=2048, out_dim=2048, depth=2, norm="none
 
 
 def floorssl_stage_head(in_dim=384, hidden=2048, out_dim=256, depth=2, m=256):
-    """E23 rev2 depth ladder (D-067am): bare Linear adapter + `depth` BottleneckStages
-    (fully BN-pinned, every path nonlinear) + bare Linear out. depth=0 = the linear
-    projector (the folklore anchor; max-leakage end, declared-risk cell). m = the per-stage
-    bottleneck width — the fine capacity dial between coarse depth jumps."""
+    """REJECTED E23 rev2 ladder (card §Launch log 2026-07-30: the BARE adapter left the
+    2048-d entry unpinned — collapsed on the healthy byol lane too, 9/9). Kept for
+    checkpoint assembly only — build_modules no longer offers it."""
     return nn.Sequential(nn.Linear(in_dim, hidden),
                          *[BottleneckStage(hidden, m) for _ in range(depth)],
                          nn.Linear(hidden, out_dim))
+
+
+def floorssl_ladder_head(in_dim=384, hidden=2048, out_dim=256, depth=2, width=None):
+    """E23 rev3 ladder (Berker's careful-mode): the LEGACY expander anatomy itself with
+    `depth` hidden BN-ReLU layers — depth=2, width=hidden is BYTE-IDENTICAL to
+    floorssl_head(norm="bn"), so the ladder grows out of the certified-healthy cell in
+    both directions. Every hidden Linear is BN-pinned (the invariant every healthy
+    floorssl head shares; both rejected scaffolds broke it). depth=0 = the bare linear
+    projector (folklore anchor, declared-risk). `width` = middle-layer width, the fine
+    capacity dial at fixed depth (width=hidden ≡ legacy shapes)."""
+    w = width or hidden
+    if depth == 0:
+        return nn.Sequential(nn.Linear(in_dim, hidden), nn.Linear(hidden, out_dim))
+    layers = [nn.Linear(in_dim, hidden), nn.BatchNorm1d(hidden), nn.ReLU(inplace=True)]
+    for i in range(depth - 1):
+        layers += [nn.Linear(hidden if i == 0 else w, w), nn.BatchNorm1d(w),
+                   nn.ReLU(inplace=True)]
+    layers.append(nn.Linear(hidden if depth == 1 else w, out_dim))
+    return nn.Sequential(*layers)
 
 
 class FloorSSL(SSLMethod):
@@ -73,11 +91,12 @@ class FloorSSL(SSLMethod):
     def build_modules(self):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 drop_path_rate=self.cfg.drop_path)
-        # head_stages (E23 rev2, D-067am): K bottleneck stages — MLP depth as the leakage
-        # dial, stage_m the fine capacity dial; null = the legacy expander, byte-identical.
-        k = self.cfg.get("head_stages")
-        head = (floorssl_stage_head(384, self.cfg.expander_hidden, self.cfg.expander_dim,
-                                    depth=k, m=self.cfg.get("stage_m") or 256)
+        # head_layers (E23 rev3): the legacy-anatomy ladder — depth as the leakage dial,
+        # head_width the fine dial; (2, hidden) ≡ the legacy bn expander byte-identically;
+        # null = the legacy expander path.
+        k = self.cfg.get("head_layers")
+        head = (floorssl_ladder_head(384, self.cfg.expander_hidden, self.cfg.expander_dim,
+                                     depth=k, width=self.cfg.get("head_width"))
                 if k is not None
                 else floorssl_head(384, self.cfg.expander_hidden, self.cfg.expander_dim,
                                    norm=self.cfg.head_norm))
@@ -113,11 +132,11 @@ class FloorSSL(SSLMethod):
         return nn.ModuleDict({"backbone": trunk, "projector": head})
 
     def arch(self):
-        k = self.cfg.get("head_stages")
-        proj = ({"class": "sslgap.methods.floorssl.floorssl_stage_head",
+        k = self.cfg.get("head_layers")
+        proj = ({"class": "sslgap.methods.floorssl.floorssl_ladder_head",
                  "kwargs": {"in_dim": 384, "hidden": self.cfg.expander_hidden,
                             "out_dim": self.cfg.expander_dim, "depth": k,
-                            "m": self.cfg.get("stage_m") or 256}} if k is not None
+                            "width": self.cfg.get("head_width")}} if k is not None
                 else {"class": "sslgap.methods.floorssl.floorssl_head",
                       "kwargs": {"in_dim": 384, "hidden": self.cfg.expander_hidden,
                                  "out_dim": self.cfg.expander_dim,

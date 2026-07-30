@@ -54,10 +54,12 @@ residual identity-init). K=0 = bare adapter∘out = the linear projector (folklo
 max-leakage end; declared-risk cell, held by the h-term). Taps per stage + out (per-K
 within-head Λ profile free). Invertible/normalizing-flow heads: parked (open menu).
 
-**Axes:** depth **K ∈ {0,1,2,3,4,6} at m=256** + fine **m ∈ {64,128,512,1024,2048} at
-K=2** (~11 mains) · **h_lamb = .65 primary everywhere** (Berker: h must consume dimensions
-healthily — the anti-collapse term is the method's identity); h_lamb=0 as a 3-cell control
-at K∈{1,3,6} PENDING Berker's Q4 answer · no head_norm axis (BN always).
+**Axes (final; Q4 resolved 2026-07-30 "ok do h off experiments too"):** depth
+**K ∈ {0,1,2,3,4,6} at m=256** (the evolution axis — Berker: "doing k anyway could help
+as well to see the evolution") + fine **m ∈ {64,128,512,1024,2048} at K=2** · **h_lamb =
+.65 primary everywhere**; **h_lamb=0 controls at K ∈ {1,3,6}** (the folklore twin — the
+leakage-only readout at low/mid/high depth) · no head_norm axis (BN always). Main program
+= 6 + 5 + 3 = **14 cells** after lane certification + wd grid.
 
 **wd protocol:** projector param group (`mlp_wd`); wd is an EMPIRICAL dial (BN gauge caveat
 recorded once: under BN, weight scale is partly gauge; the bare out-Linear keeps real
@@ -126,6 +128,67 @@ everywhere — Berker: watch a, no target for b, Λ carries the reading)
   reruns 62857493-95). Verify battery: taps per stage ✓ K=0 linear ✓ round-trip ✓ m-dial
   param scaling ✓ legacy intact ✓. Smoke `toy.floorssl.s0.e23smoke2` (2 ep, lejepa lane,
   base cell) = job 62857842.
+
+- 2026-07-30 **B-L launched** (smoke2 PASSED, ep2 .2206): anchor `e23Lbyol` 62857858 (stage
+  head on the healthy byol lane; formation source) · blind grid `e23Lg1-6` 62857859-64
+  (lejepa lane: (25,45),(32.8,38.7),(50,45),(25,22),(50,22),(12,60)) · `e23Lopt` 62857865
+  (lejepa optimizer point). **B-L1 pull MEASURED** (job 62858212, Lbyol ep38 formation,
+  bs=128 both lanes, trunk-only g_enc): inv 2.612(byol) vs 5.302(lejepa) — the V=4 family
+  pulls inv on the trunk **2.03×** harder; z-floor 2.927 vs 3.547 (1.21×); h-floor 3.121
+  vs 2.995 (~parity). **Equal-pull re-dose: w_inv 25→12.3 · w_floor 45→37.1 · h_lamb
+  .65→.68**; confirm arm `e23Lshare` 62858283 launched. (Direction note: the IN-100 lane
+  fix landed at (32.8, 38.7) — the toy measurement points LOWER on inv; dose laws are
+  frame-local, the house dose-curvature lesson.) Rows: results/diag/e23_pull.csv.
+
+- 2026-07-30 **B-L rev2 KILLED 9/9 (Berker: "kill the failed runs")**: the ANCHOR
+  `e23Lbyol` failed on the healthy byol lane itself (ep5 .285 → ep136 .22) — the rev2
+  stage anatomy is the isolated factor (its BARE adapter left the 2048-d entry unpinned;
+  every healthy floorssl head BN-pins after every hidden Linear); all lejepa arms + the
+  share-derived arm + the optimizer arm died with it, so the lane-dose question is
+  UNATTRIBUTED under rev2 and the first pull measurement (sick-state) is DISCARDED.
+  **Berker's curve diagnosis (2026-07-30): "regularization dominating inv"** — the
+  operating mechanism: bare/skip segments widen the conduit through which the z-floor's
+  pull reaches the trunk (the E19-T1 BN-firewall story), the regularizer out-pulls inv,
+  h gets bent to serve z-conditioning (hkl↑, inv unsatisfied). Weighted realized pulls
+  (w·g) become the reported quantity; the healthy cell's SHARE PROFILE is the dose target.
+- 2026-07-30 **PROTOCOL (Berker): ep20 KILL GATE** — a toy arm with nothing healthy at
+  ep20 is killed (gate: probe ≥ .35 at ep20, then a FULL-curve read — inv, z-space
+  moment_kl, h-space h_moment_kl — before it continues; collapsed arms sat at .11–.15 by
+  ep20, healthy at ~.5: wide separation). **Canary-first**: no batch on unproven anatomy —
+  single gated runs first. "Be more careful while setting things" — acknowledged.
+  **REVISED same day (Berker, after e23Lw's post-gate collapse): the gate sits at
+  max(ep25, warmup_end+5)** — gating DURING the ramp is blind (Lw passed .5108 at ep20
+  with its warmup still running, then collapsed to .1475 by ep25 the moment lr peaked).
+- 2026-07-30 **rev3 ladder = the LEGACY ANATOMY itself** (`floorssl_ladder_head`): K
+  hidden BN-ReLU layers; **(K=2, width=hidden) is BYTE-IDENTICAL to the certified bn
+  expander (verified: state-dict equality at seed 0)** — the ladder grows from the
+  healthy .745/.751 cell; `head_width` = the fine dial (middle-layer width); K=0 = bare
+  linear anchor (declared risk). rev2 `head_stages` retired from training (assembly-only).
+  Canaries `e23K1` 62858755 + `e23K4` 62858756 (byol, h.65) with ep20 gates ARMED; pull
+  v2 62858754 re-measuring on the CERTIFIED y256leg ep38 state with w·g shares. Full rev3
+  grid + lejepa lane rerun wait on canary gates + the share numbers.
+
+- 2026-07-30 **rev3 canaries PASSED their ep20 gates + full-curve reads** (K1 probe .5434,
+  K4 .5259; gnorms DECAYING 28→16/13, zkl converging, hkl stable-to-falling — the healthy
+  signature; both continue to ep150). **Pull v2 on the CERTIFIED state landed
+  (results/diag/e23_pull.csv): the share profiles are LANE-INVARIANT** — byol inv/.469
+  zfloor/.503 h/.028 vs lejepa .471/.504/.025; the sick-state 2.03× was artifact. Derived
+  correction small: w′ = 22.1/39.8/.64 (~12% down). ⇒ the lejepa disease is NOT a
+  formation-share imbalance — it lives in the ep0–20 warmup phase. Three ep20-gated
+  early-phase canaries launched (legacy-identical K=2, derived doses): `e23Ld` 62858762
+  (doses alone), `e23Lw` 62858763 (+warmup 20), `e23Llr` 62858764 (+lr 5e-4).
+
+- 2026-07-30 **THE LANE SOLVED (ep20 gates + full curves): the lejepa-at-toy disease is
+  the lr TRANSIENT, not doses.** `e23Ld` (derived doses alone) GATE-KILLED at .1704 —
+  confirming the share result; **`e23Lw` (+warmup 20) PASSED .5108 and `e23Llr` (+lr
+  5e-4) PASSED .5827** — both with the full healthy signature at ep20. **SUPERSEDED
+  hours later (Berker caught it live): Lw COLLAPSED at ramp-end** (.5108@ep20 →
+  .1475@ep25 → KILLED@ep36; the ep20 gate had tested it mid-ramp — protocol revised to
+  max(ep25, warmup_end+5)). With warmup-10 dying at ep~10 and warmup-20 at ep~25 — both
+  at ramp-end — while **Llr climbs (.6369@ep36)**: the toy-lejepa lane cannot survive
+  PEAK lr 1e-3 regardless of ramp length; **lr 5e-4 is the lane recipe candidate**
+  (formal pick at the joint review; note it carries a peak-lr difference vs the byol/
+  family reference cells). Three canaries to ep150: K1, K4, Llr.
 
 ## Grounding (retro-analysis, FREE, landed 2026-07-29 — numbers RAW)
 
