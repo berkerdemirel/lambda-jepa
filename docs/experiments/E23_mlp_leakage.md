@@ -233,6 +233,19 @@ everywhere — Berker: watch a, no target for b, Λ carries the reading)
   e21_guillotine_vm + e20_guillotine_zoo2 EXTENDED with Ω/a/b/Λ columns (station→z.out);
   the IN-1k 12-panel likewise (job 62866843).
 
+- 2026-07-30 **STAGE-C GRID COMPLETE — all 13 cells to ep150 (Berker's completeness rule;
+  killed cells resumed and finished). FINAL ONLINE BESTS, RAW:** width@K2: W32 .7944 ·
+  W64 .7873 · W128 .7052 · **W256 .3679 · W512 .3735** · W2048(Llr) .8003 | depth@2048:
+  **K0 .4451** · K1 .7562 · K2 .8003 · K3 .7987 · K4 .7969 · **K6 .4492** (never recovered
+  over its full run) | h0 controls: **W64h0 .8046 (the grid maximum)** · K2h0 .7952 ·
+  K6h0 .7434. Raw shapes for the interpretation session: the mid-width CRATER (.37 flanked
+  by .79/.80 — the ep25 three-regime structure held to convergence); the depth PLATEAU
+  with craters at both ends (K0 linear, K6 deep); **the h-free lane at-or-above its h.65
+  twins everywhere** (incl. the K6 pair .74 vs .45 — the h-conditioner HURTS the deep
+  cell; and the byol echo .751 vs .745). NO TAKEAWAYS — next session, jointly. Landing
+  chains FIRED for all 14 cells (extract o8+L-taps one pass → probe + battery; jobs
+  62868609-50, counts verified 14/14/14).
+
 ## Grounding (retro-analysis, FREE, landed 2026-07-29 — numbers RAW)
 
 `results/diag/e23_retro_spaces.csv` (1086 rows) + `e23_retro_trans.csv` (1215 rows); job
