@@ -21,6 +21,7 @@ from sslgap.metrics.orbit_energy import orbit_energies, transmission  # noqa: E4
 
 FEAT = os.path.join(ROOT, "features")
 O8, O32 = "in100.pairs100.v1@audit_v1.o8", "in100.pairs100.v1@audit_v1.o32"
+O8_IN1K = "in1k.pairs10.v1@audit_v1.o8"    # D-066 bump: 10/class × 1000 (label splits noisier, n_k=10)
 
 # (declared_h, declared_z) of record: family = D-036 cls -> expander out; zoo = e20_score M
 # / extract_orbits H/Z; E17 arms follow their method's zoo declaration.
@@ -49,6 +50,8 @@ O32_RUNS = ["in100.lejepa.s0.o32", "in100.lejepa.s0.e12f2.o32",
             "in100.lejepa.s0.hpull_sigreg_inv.o32"]
 for r in O32_RUNS:
     DECL[r] = LEJEPA
+for t in ["d256vm", "d256vm3", "d256vm4"]:
+    DECL[f"in1k.floorssl.s0.{t}.extL"] = ("student.h.cls", "student.z.proj.out")
 
 
 def load_views(store, run, key, base, V, l2=False):
@@ -65,7 +68,7 @@ def main():
     store = FeatureStore(FEAT)
     sp_rows, tr_rows = [], []
     for run, (dh, dz) in DECL.items():
-        key = O32 if run in O32_RUNS else O8
+        key = O32 if run in O32_RUNS else (O8_IN1K if run.startswith("in1k.") else O8)
         if not os.path.isdir(os.path.join(FEAT, run, key)):
             print(f"[skip] {run}/{key} absent", flush=True)
             continue

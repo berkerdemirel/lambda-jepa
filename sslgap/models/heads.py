@@ -59,11 +59,28 @@ class DinoHeadTaps(nn.Module):
         return {"dino.tap1": t1, "dino.tap2": t2, "dino.bottleneck": m[4](t2)}
 
 
+class BottleneckStage(nn.Module):
+    """E23 rev2 depth-ladder stage: Linear(w→m)-BN-ReLU-Linear(m→w)-BN-ReLU — a fully
+    BN-pinned capacity increment with EVERY path nonlinear (no skip: the residual ladder's
+    always-open linear path defeated the depth dial — E23 card §Launch log 2026-07-29).
+    m = the per-stage bottleneck width, the fine capacity dial between coarse K jumps
+    (Berker 2026-07-30). TVMLPTaps taps its output."""
+
+    def __init__(self, width, m):
+        super().__init__()
+        self.f = nn.Sequential(nn.Linear(width, m), nn.BatchNorm1d(m), nn.ReLU(inplace=True),
+                               nn.Linear(m, width), nn.BatchNorm1d(width),
+                               nn.ReLU(inplace=True))
+
+    def forward(self, x):
+        return self.f(x)
+
+
 class ResBlock(nn.Module):
-    """Identity-init residual MLP block: x + W2·ReLU([BN](W1·x)), W2 zero-init — so a head of
-    ANY block count computes the same function at init (the E23 depth-ladder invariant; depth
-    differences are pure capacity/trainability, never init). norm="bn" places BN inside the
-    branch only (vicreg expander order, Linear-BN-ReLU)."""
+    """Identity-init residual MLP block: x + W2·ReLU([BN](W1·x)), W2 zero-init. REJECTED as
+    the E23 ladder (2026-07-29, card §Launch log: the skip is an always-open linear path
+    h→z, so depth cannot modulate invariance pressure — 6/6 arms collapsed). Kept ONLY so
+    the e23 diagnostic checkpoints remain assemblable (arch() references resolve)."""
 
     def __init__(self, dim, norm="none"):
         super().__init__()
@@ -98,7 +115,7 @@ class TVMLPTaps(nn.Module):
             x = layer(x)
             if isinstance(x, tuple):  # no torchvision layer returns tuples; guard for exotic mlps
                 x = x[0]
-            if isinstance(layer, (nn.ReLU, nn.GELU, ResBlock)):
+            if isinstance(layer, (nn.ReLU, nn.GELU, ResBlock, BottleneckStage)):
                 k += 1
                 out[f"{self.prefix}.tap{k}"] = x
         out[f"{self.prefix}.out"] = x

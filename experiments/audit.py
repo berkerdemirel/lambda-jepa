@@ -12,6 +12,7 @@ the pre-planned mitigation (HANDOVER 2026-07-09) is splitting by space:
 then concat the {run_id}.{suffix}.csv pieces into {run_id}.csv.
 """
 import os
+import re
 
 import hydra
 import pandas as pd
@@ -28,7 +29,9 @@ def main(cfg: DictConfig):
     manifests = sorted(os.listdir(run_dir))
     eval_mans = [m for m in manifests if "@" not in m and
                  (cfg.train_manifest is None or m == cfg.train_manifest)]
-    pair_mans = [m for m in manifests if "@" in m]
+    # orbit stores ("@<stack>.o<V>", per-view arrays) are E23-instrument targets, not
+    # viewA/viewB pair stores — the pair battery skips them
+    pair_mans = [m for m in manifests if "@" in m and not re.search(r"\.o\d+$", m)]
     out_dir = os.path.join(cfg.results_root, "battery")
     os.makedirs(out_dir, exist_ok=True)
 
