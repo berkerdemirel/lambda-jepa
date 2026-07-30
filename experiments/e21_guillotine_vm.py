@@ -96,6 +96,53 @@ QUANTS = [  # (name, getter, ylim: (0,1) | None=column-shared autoscale)
          mget("class_cos_same")(m, s), mget("class_cos_diff")(m, s)), (0, 1)),
 ]
 
+# Ω/a/b/Λ columns from the E23 orbit calculus (Berker 2026-07-30): per-station W/B from
+# the o8 retro (results/diag/e23_retro_spaces.csv, raw framing); a/b/Λ oriented
+# station→z.out (remaining-path transmission: cls = the declared headline, ≡1 at z.out).
+WB, WBo = {}, {}
+_PREF = {"dino_ctrl": "teacher", "dino_e20f": "teacher"}   # declared teacher lane (zoo)
+for _fam, _members in FAMILIES:
+    for _lab, _mlab, _run, _c in _members:
+        pref = _PREF.get(_mlab, "student")
+        for r in csv.DictReader(open(f"{ROOT}/results/diag/e23_retro_spaces.csv")):
+            if r["run"] != _run or r["framing"] != "raw":
+                continue
+            st = station_of(r["space"])
+            if st and (r["space"].startswith(pref) or (_mlab, st) not in WB):
+                WB[(_mlab, st)] = (float(r["W"]), float(r["B"]))
+        if (_mlab, "z.out") in WB:
+            WBo[_mlab] = WB[(_mlab, "z.out")]
+
+
+def wbget(kind):
+    def g(mlab, st):
+        wb, o = WB.get((mlab, st)), WBo.get(mlab)
+        if wb is None or o is None:
+            return None
+        W, B = wb
+        Wo, Bo = o
+        if kind == "omega":
+            return W / B
+        a, b = (Wo / W) ** 0.5, (Bo / B) ** 0.5
+        return a if kind == "a" else b if kind == "b" else b / a
+    return g
+
+
+def _lims(g):
+    vs = [g(mlab, st) for _, mem in FAMILIES for _, mlab, _, _ in mem
+          for st in STATIONS if g(mlab, st) is not None]
+    if not vs:
+        return (0, 1)
+    lo, hi = min(vs), max(vs)
+    pad = 0.06 * ((hi - lo) or 1)
+    return (lo - pad, hi + pad)
+
+
+QUANTS += [("Ω (W/B)", wbget("omega"), _lims(wbget("omega"))),
+           ("a(s→z.out)", wbget("a"), _lims(wbget("a"))),
+           ("b(s→z.out)", wbget("b"), _lims(wbget("b"))),
+           ("Λ(s→z.out)", wbget("lam"), _lims(wbget("lam")))]
+
 ZOO2 = "--zoo2" in sys.argv     # per-method gauss ylims + z-out d annotations + NO gap
                                  # station (Berker: parallel pooling readout, not a depth step)
 if ZOO2:
@@ -145,7 +192,7 @@ for row, (fam, members) in enumerate(FAMILIES):
         ax.tick_params(length=0, labelsize=5.6)
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
-fig.suptitle("floorssl family guillotine — d256 · vm2 · vm3 · vm3x2 · vm4 rows, zonly (no h-conditioner) as the grey control in every row — 8 quantities vs depth; "
+fig.suptitle("floorssl family guillotine — d256 · vm2 · vm3 · vm3x2 · vm4 rows, zonly (no h-conditioner) as the grey control in every row — 12 quantities vs depth (+Ω · a·b·Λ station→z.out, o8 orbit calculus); "
              "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl per-method rows (zoo2) or column-shared "
              "(L-taps = trunk cls readouts; dotted = trunk|head; class-cos as the MARGIN same−diff) — RAW",
              fontsize=9.5, y=0.998)

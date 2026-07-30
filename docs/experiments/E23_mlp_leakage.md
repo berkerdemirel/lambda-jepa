@@ -190,6 +190,49 @@ everywhere — Berker: watch a, no target for b, Λ carries the reading)
   (formal pick at the joint review; note it carries a peak-lr difference vs the byol/
   family reference cells). Three canaries to ep150: K1, K4, Llr.
 
+- 2026-07-30 **stage-B review round (Berker): LANE RECIPE LOCKED = lejepa V=4 + peak lr
+  5e-4** ("thats good"). Dead-run PURGE executed on his order: 131 ckpt files / 51 GB
+  deleted; kept = e23y256leg, e23z3legh0, e23K1, e23K4, e23Llr (the healthy set). IN-1k
+  3-cell guillotine BUILT under the standard frame:
+  `results/figures/e23/in1k_guillotine_3cell.png` (+INDEX) — raw shape: monotone rise
+  L03→cls in both probes, decline through the head; vm4 rides highest through the head
+  (z.out .534 lin / .432 kNN vs vm2/vm3 ~.486/.375); kNN separates vm3 down at cls.
+- 2026-07-30 **stage-C RESHAPE PROPOSED (Berker's intent: minimal→bump→overtreat, and the
+  metric↔performance relation as the deliverable):** capacity axis from genuinely minimal
+  heads — **width ladder at K=2**: expander_hidden ∈ {32, 64, 128, 256, 512, 2048(=Llr)}
+  — + **depth ladder at hidden 2048**: K ∈ {0, 1, 3, 4, 6} (K=2=Llr) + h0 controls at
+  {hidden64-K2, hidden2048-K2, K6}; all on the locked lane recipe; **wd DEMOTED** to fixed
+  5e-2 (a 3-point wd probe at the base cell later covers P8′) — capacity is the scientific
+  axis, wd was the residual-era dial. 14 new gated runs; every cell lands with the full
+  battery; the headline analysis = (a, b, Λ, Ω_h, W_h, touch-same/diff, enrichment) vs
+  (kNN, linear) along the capacity ladder — P0–P9 read on the capacity axis. CONFIRMED
+  by Berker ("did you launch the grid jobs?") → **stage C LAUNCHED 2026-07-30**: 13 cells
+  on the locked recipe (lejepa V=4, lr 5e-4, doses 22.1/39.8/.64): width e23jW{32,64,128,
+  256,512} = 62866643-47 · depth e23jK{0,1,3,4,6} = 62866648-52 · h0 controls
+  {e23jW64h0, e23jK2h0, e23jK6h0} = 62866653-55 (+ e23Llr as the 2048/K2 cell). All
+  ep25-gated (persistent monitor emits per-cell verdicts); landing chain per survivor
+  after full runs.
+
+- 2026-07-30 **stage-C ep25 gate round complete (8 PASS / 4 KILL + 1 NFS-flake retry
+  pending)**. PASS: W32 .590 · W64 .585 · W128 .488 · K1 .550 · K3 .619 · K4 .554 ·
+  K2h0 .577 · K6h0 .469. KILL: W256 .246 / W512 .258 (the classic disease: inv stuck ~.61,
+  gnorm 52/93) · K0 .229 (gnorm 133 — the linear-conduit max-leakage cell, as declared) ·
+  K6 .213 (inv STUCK .62 at hkl .96 — NO cliff; possibly premature: deep stacks ramp slow,
+  and its h0 twin PASSED). Raw structure: (1) **tiny heads run an inverted economy** —
+  W32 inv .12 / zkl 3.1 (invariance paid, anti-collapse dumped: rank-32 z can't fill 256
+  isotropic directions) yet healthiest ep25 probes; (2) **the width axis crosses three
+  regimes** — tiny (healthy, inverted), mid 256–512 (collapse), 2048 (healthy, pays both);
+  (3) **K6 h-pair datum**: h.65 stalls inv and dies, h0 progresses by SPENDING h (hkl 3.14
+  climbing, optimization healthy, probe .47) — leakage live on the thermometer; h×depth
+  interaction vs ramp artifact = open (later-gate K6 rerun offered to Berker).
+  **POLICY OVERRIDE (Berker, same hour): grid cells COMPLETE regardless of gate verdicts**
+  — the collapse region is part of the metric↔performance map; kills stay for
+  canary/diagnostic contexts only. The four killed cells RELAUNCHED with identical tags →
+  auto-resumed from their ~ep25 checkpoints (W256 62867107 · W512 62867108 · K0 62867109 ·
+  K6 62867110); the W64h0-retry gate killer disarmed. All 13 cells run to ep150. Figures:
+  e21_guillotine_vm + e20_guillotine_zoo2 EXTENDED with Ω/a/b/Λ columns (station→z.out);
+  the IN-1k 12-panel likewise (job 62866843).
+
 ## Grounding (retro-analysis, FREE, landed 2026-07-29 — numbers RAW)
 
 `results/diag/e23_retro_spaces.csv` (1086 rows) + `e23_retro_trans.csv` (1215 rows); job

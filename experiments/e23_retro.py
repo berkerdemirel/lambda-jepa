@@ -43,6 +43,11 @@ for r in ["s0.e17c.ext", "s0.e20f.ext", "s0.hpull_varcov.c015.ext"]:
     DECL[f"in100.vicreg.{r}"] = ("student.h.cls", "student.z.proj.out")
 for r in ["s0.e17c.ext", "s0.e20f.ext", "s0.hpull_protoce.ext"]:
     DECL[f"in100.dino.{r}"] = ("teacher.h.cls", "teacher.z.dino.bottleneck")
+# the guillotine_zoo2 roster reads the .extL twins of the four e20f arms (L-taps)
+DECL["in100.simclr.s0.e20f.extL"] = ("student.h.cls", "student.z.proj.out")
+DECL["in100.byol.s0.e20f.extL"] = ("student.h.cls", "student.z.pred.out")
+DECL["in100.vicreg.s0.e20f.extL"] = ("student.h.cls", "student.z.proj.out")
+DECL["in100.dino.s0.e20f.extL"] = ("teacher.h.cls", "teacher.z.dino.bottleneck")
 for r in ["s0.extL", "s0.e20f.extL"]:
     DECL[f"in100.mae.{r}"] = ("student.h.gap", "student.z.dec.tap8")
     DECL[f"in100.ijepa.{r}"] = ("teacher.h.gap", "student.z.pred.out")
