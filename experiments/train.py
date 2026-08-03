@@ -6,8 +6,10 @@ checkpoint cadence (schema v1, heads preserved), and resume.
   sbatch slurm/train.sbatch method=lejepa frame=toy_vits8 frame.epochs=800 tag=portval
 """
 import os
+import random
 
 import hydra
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,6 +22,7 @@ from sslgap.ckpt.schema import provenance_stamp, save_checkpoint
 from sslgap.data import ViewsDataset, seed_everything, seed_worker
 from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
+from sslgap.metrics.orbit_energy import orbit_energies, transmission
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="train")
@@ -109,6 +112,88 @@ def main(cfg: DictConfig):
             return x.to(frame.device, non_blocking=True)
         return type(x)(to_device(t) for t in x)
 
+    # E24 realized-share logger (D-070): every share_log_every epochs, per-term trunk-only
+    # w·g on ONE fixed probe batch. Trajectory-identical to logger-off by construction:
+    # python/numpy/torch(+cuda) RNG forked-and-restored around batch draw and measurement
+    # (the conditioners draw per-step slices), module buffers (BN stats) and the method's
+    # queue rings snapshot-restored around the extra forward; autograd.grad touches no
+    # .grad/optimizer state. null = off, code path untouched.
+    share_batch = None
+    if cfg.share_log_every:
+        pull_w = getattr(method, "PULL_W", None)
+        assert pull_w, f"share_log_every set but {cfg.method.name} declares no PULL_W"
+        py_s, np_s = random.getstate(), np.random.get_state()
+        with torch.random.fork_rng():
+            torch.manual_seed(0)
+            share_batch = next(iter(DataLoader(method.build_train_dataset(),
+                                               batch_size=cfg.share_log_bs or 128,
+                                               shuffle=True, num_workers=0,
+                                               generator=torch.Generator().manual_seed(0))))
+        random.setstate(py_s), np.random.set_state(np_s)
+
+    def log_shares(epoch, step):
+        py_s, np_s = random.getstate(), np.random.get_state()
+        with torch.random.fork_rng():
+            bufs = {r: {n: b.clone() for n, b in m.named_buffers()}
+                    for r, m in modules.items()}
+            rings = {a: list(getattr(method, a)) for a in ("_zq", "_hq")
+                     if hasattr(method, a)}
+            bx, by = share_batch
+            with autocast(frame.device, dtype=torch.bfloat16):
+                terms, _, _ = method.training_step(modules, to_device(bx), frame.device,
+                                                   y=by.to(frame.device))
+            params = [p for p in modules["backbone"].parameters() if p.requires_grad]
+            names = [k for k in terms if k != "loss"]
+            gs = {}
+            for i, k in enumerate(names):
+                g = torch.autograd.grad(terms[k], params, retain_graph=i < len(names) - 1,
+                                        allow_unused=True)
+                gs[k] = torch.cat([t.reshape(-1).float() for t in g
+                                   if t is not None]).norm().item()
+            # Ω diagnosis (Berker 2026-08-03: "measure Ω as well … for the diagnosis"): the
+            # D-068 orbit calculus on the SAME fixed batch — eval-mode forward (the landing
+            # extraction convention), label-free. Levels are train-aug-stack-local (the
+            # landing o8/audit_v1 numbers stay canonical); the trajectory is the instrument.
+            for m in modules.values():
+                m.eval()
+            N, V = bx.shape[:2]
+            with torch.no_grad(), autocast(frame.device, dtype=torch.bfloat16):
+                cls_e = modules["backbone"].forward_features(
+                    to_device(bx).flatten(0, 1))[:, 0]
+                z_e = modules["projector"](cls_e)
+            orb = {}
+            for nm_, feats in (("h", cls_e), ("z", z_e)):
+                vs = feats.reshape(N, V, -1).float().cpu().numpy()
+                orb[nm_] = orbit_energies([vs[:, v] for v in range(V)])
+            tr = transmission(orb["h"], orb["z"])
+            for r, m in modules.items():
+                for n, b in m.named_buffers():
+                    b.copy_(bufs[r][n])
+            for a, v in rings.items():
+                setattr(method, a, v)
+            method.train_mode(modules)
+        random.setstate(py_s), np.random.set_state(np_s)
+        w = {k: float(cfg.method[pull_w[k]]) for k in names}
+        tot = sum(w[k] * gs[k] for k in names) or 1.0
+        # D-073 rider: OAS-shrunk conditioners stash their per-forward rho — the
+        # evidence level is part of the trajectory record (absent = legacy estimator).
+        rhos = {f"share/rho_{t}": c.rho_last for t, c in
+                (("z", getattr(method, "cond_z", None)),
+                 ("h", getattr(method, "cond_h", None)))
+                if getattr(c, "rho_last", None) is not None}
+        wandb.log({**{f"share/g_{k}": gs[k] for k in names},
+                   **{f"share/{k}": w[k] * gs[k] / tot for k in names},
+                   "share/wg_total": tot, **rhos,
+                   **{f"orbit/{q}_{s}": orb[s][q] for s in ("h", "z")
+                      for q in ("W", "B", "omega")},
+                   **{f"orbit/{q}": tr[q] for q in ("a", "b", "lam")}}, step=step)
+        print("[share] ep%d " % epoch +
+              " ".join(f"{k}={w[k] * gs[k] / tot:.3f}(g{gs[k]:.3f})" for k in names) +
+              f" | omega_h={orb['h']['omega']:.3f} omega_z={orb['z']['omega']:.3f} "
+              f"lam={tr['lam']:.3f}" +
+              ("".join(f" {k.split('/')[1]}={v:.3f}" for k, v in sorted(rhos.items()))
+               if rhos else ""), flush=True)
+
     total_steps = steps_per_epoch * frame.epochs
     cadence = set(frame.cadence())
     gnorm_med, step = None, start_ep * steps_per_epoch
@@ -116,6 +201,8 @@ def main(cfg: DictConfig):
         method.train_mode(modules)
         probe.train()
         method.on_epoch_start(modules, epoch)
+        if cfg.share_log_every and epoch % cfg.share_log_every == 0:
+            log_shares(epoch, step)
         for batch_x, y in train:
             batch_x = to_device(batch_x)
             y = y.to(frame.device, non_blocking=True)

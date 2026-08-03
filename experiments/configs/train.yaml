@@ -16,6 +16,13 @@ prefetch_factor: 2           # 8w/no-pin/no-persist (e22_bench{,2}); portval-exa
                              # override persistent_workers=false (D-011 lineage)
 eval_every: 1                # monitor eval every N epochs (final epoch always evaluated); D-056:
                              # default 1 = unchanged for every existing lane; E22 runs 2 (Berker)
+share_log_every: null        # E24 (D-070): epochs between realized w·g share measurements on a
+                             # fixed probe batch (trunk-only g_enc; RNG/buffers restored — the
+                             # trajectory is identical to off). null = off (byte-identical path).
+share_log_bs: null           # D-072 rider: probe-batch size for the share logger. null = 128
+                             # (house). Set to the TRAINING bs when a no-queue view-mean cell
+                             # trains at bs>128 — the logger must present the conditioner a
+                             # non-degenerate input matching the operating estimator (e24v3nq).
 device: cuda
 resume: true
 out_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs

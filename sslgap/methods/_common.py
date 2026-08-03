@@ -21,7 +21,7 @@ class SpectralConditioner(nn.Module):
     conditioner with an interior optimum near lambda~.02 at h; destination weights (~.5) scrub
     class structure — see the card before reusing at other weights."""
 
-    def __init__(self, d_slice=128, eps=1e-4, d_draw=None):
+    def __init__(self, d_slice=128, eps=1e-4, d_draw=None, shrink=None):
         # d_draw: RNG-stream-parity discipline (the hinge-arm precedent — "per-step RNG
         # streams stay aligned across floor variants"). A narrower slice (estimator co-design
         # for small-n inputs, D-051 view-mean payment) still DRAWS the family's canonical
@@ -30,8 +30,19 @@ class SpectralConditioner(nn.Module):
         # draw — same distribution, and the shared draw keeps h-floor slices matched across
         # arms at matched steps. Default d_draw=None (== d_slice) is byte-identical to the
         # historical behavior.
+        # shrink="oas" (D-073, Berker's prescription): fresh-batch Oracle Approximating
+        # Shrinkage of the slice scatter toward its own scalar mean mI before the KL —
+        # the no-ring answer to n = d' rows/step (the ring's temporal rows carry moving-
+        # model bias; OAS trades it for a known statistical one). rho from S.detach()
+        # (estimator parameter, not a loss path); m stays LIVE and the target is mI,
+        # never I (the desired answer must not be the estimator target — trace is
+        # preserved exactly, so scale error stays fully supervised at every rho).
+        # lambda_min(Sigma) >= rho*m + eps bounds the null-direction inverse gain; at
+        # rho->1 only the isotropic scale force survives; at rho->0 the legacy
+        # conditioner returns. None = byte-identical legacy path.
         super().__init__()
         self.d_slice, self.eps, self.d_draw = d_slice, eps, d_draw or d_slice
+        self.shrink, self.rho_last = shrink, None
 
     def forward(self, x):
         with torch.autocast(x.device.type, enabled=False):
@@ -40,7 +51,18 @@ class SpectralConditioner(nn.Module):
             p = x @ Q[:, :self.d_slice]
             mu = p.mean(0)
             pc = p - mu
-            cov = pc.T @ pc / (p.size(0) - 1) + self.eps * torch.eye(self.d_slice, device=x.device)
+            S = pc.T @ pc / (p.size(0) - 1)
+            if self.shrink == "oas":
+                d, nu = float(self.d_slice), float(p.size(0) - 1)
+                Sd = S.detach()
+                trS, trS2 = Sd.diagonal().sum(), (Sd * Sd).sum()
+                num = (1 - 2 / d) * trS2 + trS.square()
+                den = ((nu + 1 - 2 / d) * (trS2 - trS.square() / d)).clamp_min(1e-12)
+                rho = (num / den).clamp(max=1.0)
+                self.rho_last = float(rho)
+                m = S.diagonal().sum() / d
+                S = (1 - rho) * S + rho * m * torch.eye(self.d_slice, device=x.device)
+            cov = S + self.eps * torch.eye(self.d_slice, device=x.device)
             logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum()
             return 0.5 * (cov.diagonal().sum() + mu.square().sum() - self.d_slice - logdet) / self.d_slice
 

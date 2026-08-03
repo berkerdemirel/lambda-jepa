@@ -87,10 +87,18 @@ def floorssl_ladder_head(in_dim=384, hidden=2048, out_dim=256, depth=2, width=No
 
 class FloorSSL(SSLMethod):
     name = "floorssl"
+    # E24 (D-070): term -> cfg-weight map for the realized w·g share logger (train.py);
+    # trunk-only g_enc convention (the standing pull instrument's).
+    PULL_W = {"inv": "w_inv", "moment_kl": "w_floor", "h_moment_kl": "h_lamb"}
 
     def build_modules(self):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 drop_path_rate=self.cfg.drop_path)
+        # grad_ckpt (E24-vm diagnostics): trunk activation checkpointing — memory for
+        # ~30% compute, same math. bs=512 V=4 @128 (the no-ring n/d'=4 cell) needs ~78GB
+        # flat; checkpointed it fits any 80GB card with margin. Default off.
+        if self.cfg.get("grad_ckpt"):
+            trunk.set_grad_checkpointing()
         # head_layers (E23 rev3): the legacy-anatomy ladder — depth as the leakage dial,
         # head_width the fine dial; (2, hidden) ≡ the legacy bn expander byte-identically;
         # null = the legacy expander path.
@@ -113,7 +121,11 @@ class FloorSSL(SSLMethod):
         # with the z-floor. Same estimator co-design as z: view-mean drops the h-floor's n
         # to bs -> h_d_slice=32, drawn as the first-32 sub-frame of the canonical 128-frame
         # (per-step RNG streams stay aligned across payment variants).
-        self.cond_h = SpectralConditioner(d_slice=self.cfg.get("h_d_slice") or 128, d_draw=128)
+        # floor_shrink (D-073): OAS estimator variant on BOTH taps (symmetric payment,
+        # D-058); null = legacy exact-scatter estimators, byte-identical.
+        shr = self.cfg.get("floor_shrink")
+        self.cond_h = SpectralConditioner(d_slice=self.cfg.get("h_d_slice") or 128,
+                                          d_draw=128, shrink=shr)
         # z_floor_batch payment axis (D-051; Berker 2026-07-20): "pooled" floors the bs*V
         # batch — per direction it reads across-image + within-image (aug) variance, so aug
         # spread pays the floor and competes with inv over the same quantity (the 2048-d
@@ -128,7 +140,7 @@ class FloorSSL(SSLMethod):
         d_canon = min(128, self.cfg.expander_dim)
         d_z = self.cfg.get("z_d_slice") or d_canon
         self.cond_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
-                        else SpectralConditioner(d_slice=d_z, d_draw=d_canon))
+                        else SpectralConditioner(d_slice=d_z, d_draw=d_canon, shrink=shr))
         return nn.ModuleDict({"backbone": trunk, "projector": head})
 
     def arch(self):
