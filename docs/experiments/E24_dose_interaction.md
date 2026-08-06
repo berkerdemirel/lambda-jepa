@@ -661,7 +661,11 @@ v3nq (NO ring, full lr, bs512) **.0130/.0152 — BELOW the pooled reference band
 is clean at in100/in1k (vm4 anchor healthy everywhere — the D-075 policy's basis).
 z-dose exonerated (v3nq z-heavy .55–.60 and smooth). Remaining T2 open item —
 toy-vm4's batch-volatile inv↔floor opposition — is the pending OAS tension check
-(fired same day, §Launch log).
+(fired same day, §Launch log). **CLOSED (USER-APPROVED 2026-08-06, via the plain
+question round): the apparent opposition was an artifact of the stale ring
+estimator, not a real conflict between the two losses — the landed OAS tension
+check (job 63028414) measured cos(g_inv, g_zfloor) at +.14…+.51 at every
+checkpoint under the sound estimator. E24-T2 is now fully closed.**
 
 **E24-T5 (USER-APPROVED 2026-08-04, Berker's closing restatement: "e24 recipe was 2/3
 zinv, 1/3 zreg and a few percentage hreg. we also found that oas stabilizes toy
@@ -707,5 +711,7 @@ ep28 .4629 → voas deficit ≈ **−.030**, stable since ep8. Shares at ep25:
 realized inv .69 sits ABOVE the toy-mapped basin top (.63). Channels at ep25: Ω_h .375
 (from .437 @ ep13, drifting down), Ω_z .149, Λ 1.589 (climbing), ρ̂ .461/.468.
 Correction math staged (w 16.5/81.6/1.82 from its own ep10 g's). **Gate ruling
-DEFERRED by Berker (2026-08-05, priorities redirected to the zoo + transfer tracks);
-run continues UNTOUCHED per the standing option-a default.**
+FINAL (USER-APPROVED 2026-08-06, plain question round): run UNTOUCHED to ep100 —
+the OAS-vs-ring A/B stays clean; the mid-run share-steering question moves to the
+S/B/L program design (E25-T1 successor), where the anchor-attraction diagnosis
+belongs.**
