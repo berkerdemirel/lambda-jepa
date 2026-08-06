@@ -2,7 +2,6 @@
 #SBATCH --job-name=e24-cos
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
-#SBATCH --exclude=gpu277
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=96G
 #SBATCH --time=02:30:00

@@ -17,6 +17,31 @@ def cos_invariance(A, B):
     return float((num / den).mean())
 
 
+def class_margin(X, y):
+    """Label-conditioned cosine margin: mean same-class cos − mean diff-class cos on
+    L2-normalized features, via the class-sum identity (no pairwise materialization).
+    The zoo-guillotine 'class margin (same−diff)' column — promoted from the spent
+    e20_guillotine_zoo/e23_guillotine_1k copies per D-054 (reused by e24_guillotine)."""
+    X = X.astype(np.float32)
+    X = X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
+    same_n, same_s, S = 0.0, 0.0, np.zeros(X.shape[1], np.float64)
+    tot_c2 = 0.0
+    counts = []
+    for c in np.unique(y):
+        xc = X[y == c]
+        sc = xc.sum(0, dtype=np.float64)
+        n = len(xc)
+        same_s += sc @ sc - n
+        same_n += n * (n - 1)
+        S += sc
+        tot_c2 += sc @ sc
+        counts.append(n)
+    N = len(X)
+    same = same_s / same_n
+    diff = (S @ S - tot_c2) / (N * N - sum(n ** 2 for n in counts))
+    return float(same - diff)
+
+
 def pair_margin(A, B, seed=0):
     """Positive-pair vs random-pair contrast within the same space — the baseline that makes
     alignment/cos_invariance interpretable (METRICS.md coupling caveat: a cone-collapsed space has

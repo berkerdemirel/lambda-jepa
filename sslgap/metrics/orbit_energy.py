@@ -50,3 +50,36 @@ def transmission(eh, ez):
     a2, b2 = ez["W"] / eh["W"], ez["B"] / eh["B"]
     return {"a2": a2, "a": np.sqrt(a2), "b2": b2, "b": np.sqrt(b2),
             "lam": np.sqrt(b2 / a2), "omega_h_over_z": eh["omega"] / ez["omega"]}
+
+
+def transmission_spectrum(h_views, z_views, ridge=1e-8):
+    """The {a_k} spectrum (D-068): least-squares J minimizing E‖δz − Jδh‖² over view
+    residuals δs_iv = s_iv − m_i, solved in the δh PC basis — a_k = ‖J u_k‖ is the head's
+    gain on the k-th h-residual PC (eigenvalue s_k, descending). Selectivity = spread of
+    {a_k}; the scalar a² = E‖δz‖²/E‖δh‖² (≡ W_z/W_h exactly — the V/(V−1) factors cancel)
+    decomposes linearly as a2_lin = Σ a_k² s_k / Σ s_k with residual 1−R². Replaces the REJECTED α-grouped-projector
+    control (it amputated head–trunk co-training; its flat spectrum is the null here).
+    Returns (spectrum_rows, summary): rows carry k, s_k, sk_share, a_k."""
+    dh = np.concatenate([v.astype(np.float64) - np.mean(h_views, axis=0) for v in h_views])
+    dz = np.concatenate([v.astype(np.float64) - np.mean(z_views, axis=0) for v in z_views])
+    n = dh.shape[0]
+    Shh = dh.T @ dh / n
+    Czh = dz.T @ dh / n
+    s, U = np.linalg.eigh(Shh)
+    s, U = s[::-1], U[:, ::-1]
+    eps = ridge * s.sum()
+    G = Czh @ U                                   # (Dz, Dh): J u_k = G_·k / (s_k + eps)
+    a_k = np.linalg.norm(G, axis=0) / (s + eps)
+    pred = (dh @ U) / (s + eps) @ G.T
+    ez, eh = (dz ** 2).sum(1).mean(), (dh ** 2).sum(1).mean()
+    r2 = 1.0 - ((dz - pred) ** 2).sum(1).mean() / ez
+    a2_lin = float((a_k ** 2 * s).sum() / s.sum())
+    share = s / s.sum()
+    rows = [{"k": k, "s_k": float(s[k]), "sk_share": float(share[k]), "a_k": float(a_k[k])}
+            for k in range(len(s))]
+    w = a_k ** 2 * s
+    summary = {"a2_total": float(ez / eh), "a2_lin": a2_lin, "r2_lin": float(r2),
+               "a_max": float(a_k.max()), "a_med": float(np.median(a_k)),
+               "cv_ak": float(a_k.std() / a_k.mean()),
+               "top8_energy_share": float(np.sort(w)[-8:].sum() / w.sum())}
+    return rows, summary

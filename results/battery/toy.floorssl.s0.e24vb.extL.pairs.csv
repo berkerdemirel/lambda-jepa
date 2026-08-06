@@ -1,0 +1,11 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.h.cls,alignment,pairs,0.6483896278831083,0.6402085554115311,0.6571448517844388,9469,384,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.6758051860584127,0.6710795134122303,0.680384497073797,9469,384,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.h.gap,alignment,pairs,0.2078758220907922,0.20546777852042794,0.21072451016967664,9469,384,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.8960620889545864,0.8944992769338133,0.8973775673423343,9469,384,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.z.proj.out,alignment,pairs,0.357450588013263,0.3489658145187883,0.36560573304972066,9469,256,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.8212747059933245,0.8165855169518287,0.8250759104496055,9469,256,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.3990001595486429,0.39262428455992954,0.4057980149291591,9469,2048,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.8004999202256569,0.7969388362049892,0.8036882046054533,9469,2048,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.z.proj.tap2,alignment,pairs,0.30192906914873174,0.2959055622080405,0.30803602896765553,9469,2048,cheap
+toy.floorssl.s0.e24vb.extL,imagenette.train.v1@audit_v1,student.z.proj.tap2,cos_invariance,pairs,0.8490354654256036,0.8456265190491926,0.8519283909920756,9469,2048,cheap

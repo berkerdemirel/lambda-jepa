@@ -1,0 +1,11 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.5299059393655838,0.523374359210653,0.5372175931370355,10000,384,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.7350470303171805,0.7315092060714646,0.738451050194734,10000,384,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.2671054659222609,0.26497930201390485,0.269853041587546,10000,384,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.8664472670388342,0.8652155942061501,0.8675243406619538,10000,384,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.z.proj.out,alignment,pairs,0.22889660013004182,0.22188956670475837,0.2350565158887398,10000,256,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.8855516999349325,0.8818297401089654,0.8888392783582731,10000,256,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.37944247733827247,0.3737358214631884,0.3850518671642321,10000,2048,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.8102787613303988,0.807167751245967,0.8130101347548035,10000,2048,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap2,alignment,pairs,0.2494367987395608,0.24331996385997776,0.2548467675748154,10000,2048,cheap
+in100.floorssl.s0.e24vac.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap2,cos_invariance,pairs,0.8752816006298979,0.8720625137555353,0.8780104262479138,10000,2048,cheap

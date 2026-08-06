@@ -333,6 +333,84 @@ cadence walks a .098→.072 at flat b over training. Interpretation: discussion-
   Stage-B review package → Berker (scaffold re-derivation: PLAIN-MLP depth ladder; lane;
   out=256 amendment). NOTHING further launches pending his ruling.
 
+- 2026-08-04 **STAGE-C′ LAUNCHED (D-069 USER-APPROVED-AS-AMENDED, Berker: "can we redo
+  our grid search on toy: mainly playing with width and depth repeating the previous
+  failed analysis. always using the mean of the views for the regularization on both h
+  and z") — the capacity grid on the vm-OAS anatomy** (view-mean h+z, `floor_shrink=oas`
+  per D-075's toy policy; the toy estimator consolidation is what unblocked this).
+  Cells (12, `slurm/e23_wave_c2.sh`): WIDTH ladder K=2 hidden {32, 64, 128, 256, 512} ·
+  DEPTH ladder hidden-2048 K {0, 1, 3, 4, 6} · h0 twins {W64h0, K6h0}; the 2048/K2
+  references = the LANDED E24 v-cells (vc .8764 / v4oas .8716 / vb .8696; vh0 .8713 =
+  the h0 reference) — no reruns. Uniform prior dose = vc's measured basis
+  **16.2/46.7/0.73** (the (.47/.50/.03)-pinned W2048K2 cell — D-069's certified profile
+  transplanted to this anatomy); per-epoch share/ρ̂/orbit logging from birth; ep10
+  confirm reads vs (.47/.50/.03) ±.05; ep150 completeness rule (stage-C precedent —
+  cells run to the end, kill only on Berker's call). **Declared deviations from D-069's
+  letter (walls-are-information presentations, not patches):** (1) the init+1ep
+  pre-measure pass is DROPPED — init g's swing 4–17× vs formation (the E24 wave-0
+  lesson postdates D-069); the prior anchors on vc's formation basis and the ep10
+  confirm + per-case correction carries the share-pinning; (2) corrections are
+  per-case at ep10 (E24-vm precedent: originals run on as map points, twins only where
+  coverage demands), not automatic. P0–P9 remain the held pre-registrations and score
+  against C′; stage-C fixed-nominal pooled grid stays the documented contrast arm.
+  Smokes first (W32/K0/K6 × 2 ep: `[share]`+ρ̂ lines, checkpoint, no incident) → wave.
+  Spend: 12 cells + 3 smokes, E23-C′ ledger (separate from the E24-vm toy 10/50).
+
 ## AGREED TAKEAWAY
 
-(empty — filled only jointly, per the collaboration contract)
+**(the stage-C grid takeaways come after the Block-2 joint read; T1–T3 below are the IN-1k
+3-cell + calculus-methods set, USER-APPROVED 2026-08-03 in-conversation)**
+
+**E23-T1 (the 3-cell conjunction):** IN-1k cells separate on the conjunction (pos−rand
+margin × effrank) at h.cls, not on either alone — vm3 takes max margin (.834) at collapsed
+rank (.392) → worst kNN (.492); vm2 holds rank (.732) at the lowest margin (.732) → .529;
+vm4 alone holds both (.813, .739) → best everything (.534 kNN / .642 lin / .6392 online),
+corroborated z-side by the full-rank queue signature at scale (z.out effrank .977·d,
+gauss_kl .014 — E21-T2 reproduced at IN-1k). Linear probes barely separate
+(.629/.629/.642) — kNN and the paired plane carry the separation. Berker's conjecture
+stands: high margin × high rank at h is the recipe.
+
+**E23-T2 (head anatomy at 1k):** all three cells share the anatomy — probes rise monotone
+L03→cls and decline through the head; the first head stage is the choke point (tap1:
+gauss_kl ≈4.9, effrank/d →.13, Ω drop; the remaining path re-expands with residual Λ only
+1.24–1.37, so selectivity is set at or before stage 1). One late-head inversion: vm4 rides
+highest through the head in both probes yet its class margin at z.out dips below the other
+two (.384 vs .440/.441) — the best-h cell does not carry the best class margin at out.
+
+**E23-T3 (Λ portability + the metric ruling):** Λ(cls→z.out) is a property of the cell,
+not the datascale — vm2 2.21→2.26, vm3 1.78→1.63, vm4 1.73→1.60 across IN-100→IN-1k, vm2
+the family max at both. With the dimensionality result (d-tail: d256→d128 sits ON the
+√dim null; a, b levels carry √(D_z/D_h) dimension mass + scale gauge; Λ = √(Ω_h/Ω_z)
+cancels both), the standing usage rule: **cross-space and cross-model reads ride on Ω and
+Λ; a, b are within-cell decompositions only** (per-direction â = a·√(D_h/D_z) when a
+cross-D level is unavoidable). Mirrored as the D-068 addendum with the label-blindness
+rule (Berker: the metric lens stays aug-accessible/label-free; class-conditioned
+quantities are evaluation-side only; caveat — orbit overlap does not guarantee same-class
+connectivity).
+
+## ON-HOLD RECORD — stage-C′ finals, 12/12 to ep150 (2026-08-05; raw, P0–P9 scoring + joint read deferred per Berker)
+
+All 12 vm-OAS share-pinned cells completed ep150 (chains 63025261–284, completeness
+rule; zero dead cells). Final/best online probe:
+
+| width lane (K2) | final | best | depth lane (2048) | final | best |
+|---|---|---|---|---|---|
+| W32 | .8313 | .8352 | K0 | .8420 | .8474 |
+| W64 | .8555 | .8555 | K1 | .8609 | .8645 |
+| W128 | .8629 | .8645 | **K3** | **.8790** | **.8808** |
+| W256 | .8703 | .8718 | K4 | .8589 | .8617 |
+| W512 | .8622 | .8673 | K6 | .8504 | .8507 |
+| W64h0 | .8502 | .8530 | K6h0 | .8194 | .8239 |
+
+2048/K2 references = the landed E24 v-cells (vc .8764 · v4oas .8716 · vb .8696;
+vh0 .8713). Raw contrast vs pooled stage-C, same cells: W256/W512 were .37/.37,
+K0/K6 were .45/.45 — all four land .84–.87 here. K3 .8808 = grid max, above every
+E24 v-cell. Numbers only; no takeaway.
+
+**Landing-chain incident (2026-08-04 ~19:05):** the self-lander's 12 extract chains
+tripped the D-005 500 GB store cap mid-flight (store logical bytes 500.0 GB vs 294 GB
+physical — the NFS backend compresses; `store.py` counts logical) → W64 extract dead,
+6 cells' stores partial (missing meta.json), cascading audit FileNotFoundError +
+probe StopIteration (no val manifest); only W32 landed fully, K3/K6/W64h0/K6h0
+partially. Cap raised per Berker's 2026-08-05 ruling (D-077); partial stores wiped
+and `e23_land_grid.sh` refired same day (idempotent).

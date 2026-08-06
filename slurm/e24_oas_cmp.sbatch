@@ -2,7 +2,6 @@
 #SBATCH --job-name=e24-oas-cmp
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
-#SBATCH --exclude=gpu277
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=96G
 #SBATCH --time=01:00:00

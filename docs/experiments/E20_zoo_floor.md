@@ -374,3 +374,22 @@ probes gained; the aug-less pair RISES (mae 1.71→3.06, 98% of pairs; ijepa 2.8
 while their lin dropped. The probe deltas do not ride pairwise mean-separation in either
 direction — mechanical note: the floor's within-class spread inflation (R↑) sits in the d′
 denominator. NO takeaway without Berker.
+
+## E20-T4 — the zoo2 orbit-calculus read (2026-08-03)
+
+**E20-T4 (USER-APPROVED 2026-08-03; zoo2 figure under the D-068 calculus; full row in
+DECISIONS):** the e20f h-conditioner moves every aug-based lane up in (Ω_h(cls), Λ): Ω roughly
+doubles (simclr .37→.64 · byol .39→.75 · vicreg .39→.78 · lejepa .18→.48 cls / .12→.70 embed;
+dino .58→1.98 on the deliberate E20-T1 overshoot dose) and Λ rises 5/5 (1.25→1.66 · 1.47→2.05 ·
+1.06→1.54 · 1.39→2.55 · 1.24→3.13). Arms landing at Ω(cls) ≈ .5–.8 / Λ ≈ 1.5–2.1 improve
+probes, kNN 3–6× the linear gains (byol +.13 · lejepa +.10 · simclr +.07 · vicreg +.04 kNN);
+the one overdosed arm (dino → Ω 1.98, Λ 2.55) is flat-to-down — its PRE-treatment Ω sat
+nearest the others' band and the treatment moved it far out: a minimal→bump→overtreat shape at
+n=5, hypothesis-grade, tested under control by E23 stage C. **Reading (Berker, jointly
+precised):** Λ>1 = the head relaxes (preserves) image-center/content separation relative to
+aug-orbit energy — healthy when the aug term does not dominate; both observed extremes (2.55
+overshoot, 3.13 bottleneck) sit off the gain band. lejepa's Λ 3.13 is real — Λ is dimension-free
+(the d-tail check: d256→d128 sits on the √dim null; a, b levels carry √(D_z/D_h) dimension mass
++ scale gauge, Λ cancels both) — but mechanism-distinct (512→16 hard bottleneck = selectivity by
+subspace choice, not reshaping): excluded from band estimation. mae/ijepa excluded (no aug
+objective; the conditioner is actively toxic for mae: Ω 3.4→13.4, probes collapse .41→.33 lin).

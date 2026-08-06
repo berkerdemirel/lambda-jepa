@@ -90,7 +90,7 @@ def mget(key, per_d=False):
     return g
 
 
-QUANTS = [  # (name, getter, ylim: (0,1) | None=column-shared autoscale)
+QUANTS = [  # (name, getter, ylim: (0,1) | "row"=per-method autoscale | None=column-shared)
     ("lin_v2", lambda m, s: P.get((m, s, "linear_raw_v2")), (0, 1)),
     ("knn200", lambda m, s: P.get((m, s, "knn_v1_k200")), (0, 1)),
     ("rankme / d", mget("rankme", per_d=True), (0, 1)),
@@ -135,20 +135,12 @@ def wbget(kind):
     return g
 
 
-def _lims(g):
-    vs = [g(mlab, st) for _, mem in FAMILIES for _, mlab, _, _ in mem
-          for st in STATIONS if g(mlab, st) is not None]
-    if not vs:
-        return (0, 1)
-    lo, hi = min(vs), max(vs)
-    pad = 0.06 * ((hi - lo) or 1)
-    return (lo - pad, hi + pad)
-
-
-QUANTS += [("Ω (W/B)", wbget("omega"), _lims(wbget("omega"))),
-           ("a(s→z.out)", wbget("a"), _lims(wbget("a"))),
-           ("b(s→z.out)", wbget("b"), _lims(wbget("b"))),
-           ("Λ(s→z.out)", wbget("lam"), _lims(wbget("lam")))]
+# Ω/a/b/Λ y-lims per method row (Berker 2026-08-03): unbounded raw-energy ratios read
+# within a feature space, not across — one method's magnitude must not set the column scale.
+QUANTS += [("Ω (W/B)", wbget("omega"), "row"),
+           ("a(s→z.out)", wbget("a"), "row"),
+           ("b(s→z.out)", wbget("b"), "row"),
+           ("Λ(s→z.out)", wbget("lam"), "row")]
 
 
 ZOO2 = "--zoo2" in sys.argv     # per-method gauss ylims + z-out d annotations + NO gap
@@ -166,6 +158,16 @@ def row_gk_lim(members):
             if gk(mlab, st) is not None]
     return (0, max(vals) * 1.12) if vals else GK_LIM
 
+
+def row_lim(g, members):
+    vals = [g(mlab, st) for _, mlab, _, _ in members for st in STATIONS
+            if g(mlab, st) is not None]
+    if not vals:
+        return (0, 1)
+    lo, hi = min(vals), max(vals)
+    pad = 0.06 * ((hi - lo) or 1)
+    return (max(0.0, lo - pad), hi + pad)
+
 fig, axes = plt.subplots(len(FAMILIES), len(QUANTS), figsize=(2.45 * len(QUANTS), 2.0 * len(FAMILIES)),
                          facecolor="white")
 for row, (fam, members) in enumerate(FAMILIES):
@@ -179,7 +181,8 @@ for row, (fam, members) in enumerate(FAMILIES):
                     ax.plot(xs, ys, ls, marker="o", color=c, ms=2.6, lw=1.0,
                             label=lab if (col == 0 and ls == "-") else None)
             draw(get)
-        ax.set_ylim(*(ylim if ylim else (row_gk_lim(members) if ZOO2 else GK_LIM)))
+        ax.set_ylim(*(row_lim(get, members) if ylim == "row" else
+                      ylim if ylim else (row_gk_lim(members) if ZOO2 else GK_LIM)))
         if ZOO2 and qname in ("rankme / d", "effrank / d"):
             for lab, mlab, run, c in members:          # annotate the z-out dimension so the
                 r = M.get((mlab, "z.out"))             # fraction is interpretable per lane
@@ -201,7 +204,7 @@ for row, (fam, members) in enumerate(FAMILIES):
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
 fig.suptitle("E20 zoo guillotine — 7 method rows × 12 quantity columns (+Ω · a·b·Λ station→z.out, o8 orbit calculus), e20f floor arm (colored) vs control (grey) vs depth; "
-             "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl per-method rows (zoo2) or column-shared "
+             "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl + Ω·a·b·Λ per-method-row y (unbounded, within-space reading) "
              "(L-taps = trunk cls readouts; dotted = trunk|head; class-cos as the MARGIN same−diff) — RAW",
              fontsize=9.5, y=0.998)
 fig.tight_layout(rect=(0, 0.008, 1, 0.98))

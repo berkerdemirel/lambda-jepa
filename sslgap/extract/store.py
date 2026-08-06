@@ -15,7 +15,7 @@ from sslgap.ckpt.schema import provenance_stamp, write_meta
 
 
 class FeatureStore:
-    def __init__(self, root, cap_gb=500):
+    def __init__(self, root, cap_gb=1000):
         self.root = os.path.expanduser(root)
         self.cap = cap_gb * (1 << 30)
         os.makedirs(self.root, exist_ok=True)

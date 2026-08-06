@@ -10,7 +10,7 @@ method.z_floor_batch=view_mean method.z_d_slice=128 method.h_floor_batch=view_me
 method.queue_steps=3 num_workers=28 pin_memory=true persistent_workers=true eval_every=2 tag=d256vm4"
 N=${1:-4}
 for i in $(seq 1 $N); do
-  sbatch --job-name=h100-slotA --partition=gpu100 --constraint=H100 --exclude=gpu277 \
+  sbatch --job-name=h100-slotA --partition=gpu100 --constraint=H100 \
          --dependency=singleton --cpus-per-task=28 --mem=96G --time=08:00:00 slurm/train.sbatch $ARGS
 done
 echo "resubmitted $N slotA links; verify: squeue -u bdemirel -h -n h100-slotA | wc -l  (expect $N)"

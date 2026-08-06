@@ -516,6 +516,70 @@ r ∈ {a,b,c,d} = {.25,.40,.55,.70}; wave-2 `e24w*`, reserve `e24x*`.
   63014709) · in100 e24vcc (high-z coverage, target .47/.50/.03 → w 26.5/95.1/1.27,
   tail 63014716).** Budget: in100 6/50. Land list extended (in100 v-cells).
 
+- 2026-08-04 **in100 vm map COMPLETE (6/6 to ep100, error-scan clean; landing chains
+  63017192–209 fired; leftover vb links self-drained on the finished ckpt).** Finals
+  (online best / ep100): **vcc .7348/.7318 — the in100 family max** · vc .7252/.7238 ·
+  vb .7236/.7226 · va .7200/.7200 · vh0 .7108/.7094 · vac .7090/.7078. RAW structure:
+  the corrected high-z twin (vcc, ep10 realized .596/.373/.030) tops the family by
+  ~+.010 over the anchor-collapsed mirrors (.7200–.7252 — a .005 triple at essentially
+  one realized coordinate), with the wall-probe vac (ep10 .614/.357/.029 — the low-z
+  target UNREACHED again, z defends ~.35 at in100 too) and h-free vh0 (.586/.414/0)
+  together at the family floor ~.709–.711; h-free sits −.012 under the vb/vc cluster
+  at in100 where toy read h0 ≡ h.03 — raw note, read pending. End-state drift: ALL
+  cells migrate inv-up by ep99 (.72–.84 / .15–.28 / ≤.012), Λ(end) 1.66–2.16,
+  in-training Ω_h(end) .237(vh0)–.353. Pooled wave-1: 9 finished s-cells landed
+  UNREAD per the standing rule (chains 63017165–191).
+
+- 2026-08-04 **in1k e24voas STARTED + ep10 CONFIRM (raw; the one-correction decision
+  HELD for Berker).** Ops: the 63014650→663 chain was superseded by 63014679
+  (flex-first --time-min link: ran ep0→1 in its 1.5h backfill window, cancelled at the
+  limit as designed) + 63014680–693; start 02:47 (~4h ahead of projection). NOTE the
+  relaunch dropped --exclude=gpu277 (ExcNodeList null on the whole chain) and the run
+  sits ON gpu277 — at ~48 min/ep it runs FASTER than the vm4-1k links (~68–80 min/ep,
+  and this run probes every epoch): no black-hole signature; left undisturbed
+  (gpu100 is parked-full; re-adding the exclude would starve the chain). wandb resume
+  rider: the flex link's replayed steps fell below the monotonic cursor — wandb curves
+  show a ~ep1.3–2 display gap; the .out log is complete. Reads: ep0 init shares
+  .123/.834/.043 (init z-dominance, as wave-0 predicted); ep10 probe **.3480** (ring
+  champion vm4-1k read .3713 at ep10 — −.023 at matched epoch), realized shares
+  **(.712, .257, .031)** vs target (.55, .42, .03) — inv/z OUTSIDE the ±.05 tolerance,
+  h dead-on: the anchor attraction reproduces at in1k on OAS (ep8/9/10 inv
+  .702/.638/.712 — single-epoch volatility ±.04–.07, 3-ep mean ≈ (.68, .28, .03),
+  approaching E24-T2's hand-tuned in1k coordinate (.62–.64, .36–.38, .01) from the
+  inv-heavy side). Channels: Ω_h .467 / Ω_z .203 falling, **Λ 1.518 (>1 from ep1)**,
+  ρ̂_h .435 / ρ̂_z .423 (rising-not-1 — evidence-meter behavior); no grad incidents.
+  Correction math from its own ep10 g's (.259/.040/.128, T = 7.77): hitting
+  (.55/.42/.03) needs w = 16.5/81.6/1.82 (inv ×.77, z ×1.64, h ≈held) — weighed
+  against the in100 precedent that w_floor 95.1 moved realized z only ~+.05 into the
+  attraction (vcc). ep25 gate ≈ 23:00 tonight (noise stat ep12–26 vs the band
+  mean|Δacc| ≤ ~.027 / inv_sd ≤ ~.019). **Correction ruling (Berker, same day): option
+  (a) — run on untouched to the ep25 gate and decide there; under E24-T3/D-075 the run
+  doubles as the live OAS-vs-ring A/B at in1k (baseline .6392).**
+
+- 2026-08-04 **CANONICAL-o8 Ω_h SORTING RE-CONFIRM — the landing channel REPLICATES the
+  in-training table (instruments extended to all 29 toy cells: e24_grid_metrics 13→29
+  incl. w- and v-cells; `e24_omega_sort.py` NEW → results/diag/e24_omega_sort{,_cells}
+  .csv):** pooled n20 **−.790** (in-training −.754) · h-free n14 **−.935** (−.922) ·
+  h.03 n6 **−1.000** (−.943) · vm-OAS n6 **−.657** (exact match) · vm-OAS h.03 n5
+  **−.700** (exact) · view-mean all n9 **−.900** (n8 pre-vac −.929) · combined n26
+  −.645 (−.612) · +variants n29 −.701 (n28 −.686); l2 framing within .02 of raw
+  everywhere. Channel swap changes NOTHING in the ordering claims; per-cell canonical
+  Ω_h now on record (the top h-free cells cluster at Ω .366–.389: wz25/s0ac/wrep/wz18).
+  Full D-068 instruments (spaces/trans/census/spectrum) now cover the w- and v-cells.
+
+- 2026-08-04 **OAS TENSION CHECK LANDED (job 63028414 → e24_cos.csv; Berker: "you can
+  check the tension between inv and reg under oas too") — under OAS at toy the inv↔z-floor
+  opposition is GONE:** vc ep38 (formation) cos(g_inv, g_zfloor) **+.14…+.51** over 6
+  batches (never negative), ep150 +.15…+.43 — matching-or-exceeding the in100/in1k
+  view-mean decoupled character (0…+.3), where the toy RING cell (v1, ep~26) read
+  −.27…−.66 batch-volatile and pooled reads −.63…−.88. The toy-vm4 "partial,
+  batch-volatile opposition" (E24-T2's second open clause) is thus consistent with a
+  ring-staleness artifact, not a toy property of view-mean. Riders reproduce: floors
+  mutually aligned at formation (cos(z,h) +.51…+.69, relaxing to +.12…+.34 at end),
+  cos(inv,h) ≈ 0 (−.24…+.21); instrument shares match the in-training logger at both
+  states (ep38 ≈ (.45–.53, .43–.53, .03); ep150 ≈ (.72–.79, .21–.28, .01) — the
+  inv-up end drift). RAW; clause-closing nod = Berker's.
+
 ## AGREED TAKEAWAY
 
 **E24-T1 (USER-APPROVED 2026-08-03, Berker: "record this final recipe of 2/3 and 1/3 +
@@ -559,6 +623,21 @@ scale. **Excluded from this takeaway (open):** toy-vm4's partial, batch-volatile
 opposition and the e24v1 curve-noise mystery — the control pair (§Launch log) is the
 running probe.
 
+**E24-T3 / D-075 (USER-APPROVED 2026-08-04, Berker: "we will treat OAS as stabilizer for
+the toy. default for in1k and in100 for now are the running cov. we will keep in1k
+running and we can change our position accordingly"): ESTIMATOR POLICY BY SCALE — OAS =
+the toy stabilizer (fast per-step drift stales the 4-step ring: the control-pair
+triangulation); the warm running-covariance ring (queue 3, n_eff/d′ ≈ 4) = the DEFAULT
+at IN-100/IN-1K for now (slow drift + full-evidence whitening: vm4-anchored guillotine —
+gauss_kl@cls .510 vs .84–.96, z.out .013 @ rank .994, kNN ≥ everywhere; not strict:
+OAS cells hold head-side class margin .38–.45 vs .217 and vcc edges training-best
+.7348 vs .7312). Evidence-ordering rider (toy gauss_kl@h.cls): pooled-fresh .38–.41 <
+vm-fresh-512 .63 ≈ ring .64–.80 < OAS-shrunk .92–.98 < h-free ~1.5 both anatomies —
+estimator evidence + the h-term carry Gaussianity; the matched-n s1a/s1ac↔v3nq pair
+supports the scatter-competition channel as a real extra contribution. in1k e24voas
+runs on as the live A/B vs ring-vm4 .6392; position revisable on its result. (Full row
+in DECISIONS.)**
+
 - **vm scoping (Berker):** the share coordinates are certified for the POOLED anatomy.
   The vm variants change the conditioners ALGORITHMICALLY (view-mean of the augmentations
   vs pooled views; vm4 adds the queue with ¼ gradient leverage and ×5.59-bridged
@@ -566,3 +645,67 @@ running probe.
   instrument: NON-comparable, not interpreted.** Open items: a vm-aware pull convention
   (measure g on the conditioner's actual input stream), and the reserve vm4-anatomy
   cells at s\* (in100, pending wave-1 finals) = the "view vm4 too" step.
+  *(The pooled-only scoping is lifted by E24-T5 below; the vm-aware pull convention
+  landed as D-072.)*
+
+**E24-T4 (USER-APPROVED 2026-08-04, Berker: "toy noise was caused by model moving
+faster and 4 consecutive batch stats are not shared (creating noise)"): THE TOY VM
+NOISE WAS RING STALENESS UNDER A FAST-MOVING MODEL — closes E24-T2's open clause.**
+The queue conditioner mixes statistics from 4 consecutive steps; when the model moves
+fast (toy: small data, peak formation within ~10 epochs) those batch stats are no
+longer shared — the mixed estimate mismatches the current features and the force
+direction churns. Triangulation (noise stat ep12–26, mean|Δacc| / per-step inv sd):
+v1 (ring, full lr) .0433/.0837 → v2lr (ring, HALF lr = half drift) .0337/.0188 →
+v3nq (NO ring, full lr, bs512) **.0130/.0152 — BELOW the pooled reference band**
+(Llr .0269/.0148). Staleness ∝ per-step drift ⇒ scale-dependent: the same 4-step ring
+is clean at in100/in1k (vm4 anchor healthy everywhere — the D-075 policy's basis).
+z-dose exonerated (v3nq z-heavy .55–.60 and smooth). Remaining T2 open item —
+toy-vm4's batch-volatile inv↔floor opposition — is the pending OAS tension check
+(fired same day, §Launch log).
+
+**E24-T5 (USER-APPROVED 2026-08-04, Berker's closing restatement: "e24 recipe was 2/3
+zinv, 1/3 zreg and a few percentage hreg. we also found that oas stabilizes toy
+training but not necessary for in100 and in1k."): THE E24-T1 RECIPE STANDS ON THE
+OPERATING (view-mean) ANATOMY — the pooled-only scoping is lifted.** Evidence: the toy
+vm-OAS map (6 cells .8693–.8764, flat basin over realized r .41–.63 spread .007 above
+the z-reachability wall ~.45–.47; va/vb/vac same-shares/different-weights triple
+within .001; h0 ≡ h.03) · the in100 vm map complete (6/6 healthy .7078–.7348, anchor
+attraction to s\*, wall reproduced at ~.35, twins bracket the mirrors) · in1k vm cells
+measure ON s\* warm (E24-T2) with e24voas cooking at the anchor. Estimator scoping =
+E24-T3/D-075. **Riders from the same ruling:** (1) no seed replicates — "we dont care
+about the accurate performance" (the map/mechanism is the deliverable; the 3 proposed
+toy cells vc-s1/upper-edge/v4oas-s1 are DROPPED); (2) the 9 finished in100 POOLED
+wave-1 runs stay UNREAD and closed — "they do not matter i do not think it is a good
+practice to do such competition between inv and spectral reg" (the pooled anatomy is
+deprecated as practice for this program; landed artifacts remain on disk, unworked);
+(3) gpu277 is rehabilitated — "bad gpu is no longer bad" (the D-065 black-hole
+exclude is removed from the standing sbatch files; the e24voas chain trained on it
+all day at full pace). Formal P-E24-1…5 scoring rows remain PARKED on this card (raw
+outcomes recorded throughout the §Launch log).
+
+## ON-HOLD RECORD — e24voas ep25 gate package (2026-08-05; raw, interpretation deferred per Berker "keep these e24 results on hold")
+
+Gate REACHED overnight (chain link 63014683; run continued past it, ep29 .4293 at
+record time; no incidents anywhere in ep0–29; grads decaying). **Noise stat ep12–26:
+mean|Δacc| = .0056 (band ≤ ~.027), inv_sd = .0121 (band ≤ ~.019) — both PASS.**
+
+| ep | probe | ep | probe |
+|---|---|---|---|
+| 12 | .3630 | 21 | .4140 |
+| 13 | .3707 | 22 | .4123 |
+| 14 | .3868 | 23 | .4176 |
+| 15 | .3900 | 24 | .4180 |
+| 16 | .3880 | **25** | **.4155** |
+| 17 | .3957 | 26 | .4292 |
+| 18 | .3991 | 27 | .4253 |
+| 19 | .4004 | 28 | .4325 |
+| 20 | .4071 | 29 | .4293 |
+
+Matched-epoch baseline (ring-vm4-1k, incumbent .6392@100): ep24 .4484, ep26 .4527,
+ep28 .4629 → voas deficit ≈ **−.030**, stable since ep8. Shares at ep25:
+(.693, .277, .030) vs target (.55, .42, .03) — the ep10 anchor attraction never moved;
+realized inv .69 sits ABOVE the toy-mapped basin top (.63). Channels at ep25: Ω_h .375
+(from .437 @ ep13, drifting down), Ω_z .149, Λ 1.589 (climbing), ρ̂ .461/.468.
+Correction math staged (w 16.5/81.6/1.82 from its own ep10 g's). **Gate ruling
+DEFERRED by Berker (2026-08-05, priorities redirected to the zoo + transfer tracks);
+run continues UNTOUCHED per the standing option-a default.**
