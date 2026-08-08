@@ -1,54 +1,97 @@
-# MODELS.md — model-instance matrix
+# MODELS.md — the model-instance registry
 
-One row per model instance (a checkpoint lineage under one frame+method+seed). Filled as instances
-are created. Rule (PROTOCOL §6.8): **never mix provenance within a comparison.**
+Re-scoped 2026-08-07. The program now has **1100+ checkpoints across ~250 run-ids**, so a
+row-per-instance matrix is not maintainable and was three weeks stale. This file is now the
+**registry**: what tracks exist, what validated each one, and which card carries the per-cell
+record. **The experiment cards are the authority for individual runs** — every cell's config,
+dose, and numbers live there, not here.
 
-## Track A — existing checkpoints (M0 inputs; legacy formats via `sslgap/ckpt/adapters.py`)
+Binding rule (PROTOCOL §6.8): **never mix provenance within a comparison.** The three tracks
+below are separate tables in every figure and every read. Terminology: [GLOSSARY.md](GLOSSARY.md).
 
-| run_id | method | frame | source | heads present | probed branch | validation status |
-|---|---|---|---|---|---|---|
-| `toy.lejepa-lamb002.ext` | LeJEPA (λ=0.02) | toy ViT-S/8@128 Imagenette | `../lejepa/ckpt_lamb002.pt` | `proj` (16-d) + `z.embed` Linear(384→512) | student | **extracted+probed 2026-07-02** — h.cls linear 91.2% ≈ official minimal ballpark |
-| `toy.lejepa-lamb0.ext` | LeJEPA (λ=0) ablation | same | `../lejepa/ckpt_lamb0.pt` | same | student | extracted+probed 2026-07-02 |
-| `toy.infonce.ext` | InfoNCE variant | same | `../lejepa/ckpt_infonce.pt` | same | student | extracted+probed 2026-07-02 |
-| `in100.dino-ctrl.ep25/50/100.ext` | DINO (classic) | IN-100 ViT-S/16@224 | `../ssl_explore/outputs/inv_dino-in100_ep{25,50,100}.pt` | student+teacher backbones & DINO heads, centers | teacher | extracted+probed 2026-07-02; parity ref = diag_dino teacher/30k-linspace protocol (see docs/HISTORY.md — NOT the "@4k" table label) |
-| `in100.dino-ctrl.ep100.parity30k` | DINO parity instance | same | same ep100 ckpt | same | teacher | dedicated parity run: linspace-30000 probe manifest, battery on val (N-matched RankMe) |
-| `toy.randinit-s0.ext` / `in100.randinit-s0.ext` | random-init nulls | per frame | generated (adapter random_init, seed 0) | same arch as parent | student | extracted+probed 2026-07-02 (PROTOCOL §6.6 anchors) |
+---
 
-## Track B — controlled retrains (core-7; M1 toy → M2 IN-100)
+## Track A — reference checkpoints (M0 inputs; legacy formats via `sslgap/ckpt/adapters.py`)
 
-*(rows added as runs land; every row must fill: recipe donor+commit, deviations, pixels/epoch,
-ckpt paths, wandb id, git sha, validation-vs-donor status)*
+| run_id | method | frame | source | probed branch | validation |
+|---|---|---|---|---|---|
+| `toy.lejepa-lamb002.ext` · `toy.lejepa-lamb0.ext` · `toy.infonce.ext` | LeJEPA λ=.02 / λ=0 / InfoNCE | toy ViT-S/8@128 | `../lejepa` | student | extracted+probed 2026-07-02; h.cls linear 91.2% ≈ official ballpark |
+| `in100.dino-ctrl.ep{25,50,100}.ext` (+ `.parity30k`) | DINO | IN-100 ViT-S/16@224 | `../ssl_explore` | teacher | **M0 parity PASSED exactly** once the true reference protocol was identified (HISTORY_ARCHIVE 2026-07-02) |
+| `toy.randinit-s0.ext` · `in100.randinit-s0.ext` | random-init nulls | per frame | generated (adapter, seed 0) | student | PROTOCOL §6.6 anchors — every battery table carries one |
 
-| run_id | method | frame | seed | recipe donor | deviations | pixels/ep ratio | validation | status |
-|---|---|---|---|---|---|---|---|---|
-| `toy.lejepa.s0` | LeJEPA | toy | 0 | official minimal (`../lejepa`, exact) | none intended | 4 views | **portval PASS 2026-07-03**: ep800 0.9037 vs 0.90217 (Δ+0.15pt), best 0.9113; sigreg shape corr 0.9997 (wandb o1cqzmbg; PORT_NOTES verdict) | **done 2026-07-02** 150ep best=0.7819 (wandb mi6apyp8, git 69f6050) |
-| `toy.simclr.s0` | SimCLR | toy | 0 | solo-learn @9187ea3 (reviewed port) | ViT trunk (paper is RN50) | 2 views | M1.5 RN18-IN-100 vs published 66.2ish | **done 2026-07-02** best=0.7006 (wandb srerm3u5, git 69f6050) |
-| `toy.vicreg.s0` | VICReg | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk | 2 views | M1.5 | **done 2026-07-02** best=0.7753 (wandb s3wameng, git 69f6050) |
-| `toy.byol.s0` | BYOL | toy | 0 | solo-learn @9187ea3 + paper | ViT trunk; EMA base scaled to steps/ep | 2 views | M1.5; collapse canary green: teacher_proj_std min 0.33 → 9.0 (never ~0) | **done 2026-07-02** best=0.6189 (wandb o2dntmv1, git 69f6050) |
-| `toy.dino.s0` | DINO | toy | 0 | sslx `train_dinov2.py` (restructured) | documented in dossier | 2g+Vl crops (~1.7×) | vs existing IN-100 control at M2 | done 2026-07-02 — probe-label incident (HISTORY); superseded by probefix rerun below (wandb sjbj72tt) |
-| **`toy.dino.s0.probefix`** | DINO | toy | 0 | same recipe, probe-label fix only | none vs row above | 2g+Vl crops | online best **0.7758** ≈ old run's offline 0.785 — monitor now agrees with the audit; **this run feeds the E1 matrix** (report_m1/viz overrides point here) | **done 2026-07-03** (job 61928337, ckpt `outputs/toy.dino.s0.probefix_ep150.pt`) |
-| `toy.mae.s0` | MAE | toy | 0 | canonical models_mae.py@efb2a80 (reviewed port) | ViT-S decoder 512×8×16 | 1 view, 25% visible | "weak linear expected" did NOT bite at toy scale — online probe healthy throughout | **done 2026-07-02** best=0.6744 (wandb j4tizv8n, git 69f6050) |
-| `toy.ijepa.s0` | I-JEPA | toy | 0 | official repo + sslx `ijepa.py` modules | ViT-S scale-down from ViT-H paper | 1 view, multi-block masks | canary green: teacher_tok_std 1.00→0.80, never collapsing | **done 2026-07-02** best=0.6476 (wandb g8t7g3xi, git 69f6050) |
-| — | supervised DeiT-lite | in100 | 0 | timm recipe | anchor | 1 view | — | planned M2 |
+## Track B — controlled retrains (ours)
 
-## Track C — public IN-1k checkpoints (M3 validation rung; head inventory TO VERIFY at M3 entry)
+**Frames:** `toy_vits8` (Imagenette ViT-S/8@128, 150 ep) · `in100_vits16` (ViT-S/16@224, 100 ep)
+· `in1k_vits16` (ViT-S/16@224, 100 ep) · `in1k_vitb16`/`in1k_vitl16` (declared, not yet run).
+**Uniform house optimizer** for all methods (D-018 Option A) with the per-method escape clause;
+house hygiene (grad_clip 1.0, eta_min ≤ lr/20, warmup ≥ 1 ep, cadence checkpoints, per-step
+grad-norm) applies to every arm (D-016). **Single seed 0 throughout** — D-024 ruled out seed
+replicates.
 
-| method | expected source | ships heads? (expectation — verify) | known blockers |
+### B1 · The core-7 uniform trainers (M1 toy → M2 IN-100)
+
+All seven ported and certified at toy: `lejepa` · `simclr` · `vicreg` · `byol` · `dino` · `mae` ·
+`ijepa`, plus the `deitlite` supervised anchor (D-007). **The port that certifies the stack is
+LeJEPA:** ep800 toy portval 0.9037 vs the official 0.90217 (Δ +0.15 pt), sigreg shape correlation
+0.9997 — the trainer stack is validated against an exact external reference (HISTORY_ARCHIVE
+2026-07-03). Per-method recipes, donors, and deviations: `docs/methods/<m>.md`. The IN-100 grid
+carries every lane plus its E20 conditioner arm. One historical trap on record: the toy DINO run
+has a superseded predecessor (`toy.dino.s0` — probe-label incident) and the run that feeds tables
+is **`toy.dino.s0.probefix`**.
+
+### B2 · The house method (`floorssl`, renaming to `spectral` under D-083)
+
+The program's main lane, ~630 run-ids across toy and IN-100 and 6 at IN-1k. Per-cell records live
+on their cards — do not look for them here.
+
+| lane | frame | card | note |
 |---|---|---|---|
-| DINO ViT-S/16 | facebookresearch/dino "full checkpoint" | student+teacher+heads — likely | — |
-| iBOT ViT-S/16 | bytedance/ibot | full ckpt w/ heads — likely | — |
-| MAE ViT-B/16 | facebookresearch/mae | "visualize" ckpts include decoder — likely | ViT-H full ckpt availability unclear |
-| I-JEPA ViT-H/14 | facebookresearch/ijepa | encoder+predictor+target-encoder snapshots — likely | ViT-H scale (inference ok) |
-| MoCo v3 ViT-S/B | facebookresearch/moco-v3 | full ckpts (resume-able) — likely | — |
-| VICReg RN50 | facebookresearch/vicreg | `resnet50_fullckpt.pth` — likely | ResNet (arch gap vs ViT rows — separate table) |
-| Barlow Twins RN50 | facebookresearch/barlowtwins | full ckpt — likely | ResNet |
-| SwAV RN50 | facebookresearch/swav | prototypes+head in ckpt — likely | ResNet |
-| SimCLR | google-research/simclr | TF checkpoints w/ head | TF→PyTorch conversion friction |
-| BYOL | deepmind-research/byol | JAX pickle w/ projector+predictor | JAX→PyTorch conversion friction |
-| DINOv2 | facebookresearch/dinov2 | **backbone only — no public heads** | z-space impossible publicly; h-only rows, flagged |
-| LeJEPA | rbalestr-lab/lejepa | training code; we have own toy ckpts | retrain-only at IN-1k |
-| DISSL (M5+ candidate, Berker 2026-07-10) | YannDubs/Invariant-Self-Supervised-Learning (Dubois '22) | code + released ckpts — verify | POSITIVE CONTROL: engineered so its optimum is provably linear-probe-optimal — a calibration standard for the audit (prediction: small tier gap Δ at h where SimCLR inflates it); port via PORT_NOTES process |
+| E19 arms 1–6 | in100 | [E19](experiments/E19_floorssl.md) | the vicreg-class ancestors; doses predate the dose law |
+| E21 class + dim/aug/payment arms | in100 | [E21](experiments/E21_floorssl_class.md) | own class; the view-mean + ring anatomy settled here |
+| E23 capacity grids (stage C, stage C′) | toy | [E23](experiments/E23_mlp_leakage.md) | 14 + 12 cells; C′ is the share-pinned one |
+| E24 dose grid (waves 0–2, v-cells) | toy, in100 | [E24](experiments/E24_dose_interaction.md) | ~40 cells; produced the share recipe |
+| `d256vm2` · `d256vm3` · `d256vm4` | **in1k** | [E22](experiments/E22_floorssl_in1k.md) | read as E23-T1…T3; **vm4 is the winner** and E25's transfer subject |
+| `e24voas` | **in1k** | [E24](experiments/E24_dose_interaction.md) | the OAS cell; ep74/100 on 2026-08-07 |
+| `e27smc` · `e27smcb` · `e27slg` · `e27slgb` | **in1k** | [E27](experiments/E27_guided_sbl.md) | **RUNNING**; multicrop Recipe v2, anchor/band × two local-scale families |
+| `in1k.lejepa.s0.e27lej` | **in1k** | [E27](experiments/E27_guided_sbl.md) | **RUNNING**; the matched-frame LeJEPA ViT-S control |
 
-Covariates recorded per public row: pretrain data (IN-1k vs LVD-142M etc.), epochs, backbone,
-resolution, license. Published linear/kNN numbers must be reproduced within ~1 pt under the paper's
-own protocol before any battery number from that checkpoint is trusted.
+**External reference for the IN-1k lane:** Lightly's LeJEPA ViT-S/16 @ 100 ep, bs 512 → 64.0
+top-1. E25-T1 records the comparison and its confounds; the matched-frame control (`e27lej`) is
+running precisely because that published number is not at our frame.
+
+## Track C — public IN-1k checkpoints (E26, D-076)
+
+Six models, base size throughout ("across s/b/l use b"), native input resolution, **trunk
+stations only** (L03/L06/L09/cls; no head stations, no transmission into z). Full record:
+[E26](experiments/E26_public_zoo.md); stations: `results/diag/e26_stations.csv`.
+
+| model | timm weights | selftest tier | anchor reproduced |
+|---|---|---|---|
+| `dinov2b14` | `vit_base_patch14_dinov2.lvd142m` | hub-agreement, feature cos ≥ .999 | linear .8478 vs 84.5; kNN .8274 vs 82.1 ✓ |
+| `dinov3b16` | `vit_base_patch16_dinov3.lvd1689m` | hub-agreement (license-gated fetch) | paper numbers at battery stage |
+| `dinob16` | `vit_base_patch16_224.dino` | hub-agreement | kNN20 .7574 vs 76.1 ✓ |
+| `clipb16` | `vit_base_patch16_clip_**quickgelu**_224.openai` | zero-shot IN-1k val, open_clip end-to-end | .8014 vs 80.2 ✓ |
+| `siglipb16` | `vit_base_patch16_siglip_224.webli` | zero-shot IN-1k val | published 76.0 ± .8 |
+| `maeb16` | `vit_base_patch16_224.mae` | **cfg + feature-stat smoke only — weakest tier, marked** | loose |
+
+**Two catches worth carrying forward.** (1) The CLIP **QuickGELU trap**: the non-quickgelu
+variant scored 64.42 against a published 68.3 — a 4-point "failure" that was a config mismatch,
+not a model or pipeline problem; using the quickgelu variant on **both** sides gave 68.32 PASS.
+(2) SigLIP needs the HF tokenizer dependency. Both were caught by the per-model selftest gate
+*before* any battery number was trusted — which is the whole reason the gate exists.
+
+**Standing caveats.** Public DINOv2/v3 ship **no heads**, so no z-space claim is possible for
+them — h-only rows, flagged. MAE is a **poor-organization anchor** by construction (Berker's
+words): reconstruction models are expected to read badly on organization metrics, and that is
+the point of including one, not a defect to explain away.
+
+Covariates recorded per public row: pretrain data (IN-1k vs LVD-142M/1689M vs WIT/WebLI), epochs,
+backbone, resolution, license. **Published linear/kNN must be reproduced before any battery
+number from a checkpoint is trusted** — that rule is what caught the QuickGELU trap.
+
+## Retired
+
+**PIVOT** (`in100.pivot.*`, 16 checkpoints; E13–E16): the external-teacher target line, KILLED at
+the distillation ceiling (D-032…D-034, ceiling ruled D-038). Its library code is scheduled for
+removal under D-083 Wave B. **M1.5** (`rn18_in100` solo-learn port validation): declared in
+PROTOCOL §2, never launched, deferred indefinitely (D-017).

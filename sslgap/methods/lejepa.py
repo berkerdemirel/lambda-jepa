@@ -24,7 +24,7 @@ from torch.nn.utils.parametrizations import spectral_norm
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torchvision.ops import MLP
 
-from sslgap.data import ViewsDataset
+from sslgap.data import LejepaMultiCropDataset, ViewsDataset
 from sslgap.methods._common import SpectralConditioner
 from sslgap.methods.base import SSLMethod
 
@@ -82,10 +82,13 @@ class SIGReg(nn.Module):
         return statistic.mean()
 
 
-def lejepa_encoder(model_name, img_size, emb_dim=512, drop_path=0.1):
-    """The official ViTEncoder backbone half: timm ViT WITH the emb Linear (num_classes=emb_dim)."""
+def lejepa_encoder(model_name, img_size, emb_dim=512, drop_path=0.1, dynamic_img_size=False):
+    """The official ViTEncoder backbone half: timm ViT WITH the emb Linear (num_classes=emb_dim).
+    dynamic_img_size (D-082 multicrop control): pos-embed interpolation for the 96-px locals;
+    default False = byte-identical legacy construction."""
     return timm.create_model(model_name, pretrained=False, num_classes=emb_dim,
-                             drop_path_rate=drop_path, img_size=img_size)
+                             drop_path_rate=drop_path, img_size=img_size,
+                             dynamic_img_size=dynamic_img_size)
 
 
 def lejepa_projector(proj_dim, emb_dim=512, hidden=2048, depth=3, spec_norm=False):
@@ -168,8 +171,10 @@ class LeJEPA(SSLMethod):
     def build_modules(self):
         # creation order mirrors the official script: backbone-with-emb, then projector.
         # (spec_norm and SpectralConditioner consume no RNG at construction — init streams unshifted.)
+        self._mc = self.cfg.get("aug") == "lejepa_mc"
         enc = lejepa_encoder(self.frame.model_name, self.frame.img_size,
-                             emb_dim=self.cfg.emb_dim, drop_path=self.cfg.drop_path)
+                             emb_dim=self.cfg.emb_dim, drop_path=self.cfg.drop_path,
+                             dynamic_img_size=self._mc)
         proj = lejepa_projector(self.cfg.proj_dim, emb_dim=self.cfg.emb_dim,
                                 depth=self.cfg.get("proj_depth", 3),
                                 spec_norm=self.cfg.get("spec_norm", False))
@@ -195,15 +200,28 @@ class LeJEPA(SSLMethod):
             proj_kwargs["depth"] = self.cfg.proj_depth
         if self.cfg.get("spec_norm", False):
             proj_kwargs["spec_norm"] = True
+        enc_kwargs = {"model_name": self.frame.model_name,
+                      "img_size": self.frame.img_size,
+                      "emb_dim": self.cfg.emb_dim,
+                      "drop_path": self.cfg.drop_path}
+        # dynamic recorded only when True (D-082) — pre-existing arch dicts byte-identical.
+        if getattr(self, "_mc", False):
+            enc_kwargs["dynamic_img_size"] = True
         return {"encoder": {"class": "sslgap.methods.lejepa.lejepa_encoder",
-                            "kwargs": {"model_name": self.frame.model_name,
-                                       "img_size": self.frame.img_size,
-                                       "emb_dim": self.cfg.emb_dim,
-                                       "drop_path": self.cfg.drop_path}},
+                            "kwargs": enc_kwargs},
                 "projector": {"class": "sslgap.methods.lejepa.lejepa_projector",
                               "kwargs": proj_kwargs}}
 
     def build_train_dataset(self):
+        # aug="lejepa_mc" (D-082): the Recipe v2 multicrop control — same dataset class,
+        # scales, and view counts as the floorssl lanes (repo-published geometry).
+        if self.cfg.get("aug") == "lejepa_mc":
+            return LejepaMultiCropDataset(
+                self.frame.dataset, "train", img_size=self.frame.img_size,
+                data_root=self.frame.data_root, n_g=self.cfg.get("Vg", 2),
+                n_l=self.cfg.get("Vl", 8), local_size=self.cfg.get("local_size", 96),
+                global_scale=tuple(self.cfg.get("global_scale", (0.3, 1.0))),
+                local_scale=tuple(self.cfg.get("local_scale", (0.05, 0.3))))
         return ViewsDataset(self.frame.dataset, "train", V=self.cfg.V,
                             img_size=self.frame.img_size, data_root=self.frame.data_root)
 
@@ -228,23 +246,40 @@ class LeJEPA(SSLMethod):
         # under-scaled; sigreg's unbuffered opening rescale of the trunk is the measured collapse
         # trigger (grad-share diag; E10 card amendment). Loss untouched; the calibrated weights
         # persist through checkpoints, the extras flag guards re-entry on resume.
-        if self.cfg.get("embed_calib", False) and not getattr(self, "_calibrated", False):
-            with torch.no_grad():
-                emb0 = modules["encoder"](views.flatten(0, 1)).float()
-                mu, sd = emb0.mean(0), emb0.std(0).clamp_min(1e-6)
-                head = modules["encoder"].head
-                head.weight.div_(sd.unsqueeze(1))
-                head.bias.copy_((head.bias - mu) / sd)
-            self._calibrated = True
-        N, V = views.shape[:2]
-        sig_at = self.cfg.get("sigreg_at", "proj")
-        x = views.flatten(0, 1)
-        if sig_at == "cls":
-            feats = modules["encoder"].forward_features(x)                 # [N*V, T, trunk_dim]
-            cls = feats[:, 0]
-            emb = modules["encoder"].forward_head(feats)                   # [N*V, emb_dim]
+        if isinstance(views, (list, tuple)):
+            # D-082 multicrop control (Recipe v2): globals+locals through the encoder,
+            # image-major concat; everything downstream (proj / view-to-mean inv /
+            # per-view SIGReg / λ-convex loss) is the port verbatim — the official inv
+            # already IS the view-to-mean form. E10/E12 arm machinery (sigreg_at != proj,
+            # embed_calib) is out of scope for the control cell BY DESIGN.
+            assert self.cfg.get("sigreg_at", "proj") == "proj" and \
+                not self.cfg.get("embed_calib", False), "mc control supports the default path only"
+            g, l = views
+            N, Vg = g.shape[:2]
+            V = Vg + l.shape[1]
+            sig_at = "proj"
+            emb = torch.cat(
+                [modules["encoder"](g.flatten(0, 1)).reshape(N, Vg, -1),
+                 modules["encoder"](l.flatten(0, 1)).reshape(N, V - Vg, -1)],
+                1).flatten(0, 1)                                           # [N*V, emb_dim]
         else:
-            emb = modules["encoder"](x)                                    # [N*V, emb_dim]
+            if self.cfg.get("embed_calib", False) and not getattr(self, "_calibrated", False):
+                with torch.no_grad():
+                    emb0 = modules["encoder"](views.flatten(0, 1)).float()
+                    mu, sd = emb0.mean(0), emb0.std(0).clamp_min(1e-6)
+                    head = modules["encoder"].head
+                    head.weight.div_(sd.unsqueeze(1))
+                    head.bias.copy_((head.bias - mu) / sd)
+                self._calibrated = True
+            N, V = views.shape[:2]
+            sig_at = self.cfg.get("sigreg_at", "proj")
+            x = views.flatten(0, 1)
+            if sig_at == "cls":
+                feats = modules["encoder"].forward_features(x)             # [N*V, T, trunk_dim]
+                cls = feats[:, 0]
+                emb = modules["encoder"].forward_head(feats)               # [N*V, emb_dim]
+            else:
+                emb = modules["encoder"](x)                                # [N*V, emb_dim]
         proj = modules["projector"](emb).reshape(N, V, -1).transpose(0, 1)  # [V, N, proj_dim]
         inv_loss = (proj.mean(0) - proj).square().mean()
         sig_in = {"proj": proj,

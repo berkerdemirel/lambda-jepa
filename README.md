@@ -8,23 +8,34 @@ behind this project ([docs/report/](docs/report/ssl-projector-gap-report.html)) 
 surveyed methods** apply their loss to the representation they evaluate.
 
 The ambition: a unifying critique + evaluation + explanation of what current SSL methods actually do
-and how they differ — then synthesize criteria that close the gap, or an in-depth account of the
-loss-space↔representation-space relationship.
+and how they differ — then synthesize criteria that close the gap.
+
+## Where the program is
+
+The audit is done; the work is now **constructive**. Measuring the gap produced two instruments —
+a **dose law** (a loss term's effect tracks its realized share of trunk pull, not its nominal
+weight) and a **cloud-thickness geometry** (Ω, calibrated by a touch law with one measured shape
+constant c ≈ .82 that holds across every frame *and* across public backbones) — and those two
+built a method: an invariance term at z plus a two-sided spectral conditioner at **both** z and h.
+It is currently under test at ImageNet-1k across ViT-S/B/L. See
+[docs/ROADMAP.md](docs/ROADMAP.md) §1 for the three eras and §3 for the full experiment index.
 
 **Start here:** [docs/ROADMAP.md](docs/ROADMAP.md) → then the layer you need:
 
 | file | role |
 |---|---|
-| [docs/ROADMAP.md](docs/ROADMAP.md) | hierarchical roadmap: phases → milestones → experiments, with decision gates |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | question hierarchy → milestones → the E01–E27 index, with decision gates |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | the fixed experimental frame (versioned; changes need a DECISIONS row) |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | the ledger — every locked/proposed decision and every agreed takeaway |
-| [docs/MODELS.md](docs/MODELS.md) | model-instance matrix: every checkpoint with provenance and validation status |
+| [docs/GLOSSARY.md](docs/GLOSSARY.md) | the project's vocabulary — what each term means and which words we use |
+| [docs/METRICS.md](docs/METRICS.md) | what each battery metric measures, bounds, caveats — including the cloud calculus |
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | how results become conclusions; operational constraints |
-| [docs/METRICS.md](docs/METRICS.md) | what each battery metric measures, bounds, and caveats |
-| [docs/experiments/](docs/experiments/) | E01–E11 pre-registration cards |
+| [docs/HISTORY.md](docs/HISTORY.md) | append-only findings & lessons log (older sections in `HISTORY_ARCHIVE.md`) |
+| [docs/MODELS.md](docs/MODELS.md) | the model-instance registry: tracks, provenance, validation status |
+| [docs/experiments/](docs/experiments/) | E01–E27 experiment cards (pre-registration → numbers → agreed takeaway) |
 | [docs/methods/](docs/methods/) | per-method dossiers (desideratum, loss space, recipe, port notes) |
-| [docs/theory/THEORY_MAP.md](docs/theory/THEORY_MAP.md) | which theorems bind which space |
-| [docs/literature/BIBLIOGRAPHY.md](docs/literature/BIBLIOGRAPHY.md) | 102 tagged references |
+| [docs/theory/OMEGA_CONNECTIVITY.md](docs/theory/OMEGA_CONNECTIVITY.md) | the live theory document (two cloud spaces, thickness, transport) |
+| [docs/literature/BIBLIOGRAPHY.md](docs/literature/BIBLIOGRAPHY.md) | tagged references |
 
 ## The two spaces
 
@@ -34,19 +45,24 @@ x, T(x) ──► backbone f ──► h ──► head g ──► z ──► 
                            └──► linear / kNN / attentive probe     (h is what everyone uses)
 ```
 
-Core deliverable: the **audit matrix** — every metric of the battery computed identically at `h` and
-`z` (and per head layer) for every method under a matched frame, with transfer ratios
-τ(metric, method) = value(h)/value(z).
+`h` is **the input of the method's projection** (pre-MLP, D-036); `z` is the space the loss is
+applied to. Everything between them is a measured *station*. The core audit deliverable is the
+**audit matrix** — every battery metric computed identically at `h` and `z` (and per head layer)
+for every method under a matched frame, with transfer ratios τ(metric, method) = value(h)/value(z).
 
 ## Layout
 
-- `sslgap/` — package: `ckpt` (uniform head-preserving checkpoint schema + legacy adapters),
-  `models` (backbones/heads/taps), `extract` (feature store), `metrics` (the battery), `probes`
-  (frozen protocols), `audit` (matrix assembly), `methods` (uniform per-method trainers, from M1).
-- `experiments/` — Hydra entry points (`extract.py`, `audit.py`, `probe.py`, `report.py`, later `train.py`) + `configs/`.
-- `slurm/` — `_env.sh` + sbatch templates. All compute goes through SLURM.
+- `sslgap/` — the package: `methods` (uniform per-method trainers), `models` (backbones/heads/taps),
+  `ckpt` (head-preserving checkpoint schema + legacy adapters), `extract` (feature store),
+  `metrics` (the battery + the cloud calculus), `probes` (frozen protocols), `audit` (matrix assembly).
+- `experiments/` — Hydra entry points: `train.py` · `extract.py` · `probe.py` · `audit.py` ·
+  `compare.py`, plus per-experiment instruments, and `configs/`. Spent one-shots of closed
+  experiments live in `experiments/archive/`.
+- `slurm/` — `_env.sh` + sbatch wrappers. **All compute goes through SLURM**; the login node has no
+  usable CUDA.
 - `third_party/` — read-only reviewed donor clones (see `third_party/DONORS.md`); never imported.
-- `outputs/` (ckpts, logs) · `features/` (feature store) · `results/` (small CSVs + FINDINGS, committed).
+- `outputs/` (checkpoints, logs) · `features/` (feature store) · `results/` (small CSVs, FINDINGS,
+  figures — committed).
 
 ## Setup
 
@@ -56,3 +72,10 @@ Core deliverable: the **audit matrix** — every metric of the battery computed 
 
 Sibling repos this project reads: `../ssl_explore` (harvested metric/probe code, DINO IN-100 control
 checkpoints), `../lejepa` (official LeJEPA minimal + trained Imagenette checkpoints).
+
+## How work happens here
+
+Pre-register predictions → run → numbers land **raw** on the card → discussion → an
+`AGREED TAKEAWAY` written only jointly → a DECISIONS row. No conclusion is adopted, no protocol
+changed, and no data-ladder rung advanced without a USER-APPROVED row. Failures are reported as
+failures. See [docs/WORKFLOW.md](docs/WORKFLOW.md).

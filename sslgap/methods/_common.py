@@ -104,10 +104,13 @@ def house_scheduler(optimizer, steps_per_epoch, total_steps, warmup_ep, eta_min)
     return SequentialLR(optimizer, schedulers=[s1, s2], milestones=[warmup])
 
 
-def trunk_arch(frame, drop_path):
+def trunk_arch(frame, drop_path, dynamic_img_size=False):
+    # dynamic_img_size (Recipe v2, D-079a): multicrop trunks interpolate pos-embed for the
+    # 96-px locals; @224 forward is parity-asserted (e27_selftest). Default False = every
+    # pre-E27 arch stamp byte-identical.
     return {"class": "sslgap.models.backbones.build_vit_trunk",
             "kwargs": {"model_name": frame.model_name, "img_size": frame.img_size,
-                       "dynamic_img_size": False, "drop_path_rate": drop_path}}
+                       "dynamic_img_size": dynamic_img_size, "drop_path_rate": drop_path}}
 
 
 def ema_momentum(step, total_steps, base, end=1.0):

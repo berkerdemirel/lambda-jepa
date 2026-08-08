@@ -7,7 +7,7 @@ seed: 0
 store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
 manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
 manifest_seed: 0
-cap_gb: 500                  # D-005 hard budget
+cap_gb: 1000                 # D-005 hard budget, raised per D-077 (2026-08-05)
 
 bs: 256
 num_workers: 12

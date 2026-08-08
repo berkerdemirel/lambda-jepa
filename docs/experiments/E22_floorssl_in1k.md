@@ -5,6 +5,12 @@ d256 view mean for 100 epochs (it'll take a lot of time so calculate it carefull
 submitting the job). you can use 1 h100."). Ledger row D-055. Predictions and the dose rule
 locked in this file BEFORE the bridge numbers and before any training number exists.**
 
+**Current status (as of 2026-08-07): CELLS LANDED; the read lives on the E23 card.** All
+three IN-1k cells (vm2/vm3/vm4, ledger rows D-055/D-061/D-065) trained and landed under the
+D-066 standard frame. This card carries no takeaway rows of its own by design — the 3-cell
+comparison was read as **E23-T1…T3** (USER-APPROVED 2026-08-03), and the winning cell
+(d256vm4) went on to E25's transfer benchmark.
+
 Views follow-up (Berker same evening: "verify how many multicrops dino training uses and how
 many views lejepa imagenet1k training uses and we can also use that many views to match") —
 VERIFIED from the donors: lejepa's own ImageNet-1k recipe uses **V=4** (its

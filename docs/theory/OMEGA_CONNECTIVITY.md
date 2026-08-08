@@ -1,9 +1,11 @@
 # Two augmentation-cloud spaces: thickness, transport, and a backbone regularization that works
 
-**Status: PROPOSAL v2** (restructured 2026-08-06 to the jointly agreed spine — Berker's
-six-point map, in-conversation review of v1; drafted by Claude). Formal results in
-§3–§6 are stated with **proof sketches**; full derivations are the next work item and
-happen in-conversation before they land here. Nothing in this document is a final
+**Status: PROPOSAL v2 + derivations REVIEW-PENDING** (structure jointly settled
+2026-08-06; derivations presented in-conversation the same day and carried here on
+Berker's instruction — "carry your theory derivations on a proposal doc and i will
+review from there". Each §3–§6 result now has a **Derivation** block; none is settled
+until his pass. One correction to the v2 sketch is flagged where it occurs: §5(b)'s
+bound needs an additive cloud-radius term.) Nothing in this document is a final
 program conclusion; those are joint and live in `docs/DECISIONS.md`. Predictions in
 §9 were registered before their tests. Terminology note: this document says **cloud**
 (the set of embeddings of one image's augmentations); code artifacts retain the
@@ -68,10 +70,24 @@ conditioning unconstrained whenever the head g is expressive: for every
 reparameterization φ of h-space there is a compensating head g∘φ⁻¹ giving the
 identical loss with arbitrarily ill-conditioned h.
 
-*Proof sketch.* (f, g) → (φ∘f, g∘φ⁻¹) is loss-invariant for any diffeomorphism φ;
-choose φ to collapse or explode chosen directions. The only obstructions are the
-architecture classes of f and g (capacity, smoothness) — which is exactly where §5's
-assumptions enter. ∎ *(half a page to formalize; pending.)*
+*Derivation (review-pending).* Let L(f, g) be any functional that reads the encoder f
+only through z = g∘f — every invariance, moment, variance, or contrastive term
+qualifies. Let Φ be a set of invertible reparameterizations φ of h-space such that the
+encoder class is closed under postcomposition (φ∘f) and the head class under
+precomposition (g∘φ⁻¹). Then for every φ ∈ Φ,
+
+    L(φ∘f, g∘φ⁻¹) = L(f, g),
+
+because (g∘φ⁻¹)∘(φ∘f) = g∘f pointwise — every sample's z is byte-identical, so any
+functional of z is unchanged. Realization: whenever f ends with a linear layer and g
+begins with one (every surveyed method), Φ contains all invertible affine maps h ↦ Ah —
+absorb A into f's last weight and A⁻¹ into g's first. The center covariance's orbit is
+then {AΣAᵀ}: pick A diagonal to drive any chosen eigenvalue toward 0 or ∞ at exactly
+equal loss. Hence no loss level implies any conditioning bound at h. The only
+obstructions are (i) architecture classes not closed under Φ — BN pinning after every
+hidden linear shrinks the available group, which is the E19-T1 conduit/firewall fact,
+measured — and (ii) regularizers on the two absorbed layers (weight decay taxes ‖A‖ —
+the E23 BN-gauge caveat). These obstructions are exactly where §5's assumptions enter. ∎
 
 This is the theorem-form of two program observations: the leakage frame (within-cloud
 energy at h hiding in directions the head's Jacobian kills — E23) and the 0-of-11
@@ -89,8 +105,24 @@ eigenspace**: total covariance = between + within, so the two generalized
 eigenproblems share eigenvectors, with eigenvalues related by the monotone map
 λ ↦ λ/(1+λ). Ordering, hence selection, is identical.
 
-*Proof sketch.* Simultaneous diagonalization of the two quadratic forms; monotone
-eigenvalue transform preserves the bottom-k choice. ∎ *(one page; pending.)*
+*Derivation (review-pending).* Write S_W and S_B for the within-cloud and
+between-center covariances (S_B ≻ 0), S_T = S_B + S_W. Selecting a k-dimensional
+linear readout U that minimizes within-cloud energy tr(UᵀS_W U):
+
+(a) under center-whitening UᵀS_B U = I: substitute U = S_B^{−1/2}V; the constraint
+becomes VᵀV = I and the objective tr(VᵀCV) with C = S_B^{−1/2} S_W S_B^{−1/2}, which
+orthonormal V minimizes at the bottom-k eigenvectors of C (Ky Fan) — equivalently the
+bottom-k generalized eigenvectors of the pencil (S_W, S_B), eigenvalues λ.
+
+(b) under total-whitening UᵀS_T U = I: same substitution with S_T gives the pencil
+(S_W, S_T), eigenvalues μ. But S_W v = μ(S_B + S_W)v ⇔ (1−μ)S_W v = μS_B v ⇔
+S_W v = [μ/(1−μ)]S_B v: the SAME eigenvectors, with μ = λ/(1+λ) strictly increasing —
+so the bottom-k selection is identical.
+
+The two solutions differ only by an invertible linear map inside the selected subspace
+(an S_B-orthonormal vs an S_T-orthonormal frame): invisible to linear probes; a
+metric readout (kNN) sees an eigenvalue-wise reweighting 1/√(1+λ_k), bounded and tight
+when the selected λ's are small (thin clouds). ∎
 
 **Program remark (the unification).** Center- vs total-whitening is *exactly* the
 view-mean vs pooled anatomy: view-mean floors whiten per-image center moments,
@@ -105,19 +137,26 @@ program's costliest empirical episodes become corollaries.
 Three parts, increasing realism:
 
 **(a) Linear heads transport directional thickness exactly.** For an invertible
-linear head, within-cloud and between-center covariances transform congruently, so
-the *spectrum* of directional thickness (the generalized eigenvalues of the pair) is
-exactly invariant — thickness direction-by-direction passes through unchanged, even
-though the total Ω does not. The transmission-spectrum instrument ({a_k},
+linear head z = Ah, within-cloud and between-center covariances transform congruently
+(S ↦ ASAᵀ), and det(S_W^z − λS_B^z) = det(A)²·det(S_W^h − λS_B^h): the generalized
+eigenvalues — the *spectrum* of directional thickness — are exactly invariant, even
+though the total Ω is not. The transmission-spectrum instrument ({a_k},
 `e24_toy_spectrum*.csv`) is this statement's measured form; the identity
-Ω_h = Λ²·Ω_z with Λ = (center gain)/(cloud gain) is its trace-level shadow.
+Ω_h = Λ²·Ω_z with Λ = (center gain)/(cloud gain) is its trace-level shadow. ∎
 
-**(b) Nonlinear heads that are bi-Lipschitz give two-sided trace bounds.** If the
-head neither collapses nor explodes distances by more than a factor L, transported
-thickness is pinned within [L⁻², L²] of the source — Λ becomes a bounded quantity
-rather than a free one. This is the honest nonlinear version of (a), and the
-assumption is what a finite, trained MLP plausibly satisfies on the data manifold.
-*(short; pending.)*
+**(b) Nonlinear heads that are bi-Lipschitz give two-sided bounds — with a
+cloud-radius correction.** *(Derivation, review-pending; CORRECTS the v2 sketch,
+whose clean [L⁻², L²] claim was too strong.)* Assume L⁻¹‖x−y‖ ≤ ‖g(x)−g(y)‖ ≤ L‖x−y‖
+on the data manifold. View pairs map directly: W_z ∈ [L⁻²W_h, L²W_h]. Centers do
+NOT, because g of a cloud's center is not the center of the mapped cloud; the error is
+bounded by the cloud's own radius: ‖m_i^z − g(m_i^h)‖ ≤ E_v‖g(h_iv) − g(m_i^h)‖ ≤
+L·r̄_i (Jensen, then Lipschitz). Per center pair this gives
+√B_z ∈ [L⁻¹√B_h − 2L·r̄_h, L√B_h + 2L·r̄_h], i.e. multiplicative bounds up to a
+relative correction δ ≈ 2L²·r̄_h/√B_h ≲ L²√(2Ω_h). Combining:
+Λ ∈ [L⁻²(1−δ), L²(1+δ)] and Ω_z within L⁴(1±δ)² of Ω_h. Below threshold
+(Ω_h < c² < 1) δ is small and the head can move thickness by at most ≈ L⁴ — Λ is a
+bounded quantity, not a free one; the correction is the price of nonlinearity and
+vanishes as clouds thin. ∎
 
 **(c) The moment floor pins the backbone's shape up to rotation.** Matching h's
 center moments to a standard Gaussian by a KL budget ε gives, from
@@ -130,8 +169,21 @@ achieve the same loss — the free distortions are unlimited. Once the floor hol
 change no distance, no thickness, no probe. The floor shrinks the freedom from "any
 distortion" to "rotation only," which is why a few percent of the gradient budget
 suffices: it is not pulling the representation anywhere, it is removing the slack
-that Result 1 exposes. *(KL-to-eigenvalue bounds are standard; the
-rotation-residual statement is short; pending.)*
+that Result 1 exposes.
+
+*Derivation (review-pending).* KL(N(m,Σ)‖N(0,I_p)) = ½‖m‖² + ½Σᵢψ(λᵢ) with
+ψ(λ) = λ − log λ − 1 ≥ 0, convex, zero only at λ = 1. A floor budget ε therefore
+forces ψ(λᵢ) ≤ 2ε for EVERY eigenvalue of the center covariance separately, and
+‖m‖² ≤ 2ε. The two roots of ψ(λ) = 2ε bound each eigenvalue two-sidedly:
+λᵢ ∈ [−W₀(−e^{−1−2ε}), −W₋₁(−e^{−1−2ε})] (the two Lambert-W branches)
+= [1 − 2√ε + O(ε), 1 + 2√ε + O(ε)] — no direction silently dies, none explodes,
+quantitatively in ε alone. Rotation residual: a reparameterization that is loss-free
+(Result 1's affine orbit) AND keeps the floor at budget must satisfy AΣAᵀ = Σ with
+Σ = I + O(√ε), which forces AAᵀ = I + O(√ε): A lies within O(√ε) of the orthogonal
+group. Rotations move no distance, no thickness, no probe — so the floor's whole
+effect is to shrink Result 1's slack group from all invertible distortions to
+(a √ε-neighborhood of) the rotations. Scope: this pins second moments; non-affine
+freedom is constrained only through (b)'s bi-Lipschitz constant. ∎
 
 ## 6. Result 4 (transfer): what the thickness buys downstream
 
@@ -141,7 +193,23 @@ optimal predictors are realized as linear maps on cloud centers) + (a decoded
 cloud-thickness term — within-cloud spread acting as label-independent noise on the
 probe). Transfer claims are conditional on the semantic compatibility of the task
 family with the centers; the thickness term is the part our training controls.
-*(one lemma with explicit constants; pending.)*
+
+*Derivation (review-pending).* Evaluate on views drawn from the declared augmentation
+family. Write a test embedding as h = m(image) + δ with E[δ | image] = 0 and
+Cov(δ) = S_W. For ANY linear probe W, however it was fit:
+
+    risk(W) = E‖y − Wᵀm‖² + tr(WᵀS_W W),
+
+exactly — the cross term vanishes because δ is mean-zero given the image. The first
+term is the task family's approximation error on cloud CENTERS (the part no
+label-free procedure can certify — the formal content of "conditional on semantic
+compatibility"). The second is a label-independent noise price ≤ ‖W‖²_F·λ_max(S_W).
+With the floor active, S_B ≈ I (Result 3c), so S_W expressed in center-whitened
+coordinates is precisely the directional-thickness operator of Results 2/3a — the
+probe's noise price is thickness, in the same eigenbasis our training controls.
+Margin/kNN rider: for neighbor-based readouts the same split appears as same-class vs
+different-class cloud overlap — the touch census's enrichment is its empirical form,
+and P-E25-3 is its registered field test. ∎
 
 The E25 transfer battery is this result's field test, and P-E25-3 (per-dataset
 thickness computed on the transfer datasets' own images, predicting per-dataset
@@ -191,8 +259,12 @@ As v1 (n=9 primary; construction coupling — the law's content is the one-const
 functional form and the accuracy links, not the correlation; one signal not three;
 designed not sampled runs; reconstructed label-free aggregates pending native
 recomputation; probe = online linear at toy scale; c possibly family-dependent until
-R5) **plus: §3–§6 are proof sketches** — statements are jointly agreed, derivations
-pending; any sketch that fails to formalize is reported as a failure, not patched.
+R5) **plus: §3–§6 derivations are drafted (2026-08-06) and REVIEW-PENDING** — one
+sketch failed to formalize as stated and is reported, not patched: §5(b)'s clean
+[L⁻², L²] transport needs the additive cloud-radius correction now in the text. The
+native label-free census + per-frame c fits ran 2026-08-06
+(`results/diag/omega_lawcensus_*.csv`); their numbers enter §8 only after the joint
+read.
 
 ## Appendix A — settings (unchanged from v1)
 

@@ -225,3 +225,132 @@ intuition for E3's design, nothing more (D-010).
   f2 5.7/0.71 · lejepa ctrl 0.80/0.13 · sigreg_inv 0.29/0.08 (most shell-compressed measured).
 Both registered in `DEFAULT_BATTERY` (l2_variant off, gauss_null on, spectral boot); they enter
 every future audit; historical stores gain them on their next battery pass.
+
+## Head linearity — how much of z is linearly reachable from h (D-015; built 2026-08-07)
+
+`sslgap.metrics.cross.linear_map_fit`, driven by `experiments/head_linearity.py` →
+`results/diag/head_linearity.csv`. OLS h → z fitted on a train split (both sides centred by
+TRAIN means), scored on a held-out split. Three variants over the same V=8 cloud stores:
+
+- **`centers`** — `mean_v h[i,v] → mean_v z[i,v]`: are the cloud CENTRES linearly related,
+  with augmentation averaged out?
+- **`views`** — `h[i,v] → z[i,v]` over all (image, view) rows: the same for the full map,
+  augmentation directions included.
+- **`eval`** — deterministic single-view features, train-manifest fit → val-manifest score
+  (continuity with the retired `e2x_zpred` numbers).
+
+**Split discipline:** `centers`/`views` split 80/20 **by image**, never by row — a row-wise
+split puts other views of the same image on both sides and makes `views` trivially easy.
+
+**`r2_total` is NOT reportable alone (D-060).** Berker cancelled it as a standalone metric in
+July: a contractive many-to-little head reads HIGH R² while doing heavy nonlinear work, because
+R² measures linear *reachability of the output*, not head magnitude. Every row therefore carries
+the fitted map's spectrum, which reads contraction directly and is what D-060 said survives:
+
+| column | reads |
+|---|---|
+| `sigma_min`, `cond` | whether the linear part annihilates directions of h |
+| `effrank_map` | how many directions the linear part actually uses (entropy of W's singular spectrum; scale-free) |
+| `resid_effrank` | effective rank of what the linear map misses — the nonlinear work |
+
+**Instrument validation:** the `K0` cells (`head_layers=0`, i.e. `Linear(384→2048) →
+Linear(2048→256)` with no nonlinearity = one affine map) return **r2_total = 1.000 exactly**.
+The `W32` cells (`expander_hidden=32`, a 32-wide bottleneck) return r2 ≈ .98 through a map of
+**effective rank 2.5–3.6 with cond ~1e6** — D-060's failure mode made concrete: near-perfect
+linear reachability *because* the head has amputated almost everything.
+
+## The cloud calculus (D-068, 2026-07-29; usage rules amended 2026-08-03)
+
+The program's primary lens since E23. Embed one image's V augmentations → a **cloud** of V
+points; its **center** is their mean. Everything here is **label-free** by design and computed
+from V-view stores (`o8` is sufficient — see the debias note). Implemented in
+`sslgap/metrics/orbit_energy.py` and `sslgap/metrics/census.py`; terminology per
+[GLOSSARY.md](GLOSSARY.md) (**the code still spells "orbit" — the rename waits for D-083's
+Wave B, see the glossary's decoder line**).
+
+### `W`, `B`, `omega` (`orbit_energies`) — thickness
+
+- **W** = within-cloud energy: `E_i E_{u<v} ‖s_iu − s_iv‖²`. Pairwise and mean-free, so it is
+  **V-unbiased by construction**; `r_rms = √(W/2)` is the cloud radius.
+- **B** = between-center energy: `E_{i≠j} ‖m_i − m_j‖²` **debiased** as `B = B̂ − W/V`. The
+  sample view-mean inflates center energy by the view noise (`E‖m̂_i − m̂_j‖² = ‖µ_i − µ_j‖² +
+  2σ̄²/V`), which is exactly the E17 o8-vs-o32 ~5% gap. Verified: `B̂` drifts ~30% over
+  V ∈ {2, 8, 32} while debiased `B` is V-invariant to three digits — **which is why o8 stores
+  suffice and o32 was never needed**.
+- **Ω = W/B** — **thickness**, cloud size relative to image spacing. One number per space per
+  checkpoint. Range (0, ∞), no intrinsic good direction: it is read against the touching
+  threshold below, not maximized or minimized.
+- With labels, `orbit_energies` additionally splits center energy within/between class
+  (`B_within_cls`, `B_between_cls`, `BW_cls`). **These are evaluation-side only** — per D-068's
+  addendum the primary lens stays label-free, and class-conditioned columns were dropped from
+  new guillotines (Berker's bias concern).
+
+### `a`, `b`, `lam` (`transmission`) — what the head does to a cloud
+
+From two `orbit_energies` dicts on the same store: `a² = W_z/W_h` (how within-cloud energy is
+scaled through the head), `b² = B_z/B_h` (how center separation is scaled), **`Λ = b/a`**, with
+the identity `Ω_h = Ω_z·Λ²`.
+
+**Binding usage rule (D-068 addendum, Berker 2026-08-03):** cross-space and cross-model reads
+ride on **Ω and Λ only** — they are dimension-free. `a` and `b` are within-cell decompositions:
+their levels carry a `√(D_z/D_h)` dimension mass and a scale factor that is unidentifiable
+under BN, so they do not compare across cells of different width. If a cross-D level is
+unavoidable, use the per-direction `â = a·√(D_h/D_z)`. Unbounded-ratio panels get per-row
+y-limits.
+
+### `transmission_spectrum` — the `{a_k}` selectivity spectrum
+
+Least-squares `J` minimizing `E‖δz − Jδh‖²` over view residuals, solved in the `δh` PC basis;
+`a_k = ‖J u_k‖` is the head's gain on the k-th h-residual PC. **Selectivity is the spread of
+`{a_k}`** (`cv_ak`), not its level. The scalar `a²` decomposes linearly as
+`a2_lin = Σ a_k² s_k / Σ s_k` with residual `1 − r2_lin`. Replaced the rejected α-grouped-
+projector control (which amputated head–trunk co-training; its flat spectrum is the null here).
+
+**Caveat carried from E23-T5: a small `a` alone is not a health readout.** Two different
+regimes produce it — forced amputation (a too-narrow head) and learned selection (a healthy
+head discarding augmentation directions). Read `(a, cv_ak)` together with the h-state.
+
+### `touch_census` — who overlaps whom
+
+Every instance as anchor over all candidates; candidate *j* **touches** anchor *i* when their
+radii sum exceeds their center distance. **ω(i,j) = (r_i + r_j − d_ij)/(r_i + r_j)** is the
+signed fractional overlap depth (negative = a gap, in radius units). Reported as pool-size-free
+probabilities `p_pos` (touch-same-class) and `p_neg` (touch-different), their ratio
+`enrich = p_pos/p_neg`, and `purity` against the base rate; ω **levels** are reported
+class-conditioned (per-anchor median ω to same vs foreign clouds). Per-class rows use
+ratio-of-means (per-anchor ratios blow up at `deg_neg = 0`); the run summary is the median over
+classes (E17 convention). An α = .75 column rides along as an operating-point robustness check.
+
+**Caveat:** cloud overlap does not guarantee same-class connectivity — the census measures
+touching, and whether touching is *selective* is exactly what `enrich`/`purity` report.
+
+### `touch_law_stats` — the calibration that makes Ω readable
+
+Thickness alone is an arbitrary ratio. Label-free aggregates over all unordered pairs: **M** =
+median signed ω, **T** = touching fraction. If a training family shares its constellation's
+*shape* and differs only in scale, then
+
+    M = 1 − c/√Ω
+
+with **c** the family's **shape constant**. Consequences: a **touching threshold Ω\* = c²** per
+frame, and T a fixed increasing function of Ω. Measured: **c = .82 ± .02** across 51 toy + 7
+IN-100 + 3 IN-1k runs *and* the 6-model public zoo (the zoo's own fit R² = .996 over four
+training families) — one constant, both spaces. **Collapse departs the line** (implied c
+1.6–2.0), which makes the law a health boundary as well as a calibration.
+
+Also returned: **`omega_local(k)`** — per-anchor cloud-local thickness, own-cloud pair energy
+over the mean debiased center energy to its k nearest centers (default k = 20), with the exact
+pair debias `(W_i+W_j)/(2V)`. It rescues the accuracy sort exactly where global Ω saturates
+(stage C′: −.175 → −.720). Plus the α = 1 touch-graph component census.
+
+### `touch_graph_profile` — the connectivity fingerprint
+
+Clouds are linked when `α·(r_i + r_j) > d_ij`, with α swept (default .5 → 1.5): α = 1 is the
+physical touch relation, α < 1 demands overlap depth, α > 1 admits near-misses. Per α: touching
+fraction, component count, giant-component share, singleton count. The **transition point** is
+the informative number — at dense frames the α = 1 graph saturates to one component and says
+nothing, while the α-profile still discriminates. Trajectories (toy K3 cadence ep38→150, the
+landed IN-100 cadence) show the fragmentation front still moving at budget end.
+
+**Scope:** these columns are E23-scoped instruments computed by the landing scripts, **not**
+registered in `DEFAULT_BATTERY`. Battery-wide promotion needs its own D-row (the D-054 path).

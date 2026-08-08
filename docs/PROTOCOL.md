@@ -1,6 +1,11 @@
 # PROTOCOL.md — the fixed experimental frame
 
-**Version: v1-draft.6 (2026-07-20: D-055 — `in1k_vits16` frame instantiated for the single-cell
+**Version: v1-draft.7 (2026-08-07: the owed rows land — `in1k_vitb16`/`in1k_vitl16` frames per
+D-079; §6 gains the measurement-anatomy items 10–12 (view-mean payment + slice ratios D-071,
+the warm-ring convention D-072, the OAS estimator D-073) that were approved in the ledger but
+never mirrored here; §8 corrected to D-077 (store cap 1000 GB) and D-080 (compute). No new
+decisions — this version transcribes already-USER-APPROVED rows. Terminology per
+[GLOSSARY.md](GLOSSARY.md). prior: v1-draft.6 (2026-07-20: D-055 — `in1k_vits16` frame instantiated for the single-cell
 floorssl scaling run; ladder gates G-M2/G-M4 unchanged. prior: v1-draft.5 (2026-07-14: D-036 — h redeclared as the projection input (pre-MLP); F1
 methods SimCLR/BYOL/VICReg h moved trunk-GAP→trunk-CLS in §1/§3/F1; online monitor tap follows the
 declared h; trunk-GAP demoted to intermediate tap. prior: v1-draft.4, 2026-07-10: D-025 k̂ defect-rank estimator spec, §6 item 9; prior:
@@ -36,7 +41,9 @@ estimator discipline, adapted to this cluster and the binding data ladder (DECIS
 | `in100_vits16` | `vit_small_patch16_224` trunk | ImageNet-100 = `~/data/imagenet100` (CMC; D-002) | 224 | 100 | 2 (0,1) | **the controlled grid** |
 | `rn18_in100` | ResNet-18 | same IN-100 | 224 | per solo-learn recipe | 1 | port validation ONLY (vs solo-learn published numbers); never enters the audit matrix |
 | `in1k_public` | as released | ImageNet-1k `~/data/imagenet` (eval only) | as released | — | — | validation rung 3: "as papers report"; provenance flagged per ckpt |
-| `in1k_vits16` | `vit_small_patch16_224` trunk | ImageNet-1k `~/data/imagenet` (1,281,167 / 50,000 verified) | 224 | 100 | 1 (0) | **single-cell method scaling ONLY (D-055)** — audit-rung advancement still gated (G-M2/G-M4) |
+| `in1k_vits16` | `vit_small_patch16_224` trunk | ImageNet-1k `~/data/imagenet` (1,281,167 / 50,000 verified) | 224 | 100 | 1 (0) | **method scaling ONLY (D-055; E27's S phase)** — audit-rung advancement still gated (G-M2/G-M4) |
+| `in1k_vitb16` | `vit_base_patch16_224` trunk | same IN-1k | 224 | 100 | 1 (0) | E27 B phase (D-079); **gated on the S read (D-079b)** |
+| `in1k_vitl16` | `vit_large_patch16_224` trunk | same IN-1k | 224 | 100 | 1 (0) | E27 L phase (D-079); **gated on the B read (D-079c)** |
 
 Frame owns (identical across methods within a frame): backbone topology; dataset+split; epoch
 budget (epochs-matched, D-004; pixels/epoch recorded as covariate); checkpoint cadence
@@ -151,6 +158,37 @@ Fixed, versioned, hashed image lists (`features/manifests/*.csv`; sha256 in ever
    reps=20 (reps=6 had a false-positive floor of 3 on the Gaussian control); khat_A (slice-moment
    fit) is a flagged cross-check only: same-sign domain, ~2× bias, cap failures, and its
    detect/bootstrap treat correlated slices as independent — declared limitation at audit n.
+10. **Measurement anatomy is part of every design (D-071, E24-T5).** State it loudly, never
+    inherit it silently — a pooled-vs-view-mean mismatch was the E24 lesson. The operating
+    anatomy: conditioners read **per-image view means** at BOTH taps (`cond_z_batch` /
+    `cond_h_batch` = `view_mean`), which drops the estimator's fresh n from `bs·V` to `bs`, so
+    the slice width d′ must be co-designed to keep **n_eff/d′ ≈ 4**. Ratio-scaled per arch
+    (E27 §8, Berker's ruling), z fixed by the byte-identical head:
+
+    | arch | trunk D | h d′ | h ring q | h n_eff (n/d′) | h d_draw | z d′ / q |
+    |---|---|---|---|---|---|---|
+    | ViT-S | 384 | 128 | 3 | 512 (4.00) | 128 | 128 / 3 |
+    | ViT-B | 768 | 256 | 7 | 1024 (4.00) | 256 | 128 / 3 |
+    | ViT-L | 1024 | 384 | 11 | 1536 (4.00) | 384 | 128 / 3 |
+
+    Sub-frame discipline: while d′ ≤ 128 the draw stays the canonical 128-frame and the slice
+    is its first-d′ columns, so per-step RNG streams stay aligned across payment variants.
+11. **Warm-ring convention for any measurement on a queue anatomy (D-072).** The ring holds
+    the last q steps' detached conditioner inputs (`n_eff = (q+1)·bs`; gradient flows through
+    the fresh rows only). Any `w·g` / share / Ω measurement on a run with `queue_steps > 0`
+    must **warm the ring first** — ≥ q sequential batches through `training_step` before the
+    measured one. A cold-ring read reports an artificially low invariance share; the recorded
+    "z-dominance" of E24 was exactly this artifact (E24-T2). **This bites in live logs too:**
+    the first `[share]` line after a chain's segment boundary is a cold-ring read and must be
+    discarded when reading a trajectory.
+12. **OAS estimator variant (D-073).** Fresh-batch Oracle Approximating Shrinkage of the slice
+    scatter toward its own scalar mean: `Σ = (1−ρ)S + ρ·mI + 1e-4·I`, ρ computed from
+    `S.detach()` (an estimator parameter, not a loss path), `m` **live**, target `mI` never
+    `I` — trace is preserved exactly, so scale error stays fully supervised at every ρ. The
+    ring-free alternative when features move too fast for temporal rows to be valid. Policy by
+    scale (E24-T3/D-075): OAS is the stabilizer at toy; the running-cov ring is the default at
+    IN-100/IN-1k; OAS is the sanctioned fallback at ViT-B/L if the longer rings go stale
+    (watched at the ep10 forces check and the ρ̂ meter). `rho_last` is logged whenever active.
 
 ## 7 · Standard evals per rung
 
@@ -161,9 +199,21 @@ Fixed, versioned, hashed image lists (`features/manifests/*.csv`; sha256 in ever
 
 ## 8 · Compute placement
 
-Training: H100 2-slot singleton queue (`h100-slotA/B`); 2-view methods may fall back to A40/L40S
-(~3× wall, proven by the DINO control). Extraction/battery/probes: `--partition=gpu` arrays.
-Storage: D-005 policy; `FeatureStore` enforces the cap.
+Training: H100 2-slot singleton queue (`h100-slotA/B`) is the default; 2-view methods may fall
+back to A40/L40S (~3× wall, proven by the DINO control). Extraction/battery/probes:
+`--partition=gpu` arrays.
+
+**D-080 (2026-08-06, in1k only):** the H100 fleet is currently fully drained, so **A100-80GB
+(`--partition=gpu --constraint=A100`) is the launch workhorse**; the IN-1k program's H100 budget
+is **up to 8 concurrent** when they return (superseding the ≤2 cap for IN-1k runs only — the
+2-slot singleton pattern stays the default everywhere else). Loader efficiency is verified per
+node class before launch (D-057: `persistent_workers`, `pin_memory`, workers = allocated CPUs),
+and multi-GPU DDP is mandated, built and smoke-tested before use.
+
+Storage: D-005 policy as amended by **D-077 — the cap is 1000 GB**, and it must be set in BOTH
+`sslgap/extract/store.py` and `experiments/configs/extract.yaml`: `extract.py` passes the config
+value, so the coded default alone does not bind (the 2026-08-05 incident — a full landing wave
+died silently at the old cap while a script using the store default succeeded).
 
 ## 9 · Relative representations (D-009)
 

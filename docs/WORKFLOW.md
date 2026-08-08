@@ -1,7 +1,7 @@
 # WORKFLOW — how results become conclusions in this project
 
 The standing rules of the study. Referenced by every experiment card; changes require a
-[DECISIONS](DECISIONS.md) row.
+[DECISIONS](DECISIONS.md) row. Terminology per [GLOSSARY.md](GLOSSARY.md).
 
 ## The conclusions contract
 
@@ -27,7 +27,10 @@ baselines may be tuning artifacts rather than properties of a method. Therefore:
 ## Operational constraints (hard-won; do not relearn)
 
 - All compute via SLURM; even "quick" extraction is a GPU job. H100 usage capped at 2 concurrent
-  jobs (singleton names `h100-slotA/B`); everything else on `gpu`/`defaultp`.
+  jobs (singleton names `h100-slotA/B`); everything else on `gpu`/`defaultp`. **D-080 amendment
+  (2026-08-06, IN-1k only):** the H100 fleet is drained → A100-80GB is the workhorse, and the
+  IN-1k program may use up to 8 concurrent H100s when they return; ≤2 stays the rule elsewhere.
+  See PROTOCOL §8.
 - Smoke-test with subset overrides before any sweep — in the predecessor project, setup was
   mistaken for results four times.
 - Training hygiene for any new end-to-end loss: `grad_clip=1.0` from day one; cosine

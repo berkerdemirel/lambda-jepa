@@ -19,7 +19,7 @@ from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 
 from sslgap.ckpt.schema import provenance_stamp, save_checkpoint
-from sslgap.data import ViewsDataset, seed_everything, seed_worker
+from sslgap.data import ViewsDataset, orbit_stack, seed_everything, seed_worker
 from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
 from sslgap.metrics.orbit_energy import orbit_energies, transmission
@@ -118,7 +118,7 @@ def main(cfg: DictConfig):
     # (the conditioners draw per-step slices), module buffers (BN stats) and the method's
     # queue rings snapshot-restored around the extra forward; autograd.grad touches no
     # .grad/optimizer state. null = off, code path untouched.
-    share_batch = None
+    share_batch, omega_aud, omega_gentle = None, None, None
     if cfg.share_log_every:
         pull_w = getattr(method, "PULL_W", None)
         assert pull_w, f"share_log_every set but {cfg.method.name} declares no PULL_W"
@@ -129,6 +129,24 @@ def main(cfg: DictConfig):
                                                batch_size=cfg.share_log_bs or 128,
                                                shuffle=True, num_workers=0,
                                                generator=torch.Generator().manual_seed(0))))
+            # Recipe v2 (D-079a) Ω channels for multicrop runs: the steering channel keeps
+            # the voas-IDENTICAL construction — fixed batch, V=4 under audit_v1 (orbit
+            # (0.08,1.0) @frame size, the o8-native stack the R6 band and its voas offset
+            # live on) — so band reads stay calibrated when the TRAIN aug forks to
+            # multicrop. own-globals and the gentle (0.7,1.0) stack of Berker's
+            # large-crop question ride as extra logged channels (the "launch both"
+            # question resolved measurement-side, inside one run). The shared seed-0
+            # loader generator gives every channel the same 128 images.
+            if isinstance(share_batch[0], (list, tuple)):
+                def _fixed(aug):
+                    return next(iter(DataLoader(
+                        ViewsDataset(frame.dataset, "train", V=4,
+                                     img_size=frame.img_size, data_root=frame.data_root,
+                                     aug=aug),
+                        batch_size=cfg.share_log_bs or 128, shuffle=True, num_workers=0,
+                        generator=torch.Generator().manual_seed(0))))[0]
+                omega_aud = _fixed(None)                       # audit_v1 default stack
+                omega_gentle = _fixed(orbit_stack(frame.img_size, (0.7, 1.0)))
         random.setstate(py_s), np.random.set_state(np_s)
 
     def log_shares(epoch, step):
@@ -136,8 +154,11 @@ def main(cfg: DictConfig):
         with torch.random.fork_rng():
             bufs = {r: {n: b.clone() for n, b in m.named_buffers()}
                     for r, m in modules.items()}
-            rings = {a: list(getattr(method, a)) for a in ("_zq", "_hq")
-                     if hasattr(method, a)}
+            # ring snapshot by PREFIX: legacy taps (_zq/_hq) and the grouped streams'
+            # per-group rings (_zq0/_zq1/...; D-087) are all restored after the extra
+            # forward — the logger stays trajectory-invisible on every path.
+            rings = {a: list(v) for a, v in vars(method).items()
+                     if a.startswith(("_zq", "_hq"))}
             bx, by = share_batch
             with autocast(frame.device, dtype=torch.bfloat16):
                 terms, _, _ = method.training_step(modules, to_device(bx), frame.device,
@@ -156,15 +177,29 @@ def main(cfg: DictConfig):
             # landing o8/audit_v1 numbers stay canonical); the trajectory is the instrument.
             for m in modules.values():
                 m.eval()
-            N, V = bx.shape[:2]
-            with torch.no_grad(), autocast(frame.device, dtype=torch.bfloat16):
-                cls_e = modules["backbone"].forward_features(
-                    to_device(bx).flatten(0, 1))[:, 0]
-                z_e = modules["projector"](cls_e)
-            orb = {}
-            for nm_, feats in (("h", cls_e), ("z", z_e)):
-                vs = feats.reshape(N, V, -1).float().cpu().numpy()
-                orb[nm_] = orbit_energies([vs[:, v] for v in range(V)])
+
+            def orb_of(xb, with_z):
+                nb, vb = xb.shape[:2]
+                with torch.no_grad(), autocast(frame.device, dtype=torch.bfloat16):
+                    cls_e = modules["backbone"].forward_features(
+                        to_device(xb).flatten(0, 1))[:, 0]
+                    z_e = modules["projector"](cls_e) if with_z else None
+                o = {}
+                for nm_, feats in (("h", cls_e),) + ((("z", z_e),) if with_z else ()):
+                    vs = feats.reshape(nb, vb, -1).float().cpu().numpy()
+                    o[nm_] = orbit_energies([vs[:, v] for v in range(vb)])
+                return o
+
+            # Multicrop runs (D-079a): primary Ω keys ride the audit_v1 channel (voas-
+            # continuous, band-calibrated); own-globals + gentle log alongside. Legacy
+            # runs: the train batch IS audit_v1 — byte-identical single-channel path.
+            if omega_aud is not None:
+                orb = orb_of(omega_aud, with_z=True)
+                extra = {"orbit/h_own_omega": orb_of(bx[0], False)["h"]["omega"],
+                         "orbit/h_gentle_omega": orb_of(omega_gentle, False)["h"]["omega"]}
+            else:
+                orb = orb_of(bx, with_z=True)
+                extra = {}
             tr = transmission(orb["h"], orb["z"])
             for r, m in modules.items():
                 for n, b in m.named_buffers():
@@ -183,7 +218,7 @@ def main(cfg: DictConfig):
                 if getattr(c, "rho_last", None) is not None}
         wandb.log({**{f"share/g_{k}": gs[k] for k in names},
                    **{f"share/{k}": w[k] * gs[k] / tot for k in names},
-                   "share/wg_total": tot, **rhos,
+                   "share/wg_total": tot, **rhos, **extra,
                    **{f"orbit/{q}_{s}": orb[s][q] for s in ("h", "z")
                       for q in ("W", "B", "omega")},
                    **{f"orbit/{q}": tr[q] for q in ("a", "b", "lam")}}, step=step)
@@ -191,11 +226,15 @@ def main(cfg: DictConfig):
               " ".join(f"{k}={w[k] * gs[k] / tot:.3f}(g{gs[k]:.3f})" for k in names) +
               f" | omega_h={orb['h']['omega']:.3f} omega_z={orb['z']['omega']:.3f} "
               f"lam={tr['lam']:.3f}" +
+              (f" own={extra['orbit/h_own_omega']:.3f}"
+               f" gentle={extra['orbit/h_gentle_omega']:.3f}" if extra else "") +
               ("".join(f" {k.split('/')[1]}={v:.3f}" for k, v in sorted(rhos.items()))
                if rhos else ""), flush=True)
 
     total_steps = steps_per_epoch * frame.epochs
-    cadence = set(frame.cadence())
+    # extra_cadence (D-079a): E27 cells add ep10 so the dose-confirm read rides a saved
+    # state ("be mindful of ep10 checkpoint"). null = the quarter-point cadence unchanged.
+    cadence = set(frame.cadence()) | {int(e) for e in (cfg.extra_cadence or [])}
     gnorm_med, step = None, start_ep * steps_per_epoch
     for epoch in range(start_ep, frame.epochs):
         method.train_mode(modules)

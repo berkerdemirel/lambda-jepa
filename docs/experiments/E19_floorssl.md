@@ -4,6 +4,12 @@
 theory of why moment works at h, we should move it to z. thats a big priority."). Launch upon
 pull + smoke. D-row: D-042 (PROPOSED at launch).**
 
+**Current status (as of 2026-08-07): CLOSED.** Takeaways **E19-T1** (the dose law:
+transplants dose by realized share, not nominal λ; the conduit is real but dose-gated) and
+**E19-T2** (the standalone failed as instantiated — both doses predated the dose law; ruled
+failed-but-retrying) are USER-APPROVED (2026-07-19, wording FINAL 2026-07-20). The method
+line continued in E21, where it graduated to its own class.
+
 ## Question
 
 E12/E17 established WHY the moment floor organizes h (T6: safety = cluster-blindness × activity

@@ -1,8 +1,9 @@
 """E26 public-zoo guillotine (Berker 2026-08-06: "i am waiting for e26 public zoo
 guillotine fig") — zoo2 format restricted per D-076: rows = 6 public models, columns =
 lin_v2 · knn200 · rankme/d · effrank/d · gauss_kl_full · pos_cos · rand_cos · class
-margin (same−diff) · Ω; x = L03 L06 L09 cls ONLY (no head stations, no a/b/Λ). Grey =
-the other models. siglip rides gap L-taps + pool at cls (no prefix token; card-noted).
+margin (same−diff) · Ω; x = L03 L06 L09 cls ONLY (no head stations, no a/b/Λ; no
+cross-model overlay — grey removed per Berker 2026-08-06). siglip rides gap L-taps +
+pool at cls (no prefix token; card-noted).
 Sources: probe CSVs where written + a stdout HARVEST of the [probe] headline lines for
 the 4h-TIMEOUT probe jobs (their completed spaces are logged; the 12h top-ups
 63097596/7 fill mae-L09 + dinov2-L03/06/09 — cells plot as gaps until then, script

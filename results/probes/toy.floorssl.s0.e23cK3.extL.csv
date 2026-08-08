@@ -63,12 +63,12 @@ toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.h.ga
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.h.gap.L09,linear_l2_v2,0.806624174118042,9469,3925,10,753.0,874.0
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.h.gap.L09,knn_v1_k200,0.6692993630573248,9469,3925,10,,
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.h.gap.L09,knn_v1_k20,0.7322292993630574,9469,3925,10,,
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_raw_v1,0.8624203205108643,9469,3925,10,11.0,30.0
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_raw_v2,0.8657324314117432,9469,3925,10,90.0,211.0
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_raw_v1,0.8624203205108643,9469,3925,10,12.0,30.0
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_raw_v2,0.8654776811599731,9469,3925,10,90.0,211.0
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_house_v1,0.8642037510871887,9469,3925,10,16.0,30.0
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_house_v2,0.8642037510871887,9469,3925,10,16.0,137.0
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_l2_v1,0.8547770380973816,9469,3925,10,28.0,30.0
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_l2_v2,0.8647133111953735,9469,3925,10,205.0,326.0
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,linear_l2_v2,0.8649681210517883,9469,3925,10,296.0,417.0
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,knn_v1_k200,0.8519745222929936,9469,3925,10,,
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.out,knn_v1_k20,0.8517197452229299,9469,3925,10,,
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,imagenette.val.v1L,student.z.proj.tap1,linear_raw_v1,0.8766878247261047,9469,3925,10,9.0,30.0

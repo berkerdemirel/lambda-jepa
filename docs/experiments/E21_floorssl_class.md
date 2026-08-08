@@ -4,6 +4,12 @@
 dont rely on vicreg's architecture. i want to see both versions, one copying vicreg part
 (expander BN etc) and the other should try the bn free way"). D-row: D-046 (PROPOSED).**
 
+**Current status (as of 2026-08-07): COMPLETE.** **E21-T1** USER-APPROVED *partial*
+2026-07-20 (held items listed on the card with their triggers); **E21-T2** — the
+estimator-width arc: view-mean payment was right, its wall was real, temporal accumulation
+removes it — USER-APPROVED 2026-07-22. The operating recipe this card settled (view-mean
+payment at both taps, d′ restored by the ring) is what every later cell runs.
+
 ## Question
 
 Two-in-one: (1) the method graduates to its own class (`sslgap/methods/floorssl.py`:

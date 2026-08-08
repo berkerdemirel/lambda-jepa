@@ -3,7 +3,13 @@
 **Opened under D-076 (USER-APPROVED 2026-08-04; prioritized by Berker 2026-08-05:
 "(i) public checkpoint guillotines").** The theory track's sanity anchor: strong
 public backbones with NO engineered nondegeneracy guarantee, measured under our
-guillotine columns. Status: WAVE 1 (fetch + selftests) EXECUTING.
+guillotine columns. Status when opened: WAVE 1 (fetch + selftests) EXECUTING.
+
+**Current status (as of 2026-08-07): LANDED, READ PENDING.** All 6 models fetched,
+selftested, and measured; anchors reproduced; the cloud-thickness stations are on record
+(`results/diag/e26_stations.csv`). Owed: the grey-free zoo guillotine figure, then the joint
+read — P-E26-1/2/3 scores are prepared but **not** agreed, and no takeaway is written until
+that round happens.
 
 ## Rules of record (all from D-076)
 
@@ -114,7 +120,10 @@ P-E26 scoring joint):**
 Bare stats, recorded without reading: Spearman(probe-lin rank, Ω-cls rank) n6 =
 **+.829** in the low-Ω-better direction; the three augmentation-invariance models
 (dino family) sit at Ω cls .32–.39, the two language-supervised at ≈1.02–1.04, the
-reconstruction model at 2.65. Every model's Ω is monotone decreasing L03→cls except
+reconstruction model at 2.65. **Reading caveat (Berker 2026-08-06): "be careful when
+you interpret mae or recons based models as their downstream perf and latent space
+organization is also poor"** — reconstruction models are poor-organization anchors,
+not counterexamples to organization claims. Every model's Ω is monotone decreasing L03→cls except
 mae (flat-high) and clip (bump at L06). Threshold-normalized positions need the
 zoo's own touch-census fit (c per D-076 track) — not yet computed.
 

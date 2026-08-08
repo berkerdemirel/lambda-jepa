@@ -1,8 +1,8 @@
 run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,cka_linear,cross,0.6888884025729352,,,9469,384x256,none
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.31639913732638186,,,9469,384x256,none
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.7469438561714009,,,9469,384x256,none
-toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.915,,,9469,384x256,none
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,cka_linear,cross,0.6888859957682119,,,9469,384x256,none
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.3163920478558249,,,9469,384x256,none
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.746952419637587,,,9469,384x256,none
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.9148,,,9469,384x256,none
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.9122123625693723,,,9469,384x2048,none
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.6180211625663639,,,9469,384x2048,none
 toy.floorssl.s0.e23cK3.extL,imagenette.train.v1L,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.31227733473443137,,,9469,384x2048,none

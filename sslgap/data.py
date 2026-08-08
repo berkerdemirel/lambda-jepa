@@ -405,6 +405,32 @@ class ViewsDataset(torch.utils.data.Dataset):
         return self.split_src.n
 
 
+class LejepaMultiCropDataset(torch.utils.data.Dataset):
+    """E27 Recipe v2 multicrop (D-079a/D-082): n_g globals @ img_size + n_l locals @ local_size,
+    EVERY view the house symmetric lejepa photometric family (orbit_stack) — only the RRC
+    geometry differs between groups. Defaults = the LeJEPA-repo-PUBLISHED geometry (README:
+    globals 224 scale (0.3, 1.0), locals scale (0.05, 0.3) at 98 for /14 arches → 96 here, the
+    /16 patch-divisible adaptation, declared). Their full trainer stays unpublished; view
+    counts follow the paper recommendation (V_g=2, V_l=8 — outranks the README's 6-local
+    example per the D-081 gap-fill order). DINO's asymmetric global1/global2 blur/solarize
+    split is NOT copied. Returns ((g [n_g,C,G,G], l [n_l,C,L,L]), y)."""
+
+    def __init__(self, dataset, split, img_size, data_root=None, n_g=2, n_l=8, local_size=96,
+                 global_scale=(0.3, 1.0), local_scale=(0.05, 0.3)):
+        self.split_src = _FullSplit(dataset, split, data_root)
+        self.tg = orbit_stack(img_size, tuple(global_scale))
+        self.tl = orbit_stack(local_size, tuple(local_scale))
+        self.n_g, self.n_l = n_g, n_l
+
+    def __getitem__(self, i):
+        img, y = self.split_src(i)
+        return (torch.stack([self.tg(img) for _ in range(self.n_g)]),
+                torch.stack([self.tl(img) for _ in range(self.n_l)])), y
+
+    def __len__(self):
+        return self.split_src.n
+
+
 class MultiCropDataset(torch.utils.data.Dataset):
     """DINO multi-crop over a full split: 2 globals + n_local locals (Lightly/DINO-faithful views;
     port of sslx/dinov2.MultiCropDataset aug='dino'). Returns ((g [2,C,G,G], l [nl,C,L,L]), y)."""

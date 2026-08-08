@@ -3,7 +3,11 @@
 **Opened 2026-08-05 (Berker verbatim: "theres this ssl transfer benchmark, including
 dtd, arcr., cars, cifar10, cifar100, flowers102, food, pets datasets … we have one
 good checkpoint for in1k from the d256vm4 experiment. lets put that onto a test!").**
-Decision row D-078. Status: EXECUTING.
+Decision row D-078. Status when opened: EXECUTING.
+
+**Current status (as of 2026-08-07): CLOSED.** **E25-T1** USER-APPROVED 2026-08-06 — the
+transfer verdict plus the multi-ViT IN-1k program it launched. Benchmark-faithful linear
+16/16 and LeJEPA-protocol few-shot 32/32 landed on d256vm4-1k. Successor: **E27**.
 
 ## Protocol of record
 

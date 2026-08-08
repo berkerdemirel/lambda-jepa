@@ -5,6 +5,12 @@ three discussion rounds this date). D-rows: D-067 (design), D-068 (instruments).
 brief: SESSION_OPENER.md (2026-07-22→29) — Saunshi et al. 2022 orbit-overlap reading; the
 field tunes leakage via the MLP-after-h without naming it.**
 
+**Current status (as of 2026-08-07): CLOSED — nothing owed.** **E23-T1…T3** (the IN-1k
+3-cell read and the calculus usage rules) USER-APPROVED 2026-08-03; **E23-T4** (the
+share-pinned capacity read: the stage-C craters were dose artifacts; a smooth capacity map
+with one interior optimum) and **E23-T5** (instrument rows + P-closure) USER-APPROVED
+2026-08-06. Grey-free figures on disk as `e23_guillotine_grid_{width,depth}_oas.png`.
+
 ## Question
 
 A shallow projector cannot satisfy the SSL objective inside the head, so invariance pressure
@@ -388,7 +394,45 @@ rule (Berker: the metric lens stays aug-accessible/label-free; class-conditioned
 quantities are evaluation-side only; caveat — orbit overlap does not guarantee same-class
 connectivity).
 
-## ON-HOLD RECORD — stage-C′ finals, 12/12 to ep150 (2026-08-05; raw, P0–P9 scoring + joint read deferred per Berker)
+**E23-T4 (USER-APPROVED 2026-08-06, Berker: "yes record and i agree your takes" + "so
+right now we dont owe anything from e23"; wording delegated per the standing trust) —
+THE SHARE-PINNED CAPACITY READ: the pooled craters were dose artifacts, and on clean
+forces the capacity map is smooth with one interior optimum.** Under uniform
+share-pinned dosing on the vm-OAS anatomy (D-069 as amended), every pooled crater
+fills: W256/W512 .37/.37 → .87/.87, K0/K6 .45/.45 → .85/.85. The map: depth peaks
+interior (K3 .8808 online / .8782 offline-lin grid max; kNN peak K2 = vc .8624) and
+width rises monotonically to the 2048 reference; Ω_h is monotone in K (.217 → .657)
+with the depth acc peak at .78 of the touching threshold and degradation on BOTH
+sides — the interior-optimum-in-threshold-units shape. R4 healthy grid-wide (all 44
+per-stage Λ factors > 1; no crater, no sick stage) with a clean migration: as head
+capacity grows the thinning work moves from late trunk into the head (L09→cls factor
+1.59 → 1.08 across K0→K6 while the head factor rises 1.14 → 1.86); the h0 twins run
+the mirror image and both carry the invented-dimensions signature (b↑ with
+effrank_h↓: W64h0 1.31/52.3 vs W64 .86/84.5; K6h0 4.23/34.3 vs K6 .89/54.4).
+Figures: `e23_guillotine_grid_{width,depth}_oas.png` (grey-free per Berker);
+stations `e23c_grid_stations.csv`.
+
+**E23-T5 (USER-APPROVED 2026-08-06, same round) — INSTRUMENT ROWS + P-SCORING
+CLOSURE.** (i) **Two regimes of small a** — forced amputation (W32: the rank-32
+bottleneck discards scatter it cannot carry; h fattest of the lane, probes worst) vs
+learned selection (K3/K4: a equally low but cv_ak rising, h healthy, probes rising):
+**a alone is not a health readout; read the pair (a, cv_ak) plus the h-state**
+(Berker's "discarding stuff rather than faithfully solving the task" reading,
+confirmed). (ii) **Force-constancy caveat:** share-pinning fixes the formation
+phase; each cell's equilibrium then drifts on its own, so raw loss LEVELS
+(inv_final, W_z) are not force-normalized across cells — cross-cell reads ride the
+ratio geometry (Ω, Λ, threshold positions, cv_ak), reinforcing the D-068 addendum.
+(iii) **P-scoring closed:** P0/P2/P4/P5′/P6/P7 SUPPORTED (P0 monotone to K4, flat
+K6; P7 on K≥1 — cv .21→.60, r²_lin .75→.24); P3 shape SUPPORTED / mechanism REFUTED
+(enrichment monotone-down 5.4→1.6, no interior peak); P1 REFUTED-ON-PROXY under
+caveat (ii); P9 REFUTED (the two-regime crossing defeats the smooth-width-dial
+premise); **P8′ DROPPED-WITH-RECORD** (deliberately not run — wd axis demoted at the
+stage-C reshape, trends coherent, no conclusion depends on it); **interaction cells
+SKIPPED** (both ladders smooth with a single interior optimum; the R4 migration
+explains the width×depth coupling — refinement, not revision). E23 owes nothing
+further.
+
+## LANDED RECORD — stage-C′ finals, 12/12 to ep150 (read closed 2026-08-06; T4/T5 above)
 
 All 12 vm-OAS share-pinned cells completed ep150 (chains 63025261–284, completeness
 rule; zero dead cells). Final/best online probe:
@@ -414,3 +458,17 @@ physical — the NFS backend compresses; `store.py` counts logical) → W64 extr
 probe StopIteration (no val manifest); only W32 landed fully, K3/K6/W64h0/K6h0
 partially. Cap raised per Berker's 2026-08-05 ruling (D-077); partial stores wiped
 and `e23_land_grid.sh` refired same day (idempotent).
+
+**Incident CORRECTION (2026-08-06, caught at the agenda-(i) read):** the 2026-08-05
+refire FAILED silently — D-077's cap raise had landed only in `store.py`'s default
+while `experiments/configs/extract.yaml` still pinned `cap_gb: 500` (extract.py passes
+the config value; the zoo extractions succeeded because `pubzoo_extract.py` uses the
+store default — the discriminating pair). Every refire extract died at the old cap in
+~32 s; the "relanded 12/12" record was wrong: stores held a partial `train.v1L` only —
+NO o8 orbits, pairs, or val manifests for any C′ cell (so no orbit calculus was ever
+computable — Berker's missing-guillotine observation). The Aug-5 battery CSVs were
+computed on those partial stores; the 3 probe CSVs (W32/K3/W64h0) were Aug-4 pre-wipe
+artifacts. Fix: `cap_gb: 1000` at the binding site + partials wiped + full re-land
+(extracts 63106986–63107019 all COMPLETED 2026-08-06; probes/audits + D-068
+instruments `e23c_grid_*.csv` + the C′ guillotines `e23_guillotine_grid_{width,depth}
+_oas.png` chained behind).

@@ -4,6 +4,13 @@
 moment floor loss on h to every method in our method zoo without touching their z losses").
 Launch upon calibration pulls + smokes. D-row: D-045 (PROPOSED at launch).**
 
+**Current status (as of 2026-08-07): CLOSED.** Takeaways **E20-T1** (dino's miss is dose,
+not fit — T=6% is not a universal optimum), **E20-T2** (the four winning view arms are not
+converged at 100 ep), **E20-T3** (the calibrated conditioner at h gains two columns in 4/5
+view lanes; the benefit is view-lane-shaped) are USER-APPROVED 2026-07-19 (wording FINAL
+2026-07-20); **E20-T4** (the zoo2 read: an (Ω, Λ) dial with a gain band) USER-APPROVED
+2026-08-03.
+
 ## Question
 
 The divergence ladder (E19 card) identified nominal-λ transplantation as the reason the

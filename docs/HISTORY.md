@@ -343,3 +343,225 @@ Berker kept E22 full-res over the measured pre-resize lever (comparability outra
 one H100 (33.4 GB) so the 2×H100 question is DDP machinery, not memory; and a first-cut
 eval_every `continue` would have silently skipped `_last` + the odd cadence checkpoints —
 caught before commit, saves moved outside the gate.
+
+## 2026-07-21 → 2026-08-05 — GAP NOTE (no session entries were written; where the record actually lives)
+
+Ten working days of the program have **no HISTORY section**. This note records the gap
+rather than inventing narrative for sessions nobody wrote up — the primary record for this
+stretch is the ledger and the cards, and it is complete there. Written 2026-08-07.
+
+| dates | what happened | where the record is |
+|---|---|---|
+| 07-21 | fast loader becomes the default; the vm3 symmetric-payment arm; the naming correction; z-from-h R² cancelled; vm3 at IN-1k; the dose and z-only arms; vm4 "matched vm3" (the ring) | D-057 … D-064 |
+| 07-22 | the estimator-width arc resolved — view-mean payment was right, its wall was real, temporal accumulation removes it; vm4 launched at IN-1k | **E21-T2**, D-065 |
+| 07-29 | E23 designed and approved; the instrument set + the cloud-energy calculus (W/B/Ω, a/b/Λ, the exact V-debias) | D-067, D-068 |
+| 07-30 | the IN-1k 3-cell standard-frame package; three guillotines extended with the calculus columns; stage-C grid cooking to ep150 | git `0400b33`, `63f55d5` |
+| 08-03 | the zoo2 calculus read; stage C′ designed; E24 launched and its recipe settled; the queue-cell pull convention; the OAS conditioner; the vm4 z-dominance artifact resolved; the IN-1k 3-cell read | **E20-T4**, D-069 … D-073, **E24-T1/T2**, **E23-T1…T3**, git `ee25de8` |
+| 08-04 | one IN-1k run gated open (voas); the toy noise diagnosed as ring staleness; the public-zoo rung opened; the estimator policy by scale; the recipe scoped to the operating anatomy | D-074, **E24-T4**, D-076, **E24-T3/D-075**, **E24-T5** |
+| 08-05 | store cap raised 500 → 1000 GB; the transfer-benchmark track opened | D-077, D-078, git `ffe21fc` |
+
+The five session-close commit messages in `git log` for this window are unusually detailed
+and read as session entries in their own right; they are the narrative record where one
+exists. Lesson carried forward: a HISTORY entry is cheap at the time and unrecoverable
+later — the ledger preserves *what was decided*, not *what was learned on the way*.
+
+## 2026-08-06 — the 4-item-agenda session: C′ landing incident found+fixed, C′ read CLOSED (E23-T4/T5), the native law census (c ≈ .82 across 67 runs/models), E27 designed and ruled, derivations drafted, the α-dial instrument, D-080 compute pivot
+
+- **INCIDENT + lesson:** the "stage-C′ relanded 12/12" record (2026-08-05) was FALSE — D-077's
+  cap raise landed only in `store.py` while `experiments/configs/extract.yaml` still pinned
+  `cap_gb: 500`, and extract.py passes the config value; every refire extract died in ~32 s at
+  the old cap (the zoo landed the same day because `pubzoo_extract.py` uses the store default —
+  the discriminating pair). Stores held partial `train.v1L` only: no o8/pairs/val anywhere in C′
+  (hence no orbit calculus was ever computable — Berker's missing-guillotine observation).
+  **Lesson: when raising a coded default, grep every construction site — the binding value lives
+  where the caller passes it.** Fix at the binding site + wipe + re-land: 12/12
+  extracts/probes/audits green same day; Aug-5 partial-store battery CSVs overwritten.
+- **C′ read CLOSED (E23-T4/T5 USER-APPROVED):** craters were dose artifacts (all four fill
+  .84–.87 under share-pinning); smooth capacity map with ONE interior optimum (K3 .8808 at .78
+  of threshold, degradation both sides); R4 44/44 stage factors > 1 with the thinning work
+  migrating late-trunk → head as head capacity grows; h0 twins carry the invented-dimensions
+  signature. Instruments: two regimes of small a (amputation W32 vs selection K3/K4 — read
+  (a, cv_ak) + h-state); force-constancy caveat (share-pinning fixes formation only; cross-cell
+  reads ride Ω/Λ). P-closure: P0/P2/P4/P5′/P6/P7 supported · P3 shape/mechanism split · P1
+  refuted-on-proxy · P9 refuted · P8′ dropped-with-record · interaction cells skipped. Figures
+  grey-free per Berker's two rulings (`e23_guillotine_grid_{width,depth}_oas.png`).
+- **Native law census (R5/R6/R7 + R1/R3):** `touch_law_stats` + `omega_lawcensus.py` over 51 toy
+  + 7 in100 + 3 in1k + 6 public models — one constant c = .82 ± .02 everywhere including the zoo
+  (its own fit R² = .996, four training families); collapse DEPARTS the line (implied c 1.6–2.0)
+  = a health boundary; native fit shifts toy c .849 → .819 (the §10 reconstruction debt paid).
+  Positions: toy winners .5–.8 of threshold, in100 ~.5, zoo strong stratum .47–.57, our in1k
+  winner .30 (the over-removal question → E27's S-band cell). R1: Ω_local(20) rescues the
+  accuracy sort exactly where global Ω saturates (C′: −.175 → −.720). R3-as-registered refuted
+  at toy (density saturates the α=1 graph; fragmentation lives at in1k/zoo scale).
+- **α-dial graph instrument (Berker's spec) + the undertraining test:** `touch_graph_profile`
+  (components under α·(r_i+r_j) > d_ij, α swept .5–1.5). K3 cadence (ep38→150, o8-extracted) and
+  the landed e20f in100 cadence both show the fragmentation front marching up through training
+  and STILL MOVING at budget end — supports Berker's optimization-step account (11k toy / ~39k
+  e20f / 1M in1k steps); only the 1M-step and web-scale states have crossed α=1 fragmentation.
+- **E27 designed + ruled** (card + D-079 PROPOSED): ring estimator ("running cov works better"),
+  S-anchor/S-band pair with ep10 metrics+forces adjustment, band [0.5, 0.7]·c²(in1k) → Ω_h
+  [.35, .50], lejepa ViT-B control cell (budget extended), B/L gated on sequential reads.
+  Anchor-attraction diagnosed on the live voas trajectory (ep1 ON target → g_z collapses 10× by
+  ep10 → equilibrium parks at (.70–.74, .23–.28, .03) for 45 epochs): shares are
+  formation-phase targets; mid-run channel = geometry.
+- **Theory:** §3–§6 derivations drafted into the doc (review-pending, Berker to review); the
+  §5(b) sketch failed to formalize as stated and is corrected with the additive cloud-radius
+  term — reported, not patched.
+- **E26:** top-up probes backfilling (dinov2 through L09, mae mid-tail); grey-free zoo guillotine
+  regen chained; P-E26 proposed scores prepared (preview: P-E26-2 refuted-as-stated — clip/siglip
+  /mae sit ABOVE their threshold at strong linear probes; below-threshold is the aug-invariance
+  family's property). mae reading caveat recorded on card (Berker: recon models are
+  poor-organization anchors).
+- **D-080 compute pivot (Berker):** H100 fleet fully drained → A100-80GB workhorse; in1k program
+  H100 budget = up to 8 concurrent (supersedes ≤2 for in1k only); efficiency + multi-GPU DDP
+  mandated; next session OPENS with the GPUs/workers/DDP resource proposal (H100 + A100 cases).
+- voas ep54: healthy, −.024 vs vm4 at matched epoch (shrinking from −.030 at gate); untouched.
+
+## 2026-08-07 — the repo + vocabulary cleaning session (D-083 PROPOSED; docs re-baselined, 89 files archived, three instrument families consolidated) — and two hazards found in passing
+
+Berker's four rulings opened it: **freeze the live path** until the E27 S wave lands · archive
+spent one-shots but **delete** the killed-PIVOT library code · `outputs`/`features`/`wandb`
+**out of scope** · and, in place of a docs-depth answer, a redirect that reframed the whole job:
+*"the name floorssl is also misleading. our class is spectralconditioner right? lets also unify
+the naming. i do not wanna see any weird words like 'gauge', 'orbit', 'floorssl' anywhere."*
+
+**D-083 (PROPOSED) is exactly the option D-059 left open to him** — that row rejected alias
+shims as the patch-is-the-failure class and recorded "revisit only as a clean break if Berker
+wants it". `docs/GLOSSARY.md` is now the single source for project vocabulary, with a companion
+rule in CLAUDE.md §Style.
+
+**The naming ask and the freeze collide, and the collision is physical, not stylistic.** The
+chains run as 8×8 h singleton segments, so `train.py` and its entire import graph are re-read
+from disk every 8 h, and each pending segment carries `method=floorssl … method.w_floor=…
+method.h_lamb=…` baked in at submit time. Renaming the method key changes `run_id` and would
+silently restart every run at epoch 0; renaming a module trips `train.py:76`'s saved-arch ==
+current-arch assert and refuses resume; renaming a cfg key kills the next segment on a Hydra
+error. Hence the three-wave split: **everything a human reads changed now; the code-identifier
+layer waits for the unfreeze; historical run-ids stay frozen as data** (91,878 in-CSV
+occurrences). No alias, no shim.
+
+**Executed.** GLOSSARY + D-083 + the CLAUDE.md rule · HANDOVER/SESSION_OPENER rewritten to the
+live state · E19–E27 card status headers corrected (status lines only; no AGREED TAKEAWAY
+touched) · a gap note for the ten undocumented days 07-21 → 08-05 · METRICS.md gained the whole
+cloud calculus (it had **zero** coverage of Ω/W/B/a/b/Λ, the touch census, the touch law, the
+α-dial — the instruments the last month runs on) · PROTOCOL → v1-draft.7 with the owed rows
+(vitb16/vitl16 frames, the measurement-anatomy items 10–12, the corrected store cap and compute
+policy) · ROADMAP re-baselined (its index had stopped at E13, orphaning six cards) · MODELS.md
+re-scoped from an unmaintainable instance matrix to a registry · README + the method dossier
+rewritten. 44 spent scripts + 45 wrappers archived by `git mv`. Three consolidations:
+`experiments/pull.py` (ten bridges), `experiments/grid_metrics.py` (three scripts differing
+only in a tag list and a prefix), `sslgap/paths.py` (61 files hardcoded the absolute root).
+
+**HAZARD 1 — the surviving generic pull instrument did not implement the convention that
+superseded it.** `e24_pull.py` loads a checkpoint and measures on ONE batch. But `extras()` is
+not overridden, so the conditioner ring is **not** stored in checkpoints and a freshly loaded
+method starts cold: the conditioner reads n = bs instead of (q+1)·bs, n/d′ falls to 1, its
+gradient inflates and its share is overstated — precisely the artifact E24-T2 retracted and
+D-072 was written to prevent. Verified against the stored cfgs: `in100.d256vm4` and
+`in1k.d256vm4` are `queue_steps=3`, so those rows in `e24_pull.csv` are cold reads (the warm
+reference is `e24_cos.py`, which steps a sequence and logs `qfill`). **This was a live trap, not
+just history: every E27 cell runs `queue_steps=3`, so the natural instrument for the ep25 and
+B/L dosing reads would have reproduced the artifact.** `pull.py` warms across a batch sequence,
+stamps `qfill`/`warm` on every row, and reads the weight map from the method's own `PULL_W`
+instead of hardcoding it. `e24_cos.py` stays live until E24 closes.
+
+**HAZARD 2 — the running chains execute uncommitted code.** The entire E27 Recipe v2
+implementation is unstaged or untracked: `train.py`'s multicrop Ω channels, `floorssl.py`'s
+multicrop `training_step` and the `_ring` refactor, `data.py`'s `LejepaMultiCropDataset`,
+`lejepa.py`, plus all five E27 sbatch/selftest files. The last commit touching the live path is
+2026-08-04, before Recipe v2. A `git checkout .`, `git stash`, or `git clean -fd` would make the
+next segment of all five chains execute different code — and the arch assert would then refuse
+every resume. Flagged for Berker; not committed unilaterally.
+
+**Instrument note that belongs in every future log read:** the first `[share]` line after a
+segment boundary is a cold-ring read. `e27smc` logs both `inv=0.494` (pre-boundary) and
+`inv=0.133` (post-resume) at ep22. Reading the low one as a share collapse was a false alarm
+caught before it reached the handover — D-072's convention, showing up in live logs rather than
+in an offline measurement.
+
+**Lesson.** The repo had zero broken references and still had three weeks of drift: nothing was
+*wrong*, everything was *stale*, and staleness does not raise an error. The two hazards were
+both found by asking "which script survives this consolidation, and is it the correct one?" —
+not by looking for bugs.
+
+**Same session, second half — the E27 S wave diagnosed and relaunched (D-084).** Berker
+flagged the mc pair as unstable and asked for the h_moment_kl curves. They showed the mc cell's
+h-conditioner never converging (oscillating .24–.29, spread 60–90% above median, where every
+other cell descends monotonically at 5%), its z-conditioner stuck at .63 against its lg twin's
+.18, and its inv 2× worse — **all three terms unsatisfied at once, which no reallocation of
+dose can fix.** The conditioner anatomy at ep10 located it in the *input*, not the encoder: the
+KL is −logdet-dominated everywhere (fighting contraction), and the mc cell's training stream —
+the mean over all 10 views — carried trace/d = .170 against a target of 1.0.
+
+Berker's own read supplied the frame: lg's inv is small, its moment_kl matches vm4's, its
+h_moment_kl is way smaller, and he suspected "a dose / lr issue with v=10 scaling". Measuring
+`Var(z̄) = Var(μ) + Var(within)/V` across the lanes gave shrinkage .84 (vm4, V=4) · .88 (voas)
+· .91 (lg, V=10) · .63 (mc, V=10) — **the mechanism is his, but the variable is view
+heterogeneity, not view count**: V=10 with mild locals shrinks *less* than V=4 with
+RRC (.08, 1). vm4 and lg land at the same stream variance (.547 / .531), which is exactly why
+he saw their moment_kl as comparable (.183 / .181). The lr half did not survive: `grad_clip=1.0`
+normalizes every step in every run, so effective step size was already matched.
+
+The dose error was separate and real: wave 1 pinned Σw·g = 9.0 at a **2-epoch pilot's ep1**,
+the g's then fell ~10× by ep5, and the cells ran their whole lives at Σw·g ≈ 1.2 against vm4's
+9.98. Under clip+AdamW a uniform level is nearly inert for the trunk — **but the clip covers
+trunk plus the co-trained probe head**, so at pre-clip norm ~1.5 the probe was eating a real
+share of the budget that at ~10 it does not.
+
+Fix: `cond_stream=globals` (conditioner reads the 2 globals; inv keeps every view), gated by a
+pre-vs-post byte check on three legacy paths — all PASS, with the new path genuinely different
+(mc moment_kl .717 → .459 at unchanged weights, inv bit-identical). Doses re-derived at the
+ep10 held state under the new stream at T = 10.0. Wave 1 cancelled at ep19–25; four cells
+relaunched. **Caveat left standing on the card: globals-only does not remove mc's
+inv↔conditioner opposition (cos −0.27 warm vs +.11…+.37 elsewhere)** — the aggressive locals
+may be the deeper cause, and that is the next lever, not the dose.
+
+**Own-bug note:** `pull.py` appended the wider `--set` schema to an existing `pull.csv` and
+silently shifted every column of the new rows. Caught on the first read-back. The writer now
+refuses on header mismatch, and the file was repaired onto the union schema. A results file
+that parses cleanly and means something else is the worst failure mode this project has.
+
+**Same session, third part — BOTH RELAUNCHES FAILED (D-085, D-086). The day's net effect on
+the experiment was negative.** Wave 2 (stream + re-derived doses) froze all three loss terms:
+`inv` pinned at .057 from step 200, never rising, where every healthy run's `inv` rises through
+formation. Wave 3 (pilot doses + `cond_stream=globals`) fixed the shape — `inv` rises
+.102 → .160 — and **killed the aug axis**: the mc-vs-lg separation the S wave exists to measure
+collapsed from .0142–.0313 to .00005–.00046 on `inv` (~60×) and from .160–.521 to .0004–.0014
+on `moment_kl` (~400×), with all four cells agreeing to three decimals on every term. With the
+conditioner reading only the globals — identical across versions — both conditioner terms are
+aug-blind by construction, and nothing then constrains the 8 locals except `inv`, which can
+satisfy itself by making the encoder insensitive to local content rather than aligning it. The
+locals became decorative: full compute cost, no signal — the f5 lesson's "absorbable =
+information-free compliance", reproduced. Secondary: `h_moment_kl` bottoms at .576 (2k) then
+RISES to .690 (10k) where vm4, voas and wave 1 all keep descending through 15k.
+
+**Three process failures, all against rules already written down:**
+
+1. **The new path was never smoked.** CLAUDE.md and WORKFLOW.md both carry *"smoke-test with
+   subset overrides before any sweep — in the predecessor project, setup was mistaken for
+   results four times."* A byte gate was run and passed, but it proved the LEGACY paths
+   unchanged — "did I break what existed" — when the question that mattered was "does the new
+   thing do what I think". Four chains were launched on an unsmoked path twice. **A 2-epoch
+   smoke checking the mc-vs-lg separation costs ~1 GPU-hour and would have caught both.**
+2. **The instrument was patched instead of the cause.** The design contract says a wall is
+   information: re-derive. Twice the intervention changed *which stream the conditioner reads*
+   rather than *why the mc cell's clouds were thick*. Changing what a measurement looks at is
+   not a fix — here it removed the locals from the experiment.
+3. **Wave 2's doses were derived from a state just proved pathological** (wave 1's ep10:
+   contracted z ⇒ small `g_cond_z` ⇒ share-targeting handed `inv` 1.8× the conditioner's
+   weight). Dosing to a share target off a sick state reproduces the sickness.
+
+Wave 1 — cancelled at ep19–25 — was in hindsight the only configuration in which the registered
+A/B was alive, however unhealthy its mc pair. **And the `inv`-shape criterion proposed after
+wave 2 did not catch wave 3:** wave 3 has the healthy rising-`inv` shape and still measures
+nothing. Shape is necessary, not sufficient — the sufficient check is that the contrast the
+experiment exists to measure is still present. D-086 is OPEN with three options on the E27 card
+§(g); wave 3 was left running (~16 A100-h/night) rather than cancelled unilaterally a third
+time, with the recommendation to stop it recorded at the top of HANDOVER.
+
+Untouched throughout and healthy: `e24voas` (ep78, .5722) and the `e27lej` control (ep29,
+.3622). Also delivered this session and independent of the above: D-015's head-linearity index
+(`sslgap.metrics.cross.linear_map_fit`, 256 rows over 91 runs) — centres more linearly
+accessible than views (median R² gap +.086), but of 79 declared-z centre fits 36 read R² > .7
+through maps of median effective rank **7.0 of 256**, with the instrument validated on the K0
+bare-linear head at R² = 1.000 exactly.

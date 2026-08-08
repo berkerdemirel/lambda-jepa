@@ -8,6 +8,14 @@ running anything on in1k)"). D-row: D-070. Sequencing: E23 stage C′ (D-069) ex
 this delivers the recipe; E23 P0–P9 scoring HELD; anything IN-1k is GATED on E24 closing +
 Berker.**
 
+**Current status (as of 2026-08-07): takeaways APPROVED; card OPEN on the voas landing.**
+**E24-T1** (the share recipe: ~2/3 inv, ~1/3 z-conditioner, a few % at h — s\* ≈ (.63, .34,
+.03)), **E24-T2** + **E24-T2-CLOSE**, **E24-T3/D-075** (estimator policy by scale),
+**E24-T4** and **E24-T5** are all USER-APPROVED. Still owed: `e24voas` reaches ep100
+(~2026-08-08, at ep74 on 2026-08-07) → its landing chain, the OAS-vs-ring A/B read
+(information only — the ring is already ruled for E27), and the in-training-vs-o8 Ω offset
+that E27's band steering depends on.
+
 ## Question
 
 The three floorssl pulls (inv@z, floor@z, floor@h) reach the trunk through anatomy- and

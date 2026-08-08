@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.h.cls,alignment,pairs,0.6996442793346134,0.6913443932207424,0.7080875403126525,9469,384,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.6501778603326578,0.6453913422585683,0.6541245071714831,9469,384,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.h.gap,alignment,pairs,0.16927235547508213,0.1674414756520291,0.17135815508980595,9469,384,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.9153638222624445,0.9141866091233448,0.9165359256462516,9469,384,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.out,alignment,pairs,0.3806137492920013,0.37100497110103814,0.3890116128052997,9469,256,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.8096931253539595,0.8051260456309063,0.8137144825984741,9469,256,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.46608500697013794,0.4601598397626031,0.47230110943019965,9469,2048,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.7669574965149095,0.7631653297800415,0.7700446184080818,9469,2048,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.tap2,alignment,pairs,0.3825557788570744,0.3753357470381505,0.3890974286072943,9469,2048,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.tap2,cos_invariance,pairs,0.8087221105714403,0.8052754719226584,0.8118046051586408,9469,2048,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.tap3,alignment,pairs,0.29894725901900554,0.2920706747887363,0.30536167567816125,9469,2048,cheap
+toy.floorssl.s0.e23cK3.extL,imagenette.train.v1@audit_v1,student.z.proj.tap3,cos_invariance,pairs,0.8505263704904727,0.8475086301209158,0.8536065213788394,9469,2048,cheap
