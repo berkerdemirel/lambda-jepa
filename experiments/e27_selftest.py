@@ -195,4 +195,16 @@ assert mlm.cond_z.rho_last is not None, "lightly_mc cell must run OAS"
 assert all(p.grad is None for p in mods_lm["teacher_backbone"].parameters())
 print(f"[selftest] lightly_mc+swa step: loss {t_lm['loss'].item():.4f} "
       f"inv {t_lm['inv'].item():.4f} V=8 rho {mlm.cond_z.rho_last:.3f}")
+
+# (10b) 4-global geometry (D-097, the VISReg-matched B mirrors): the mc branch is
+# Vg-agnostic — 4g+6l steps finitely with the right shapes.
+cfg_l4 = OmegaConf.merge(cfg_lm, {"Vg": 4})
+ml4 = FloorSSL(cfg_l4, frame)
+mods_l4 = ml4.build_modules().to(dev)
+g4 = torch.randn(2, 4, 3, 224, 224, device=dev)
+t_l4, pf_l4, k_l4 = ml4.training_step(mods_l4, (g4, l6), dev)
+t_l4["loss"].backward()
+assert k_l4 == 10 and tuple(pf_l4.shape) == (20, 384)
+assert all(torch.isfinite(v) for v in t_l4.values())
+print(f"[selftest] 4g+6l step: loss {t_l4['loss'].item():.4f} V=10")
 print("[selftest] ALL PASS")

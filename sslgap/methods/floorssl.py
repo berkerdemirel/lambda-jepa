@@ -206,7 +206,8 @@ class FloorSSL(SSLMethod):
         if self.cfg.get("aug", "byol") == "lightly_mc":
             return LightlyLejepaMultiCropDataset(
                 self.frame.dataset, "train", img_size=self.frame.img_size,
-                data_root=self.frame.data_root, n_l=self.cfg.get("Vl", 6),
+                data_root=self.frame.data_root, n_g=self.cfg.get("Vg", 2),
+                n_l=self.cfg.get("Vl", 6),
                 local_size=self.cfg.get("local_size", 96),
                 global_scale=tuple(self.cfg.get("global_scale", (0.3, 1.0))),
                 local_scale=tuple(self.cfg.get("local_scale", (0.05, 0.3))))

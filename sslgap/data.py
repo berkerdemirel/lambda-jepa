@@ -460,17 +460,21 @@ class LightlyLejepaMultiCropDataset(torch.utils.data.Dataset):
     asymmetry). House k9 blur approximates their radius-sampled PIL blur (the standing DINO-port
     declaration, _dino_view). Returns ((g [2,C,G,G], l [n_l,C,L,L]), y)."""
 
-    def __init__(self, dataset, split, img_size, data_root=None, n_l=6, local_size=96,
-                 global_scale=(0.3, 1.0), local_scale=(0.05, 0.3)):
+    def __init__(self, dataset, split, img_size, data_root=None, n_g=2, n_l=6,
+                 local_size=96, global_scale=(0.3, 1.0), local_scale=(0.05, 0.3)):
         self.split_src = _FullSplit(dataset, split, data_root)
         self.g1 = _bench_view(img_size, tuple(global_scale), blur_p=0.5, solar_p=0.0)
         self.g2 = _bench_view(img_size, tuple(global_scale), blur_p=0.5, solar_p=0.2)
         self.loc = _bench_view(local_size, tuple(local_scale), blur_p=0.5, solar_p=0.0)
-        self.n_l = n_l
+        self.n_g, self.n_l = n_g, n_l
 
     def __getitem__(self, i):
+        # n_g > 2 (D-097, the VISReg-geometry B mirrors): extra globals ride the g1
+        # transform — Lightly's per-view asymmetry (solarize on the SECOND global only)
+        # is preserved as exactly one solarize-eligible view at any n_g.
         img, y = self.split_src(i)
-        return (torch.stack([self.g1(img), self.g2(img)]),
+        gs = [self.g1(img), self.g2(img)] + [self.g1(img) for _ in range(self.n_g - 2)]
+        return (torch.stack(gs),
                 torch.stack([self.loc(img) for _ in range(self.n_l)])), y
 
     def __len__(self):
