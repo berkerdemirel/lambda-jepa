@@ -24,7 +24,7 @@ from torch.nn.utils.parametrizations import spectral_norm
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torchvision.ops import MLP
 
-from sslgap.data import LejepaMultiCropDataset, ViewsDataset
+from sslgap.data import LejepaMultiCropDataset, LightlyLejepaMultiCropDataset, ViewsDataset
 from sslgap.methods._common import SpectralConditioner
 from sslgap.methods.base import SSLMethod
 
@@ -171,14 +171,20 @@ class LeJEPA(SSLMethod):
     def build_modules(self):
         # creation order mirrors the official script: backbone-with-emb, then projector.
         # (spec_norm and SpectralConditioner consume no RNG at construction — init streams unshifted.)
-        self._mc = self.cfg.get("aug") == "lejepa_mc"
+        # D-092 Lightly-replication anatomy: emb_dim=0 -> timm num_classes=0, encoder(x) = bare
+        # trunk CLS (their benchmark has NO embedding stage); projector rides the trunk width.
+        # grad_ckpt (bs=512 fit) and n_slices are RNG-free at construction — init streams unshifted.
+        self._mc = self.cfg.get("aug") in ("lejepa_mc", "lightly_mc")
         enc = lejepa_encoder(self.frame.model_name, self.frame.img_size,
                              emb_dim=self.cfg.emb_dim, drop_path=self.cfg.drop_path,
                              dynamic_img_size=self._mc)
-        proj = lejepa_projector(self.cfg.proj_dim, emb_dim=self.cfg.emb_dim,
+        if self.cfg.get("grad_ckpt", False):
+            enc.set_grad_checkpointing()
+        self._probe_dim = self.cfg.emb_dim or enc.num_features
+        proj = lejepa_projector(self.cfg.proj_dim, emb_dim=self._probe_dim,
                                 depth=self.cfg.get("proj_depth", 3),
                                 spec_norm=self.cfg.get("spec_norm", False))
-        self.sigreg = SIGReg()
+        self.sigreg = SIGReg(n_slices=self.cfg.get("n_slices", 256))
         if self.cfg.get("floor", "sigreg") == "moment" or self.cfg.get("h_reg") == "moment":
             self.floor = SpectralConditioner()
         h_reg = self.cfg.get("h_reg")
@@ -195,7 +201,8 @@ class LeJEPA(SSLMethod):
     def arch(self):
         # depth recorded only when non-default so pre-existing checkpoints' arch dicts (and any
         # in-flight requeue resume asserts) stay byte-identical; rebuild defaults to depth=3.
-        proj_kwargs = {"proj_dim": self.cfg.proj_dim, "emb_dim": self.cfg.emb_dim}
+        proj_kwargs = {"proj_dim": self.cfg.proj_dim,
+                       "emb_dim": self.cfg.emb_dim or self._probe_dim}
         if self.cfg.get("proj_depth", 3) != 3:
             proj_kwargs["depth"] = self.cfg.proj_depth
         if self.cfg.get("spec_norm", False):
@@ -215,6 +222,15 @@ class LeJEPA(SSLMethod):
     def build_train_dataset(self):
         # aug="lejepa_mc" (D-082): the Recipe v2 multicrop control — same dataset class,
         # scales, and view counts as the floorssl lanes (repo-published geometry).
+        # aug="lightly_mc" (D-092): the Lightly-benchmark replication views (their
+        # DINOTransform construction; solarize on global-2 only, 6 locals).
+        if self.cfg.get("aug") == "lightly_mc":
+            return LightlyLejepaMultiCropDataset(
+                self.frame.dataset, "train", img_size=self.frame.img_size,
+                data_root=self.frame.data_root, n_l=self.cfg.get("Vl", 6),
+                local_size=self.cfg.get("local_size", 96),
+                global_scale=tuple(self.cfg.get("global_scale", (0.3, 1.0))),
+                local_scale=tuple(self.cfg.get("local_scale", (0.05, 0.3))))
         if self.cfg.get("aug") == "lejepa_mc":
             return LejepaMultiCropDataset(
                 self.frame.dataset, "train", img_size=self.frame.img_size,
@@ -281,7 +297,15 @@ class LeJEPA(SSLMethod):
             else:
                 emb = modules["encoder"](x)                                # [N*V, emb_dim]
         proj = modules["projector"](emb).reshape(N, V, -1).transpose(0, 1)  # [V, N, proj_dim]
-        inv_loss = (proj.mean(0) - proj).square().mean()
+        if self.cfg.get("mc_form") == "lightly":
+            # D-092 Lightly-replication loss (their lejepa_loss.py verbatim semantics):
+            # anchor = mean over the Vg GLOBALS (no stop-grad — gradient flows into the
+            # centroid); inv pulls the LOCALS only; SIGReg sees the locals only. The paper
+            # form (Eq. 6-9: all views pulled, SIGReg on all) is NOT this — deviation theirs.
+            inv_loss = (proj[:Vg].mean(0) - proj[Vg:]).square().mean()
+            proj = proj[Vg:]                       # downstream reg/sig_in = locals only
+        else:
+            inv_loss = (proj.mean(0) - proj).square().mean()
         sig_in = {"proj": proj,
                   "embed": emb.reshape(N, V, -1).transpose(0, 1),
                   "cls": cls.reshape(N, V, -1).transpose(0, 1) if sig_at == "cls" else None}[sig_at]
@@ -324,7 +348,7 @@ class LeJEPA(SSLMethod):
         return modules["encoder"](x)
 
     def probe_dim(self):
-        return self.cfg.emb_dim
+        return self.cfg.emb_dim or self._probe_dim
 
     def extras(self):
         return {"embed_calibrated": getattr(self, "_calibrated", False)}

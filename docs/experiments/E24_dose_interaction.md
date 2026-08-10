@@ -723,3 +723,49 @@ FINAL (USER-APPROVED 2026-08-06, plain question round): run UNTOUCHED to ep100 �
 the OAS-vs-ring A/B stays clean; the mid-run share-steering question moves to the
 S/B/L program design (E25-T1 successor), where the anchor-attraction diagnosis
 belongs.**
+
+## ROWS FROM THE 2026-08-10 QUESTION ROUND (USER-APPROVED, Berker: "e24 agreed"; wording Fable, veto open)
+
+**E24-T3 (USER-APPROVED 2026-08-10) — the estimator law, measured both ways:** the running-cov ring and
+OAS split by STREAM HOMOGENEITY, not by scale. Homogeneous view-mean stream (V=4
+uniform, in1k, matched everything): ring WINS at land — vm4 .6416 raw/.6554 l2/.5335
+kNN vs voas .5999/.6135/.4574 (−4.2/−4.2/−7.6; voas online read high, the co-trained-
+probe bias visible in-data). Heterogeneous-mean streams (V=10 multicrop: the all-view
+cross-scale mean, the locals-group mean): the ring is TOXIC — stale rows of a
+fast-moving heterogeneous mean produce episodic −logdet blowups (e27grp ep16 g_cond_z
+.034→.575→.032; e27mc probe dips past the noise band), while OAS lanes are monotone
+(D-089). This refines D-075's toy-vs-scale split into a stream-homogeneity law:
+homogeneous → ring (n_eff at full trust); heterogeneous → OAS (adaptive shrinkage
+absorbs the estimation noise the ring amplifies). B/L consequence: estimator choice
+follows the winning wave lane's stream.
+
+**E24-T4 (USER-APPROVED 2026-08-10) — the toy vm-OAS basin recipe:** at toy scale under OAS view-mean
+payment, the dose map has a FLAT BASIN — r (z-share ratio) ∈ .41–.63 spans spread
+.007 with vc .8764 the family record — bounded below by the z-wall at r ≈ .45–.47
+(cells beneath it degrade), with anchor attraction pulling every cell's realized
+shares to the (.70–.85, .1–.3, ~.03) equilibrium and the mechanism visible in ρ̂
+(the evidence meter climbing as the conditioner's demand is met). Operating rule:
+place the dose IN the basin above the wall and let the equilibrium take it; exact
+in-basin position is second-order (±.007).
+
+**EVAL-FRAME FLAG on E24-T3's landed magnitudes (D-090, found 2026-08-10 afternoon —
+the row text above stays verbatim; amendment = Berker's at the joint read):** the voas
+landing rode the SUPERSEDED train500 frame (probe fit + kNN bank on 500k rows) while
+vm4's landing rode the D-066 standard FULL 1.28M train — the extract default regressed
+between the two landings (vm4's 07-30 extract passed `train_per_class=null`; voas's
+08-08 extract didn't). The −4.2/−4.2/−7.6 deficits are therefore manifest-confounded in
+vm4's favor (2.56× probe rows, 2.56× kNN bank); the DIRECTION claim and the entire
+heterogeneous-stream half of the law (in-training trajectories, D-089) are untouched.
+Standard-frame voas re-probe launched (extract 63222502 → 12-space probe 63222503);
+corrected numbers land here beside the originals with deltas. Guard + full record:
+DECISIONS D-090, E27 card §(j.5).
+
+**Ω-offset calibration (DELIVERED 2026-08-10, informational — the band-steering
+consumer was retired at D-088):** voas in-training channel (fixed batch, V=4
+audit_v1, eval-mode) ep99 Ω_h = .220 vs landed o8 Ω_h(cls) = **.2068** → offset
+**+.013 (×1.06)** — the in-training channel reads the landing channel almost
+directly at matched (V=4, audit) construction. vm4 landed .2111 reproduced (method
+check). e27lej landed .1446 (= .20 of threshold; on the E27 card). For the E27 wave
+lanes the same calibration computes at their landings from the 3-channel logger's
+`omega_h` (aud) series. voas end-state shares drifted to (.85, .14, .01) by ep99 —
+the anchor-attraction equilibrium, raw context.

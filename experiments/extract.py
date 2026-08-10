@@ -36,11 +36,23 @@ def _manifests(cfg, frame, manifest_dir):
             train_spec = (f"{tag}.linspace{cfg.linspace_n}.v1",
                           dict(sub="train", per_class=None, linspace_n=cfg.linspace_n))
         else:
-            # train_per_class=null -> the FULL train split, named "<tag>.train.v1" (D-066
-            # standard frame; avoids the "trainNone" edge)
+            # train_per_class: null -> the PROTOCOL standard for the dataset (D-066: in1k =
+            # FULL train; in100 keeps the m50k 500/class frame), 0 -> full split explicitly,
+            # N -> N/class. Dataset-keyed guard added 2026-08-10: the 08-08/09 e24voas+e27lej
+            # landings inherited a yaml default of 500 on in1k and landed on the SUPERSEDED
+            # subsampled frame (train500) while their vm4 comparator was on the standard one.
             tpc = cfg.train_per_class
+            if tpc is None:
+                tpc = {"imagenet100": 500, "imagenet1k": 0}[ds]
+            if ds == "imagenet1k" and tpc:
+                # D-092 (Berker 2026-08-10: "remove 500k variant we do not need to use that
+                # in any case"): the in1k eval frame is FULL train ONLY; the subsampled
+                # variant is removed, not just non-default. linspace_n parity manifests
+                # are a separate, still-legal object.
+                raise ValueError(f"in1k train manifests are FULL-train only (D-066/D-092); "
+                                 f"got train_per_class={tpc}")
             train_spec = (f"{tag}.train{tpc}.v1" if tpc else f"{tag}.train.v1",
-                          dict(sub="train", per_class=tpc, linspace_n=None))
+                          dict(sub="train", per_class=tpc or None, linspace_n=None))
         specs = {"train": train_spec,
                  "val": (f"{tag}.val.v1", dict(sub="val", per_class=None, linspace_n=None)),
                  "pairs": (f"{tag}.pairs{cfg.pairs_per_class}.v1",

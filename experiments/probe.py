@@ -61,11 +61,13 @@ def main(cfg: DictConfig):
                   "n_val": len(yva), "num_classes": num_classes,
                   "best_ep": v.get("best_ep"), "epochs_run": v.get("epochs_run")}
                  for k, v in res.items()]
-    out_dir = os.path.join(cfg.results_root, "probes")
-    os.makedirs(out_dir, exist_ok=True)
-    suffix = f".part_{cfg.space}" if cfg.get("space") else ""
-    pd.DataFrame(rows).to_csv(os.path.join(out_dir, f"{cfg.run_id}{suffix}.csv"), index=False)
-    print(f"[probe] done: {cfg.run_id} -> {out_dir}")
+        # cumulative rewrite after every space: a wall/preemption kill keeps all finished
+        # spaces on disk (the 2026-08-10 e27lej 4h-timeout lost 8 probed spaces + the CSV)
+        out_dir = os.path.join(cfg.results_root, "probes")
+        os.makedirs(out_dir, exist_ok=True)
+        suffix = f".part_{cfg.space}" if cfg.get("space") else ""
+        pd.DataFrame(rows).to_csv(os.path.join(out_dir, f"{cfg.run_id}{suffix}.csv"), index=False)
+    print(f"[probe] done: {cfg.run_id} -> {os.path.join(cfg.results_root, 'probes')}")
 
 
 if __name__ == "__main__":

@@ -565,3 +565,176 @@ Untouched throughout and healthy: `e24voas` (ep78, .5722) and the `e27lej` contr
 accessible than views (median R² gap +.086), but of 79 declared-z centre fits 36 read R² > .7
 through maps of median effective rank **7.0 of 256**, with the instrument validated on the K0
 bare-linear head at R² = 1.000 exactly.
+
+## 2026-08-08 → 08-10 — the takeover sessions: diagnostic sweep, the final five-lane wave, two landings (Fable)
+
+**Takeover (08-08).** D-086 resolved by measurement, not debate: Berker lifted the H100
+cap for a breadth sweep ("make a good breadth … my initial attempt was to scale the
+thing from v=4 to v=10"). 12 single-GPU 5-ep cells, one delta each, fixed known-good
+doses (D-087; jobs 63200567–78; two new stream variants built for it —
+`cond_stream=grouped` and `perview` on the tuple/_ring machinery, selftest-gated).
+Read (card §(h.1)): the wave-1 killer was the DOSE LEVEL (my pilot-ep1 derivation —
+every config shape-healthy at proper Σw·g, mc's oscillation gone); the aug axis alive
+in every stream at proper doses (~1000× wave 3); lg = diversity collapse (−7..−10 pts,
+the aug's whole point inverted); the uniform lane rises v4→v6→v10 (+3.5 at ep5);
+harshness fine at full res, resolution is the tax that compute-matching repays.
+`e27dv4` re-anchored vm4's signature on today's code (inv .467@2k vs .457).
+
+**Landings (08-08/08-10).** `e24voas` ep100 .6127 online → landed .5999 raw/.6135 l2/
+.4574 kNN: OAS LOSES the homogeneous V=4 A/B to vm4's ring (−4.2/−4.2/−7.6); online
+read high (co-trained-probe bias, E12-T9, now visible in-data). `e27lej` ep100 .4929
+online → landed **.5718 raw/.5722 l2/.3373 kNN** — the matched-frame lejepa bar; vm4
++7.0/+19.6 over it (the in100 +7 pattern at in1k); their online monitor UNDERreads
+(embed tap). Lightly's 64.0 is not at this frame → next session's cross-match.
+
+**The final wave (D-088, 08-08 night).** Berker fixed V=10 + the adopted aug constant
+("the recipe adopted by multiple in1k models" — checked: DINO default 2g+8l, DINOv2,
+LeJEPA; SwAV 2+6 the exception), capped OAS at one delta-variant, then added the
+uniform lane back: five 100-ep runs — mc (all+ring), oas (all+OAS), grp (grouped+ring),
+pv (perview+ring), v10u (uniform, vm4-w). ep10 health gate PASSED on all five, no
+corrections; mc paced vm4's own online curve (.4152@14 vs .4188@16 — wave 1's .3558).
+
+**The NFS outage (08-09 02:32–03:25).** Killed every running segment silently and
+drained all singleton chains (0-second follow-up failures, no output files). All six
+`_last.pt`s verified intact; full resubmission from checkpoints; ~4 h lost per lane.
+Lesson recorded: singleton chains have no defense against a filesystem outage —
+recovery is always resubmit-from-_last.
+
+**The ring-staleness surgery (D-089, 08-09 evening).** Berker flagged mc + grp; the
+trajectories confirmed: probe dips past the noise band (mc .4292→.3999) and episodic
+conditioner explosions (grp ep16 g_cond_z .034→.575→.032). The healthy contrasts (oas
+no-ring monotone .4402; pv per-view rings smooth; v10u/vm4 homogeneous rings smooth)
+pinned the mechanism: **the ring is toxic on heterogeneous-mean streams specifically**
+— stale rows of a fast-moving cross-scale mean → −logdet blowups. The D-084 caveat's
+sanctioned OAS fallback invoked: mc+grp cancelled at ep24/ep19 (curves = the recorded
+ring-vs-OAS A/B on those streams; with voas, the estimator question is now answered
+both ways — ring for homogeneous, OAS for heterogeneous). Replacements `e27grpo`
+(grouped+OAS, first-run combo, early-gated healthy) and `e27pvo` (perview+OAS, the
+diag leader config); mc's LeJEPA-matched story transfers to `e27oas` verbatim.
+
+**Also:** checkpoint hygiene per Berker (96 files: waves 1–3, pilots, diag
+intermediates; diag `_last`s kept for anatomy); voas+lej landing chains + batteries
+landed; wandb resume high-water windows documented (panels freeze each segment
+boundary; stdout is the live channel). State at close: five lanes healthy (oas ep38
+.4838 · pv ep36 .4577 · grpo ep18 .4362 · pvo ep18 .4452 · v10u ep15 .4907 — ~+7 over
+vm4's curve), landings 08-11..14. Job trail: sweep 63200567–78; wave 63202191–259 →
+(outage) → 63209099–170; surgery 63214499–526; landings 63201140–42 (voas),
+63215682–84 (lej).
+
+## 2026-08-10 — the faithfulness session (Fable): cross-match delivered (D-091), the eval-frame incident (D-090), Berker's directive batch executed (D-092), the solarize erratum, and the compute-pin surprise
+
+**Opened on the three-priority agenda (lejepa cross-match · visreg check · B/L prep) and
+became a correction-heavy day.** (1) The cross-match against live sources (Lightly repo+S3
+artifacts, galilai-group/lejepa + arXiv 2511.08544v3, HaiyuWu/visreg): the Lightly 64.0 is
+LIGHTLY'S OWN reproduction (the paper has no ViT-S in1k number; their run's online-CLS
+monitor read 56.23 vs offline-MAE 64.0 — +7.8 protocol on identical weights); our control
+carried four port-fidelity mismatches vs sources available at D-082 (inv anchor all-10 vs
+paper's globals-mean; 0.8- vs 0.4-family jitter; 256 vs 1024 slices; proj 16 vs 512-cmd/
+64-best) — and the official in1k ablation commands themselves run an SWA teacher +30%
+patch masking, off-brand vs the no-heuristics pitch. E27 §(j.0–j.8). (2) Mid-match, the
+EVAL-FRAME INCIDENT: the 08-08/09 voas+lej landings had silently ridden train500 — the
+frame D-066 superseded — against full-train comparators (a dropped `train_per_class=null`
+in the landing submissions). D-090: dataset-keyed guard, full-train backfills + reruns,
+wave landing chains re-armed (they had drained in the NFS outage), probe.py made wall-safe
+(the 08-09 lej probe had died at 4 h with 8/12 spaces and no CSV). CORRECTED numbers, same
+day: lej h.cls .5718→**.6000** raw / .3373→**.3749** kNN; voas .5999/.6135/.4574→
+**.6175/.6331/.4910** — the E24-T3 deficits shrink −4.2/−4.2/−7.6 → **−2.4/−2.2/−4.3**
+(linear now at/inside the .027 noise band; kNN still outside) — amendment owed JOINT.
+(3) Berker's directive batch (D-092): in1k train500 REMOVED outright (stores+manifest
+deleted, extract.py hard-errors); in1k eval = full-train + the new `bench_linear_v1`
+column (the Lightly/MAE aug-trained linear, ported as bench_probe.py — their LARS at wd 0
+degenerates to SGD-m, so the port is exact) at every landing; **e27lejl LAUNCHED** — the
+Lightly-replication control at ViT-S, their implementation verbatim (6l, proj 64, 1024
+slices, 0.4-family + solarize-on-g2-only at TRUE p, locals-only inv→globals-mean +
+locals-only SIGReg, no embed stage, bs 512 GLOBAL on ONE H100 ≡ their 4×128 loss
+semantics, grad_ckpt; selftest 7/7 incl. hand-pinned loss forms); **VISReg faithful repro
+staged** (donor pinned 47b1cf4; runnable ~/visreg_repro on THEIR pins with ONE declared
+patch HF-hub→imagefolder; toy smoke PASSED end-to-end; in1k Arrow-index build needs >1 h —
+resubmitted at 4 h; multi-GPU launch as landings free slots; their co-trained probe
+verified gradient-isolated). (4) The AUG ERRATUM, caught by the new selftest: the house
+`RandomApply([v2.RandomSolarize], p=.2)` pattern HALVES the effective probability (v2's
+own p=.5; measured .0988 wrapped vs .1983 bare) — every house stack's effective solarize
+≈.1 vs declared .2; frozen stacks unchanged (code = v1 definition), declarations
+corrected; `_bench_view` = the true-p builder; VISReg's shipped code carries the SAME trap
+(their published numbers = effective ≈.1, and the house effective coincidentally equals
+theirs). (5) The compute-pin surprise (B/L fit smokes, deliberately wall-bounded): **B =
+35 min/ep single H100 (full epoch completed) → ~2.6 d/100 ep; L ≈ 105 min/ep with
+grad_ckpt (7678/10009 steps at the 1.5 h cut) → ~7.3 d** — 3–4× under the card estimates;
+both fit one 80 GB GPU; DDP demoted to a wall-clock accelerator. The L smoke's wandb
+"crashed" state = the wall-cut artifact, not a failure — the pin was the purpose. Bench
+A/B partials at close: lej ep15/90 .5600 · vm4 .6329, both climbing. Wave healthy
+throughout (v10u ep16 .4990 ≈ +8 over vm4's matched-epoch curve). Job trail: probe
+top-ups (cancelled) 63221867–71; backfills 63222500–03; bench 63222504–05; wave landing
+chains 63222506–20; lane bench 63225712–17; fit smokes 63222104/05; lejl chain
+63225989–226004; visreg smokes 63225769/846/226008/228131.
+
+## 2026-08-10 (evening) — the S-read round (Fable): wave cut to two, the zero-diff pivot, the FLOP collapse, SWA built, the program re-based onto the Lightly frame, B opened early
+
+Berker opened on the four-item agenda but ruled from the live curves instead: **v10u =
+the winner; keep only e27v10u + e27oas** (pv/grpo/pvo KILLED at ep44/25/25, chains and
+bench cancelled, ckpts trimmed to `_last`; stream record at kill: all-views-mean ≥
+grouped ≈ per-view, pv plateaued .45–.46 from ep34). Then three rounds that reshaped
+the program, all same evening (D-094/095/096):
+
+**The zero-diff pivot (D-094).** "For lejepa, do what is needed to get the lightly
+numbers, i want no diff" → the in-house e27lejl was stood down while still queued (its
+declared deviations — bf16, k9 blur, seed, monitor — are exactly what "no diff" rules
+out; drop_path 0.1 checked and matched) and the reproduction became THEIR code:
+`third_party/lightly` pinned @ f444cf36, runnable `~/lightly_repro` with ZERO patches
+(their `main.py --methods lejepa`, 4×128 = global bs 512, 16-mixed, unseeded, their
+eval chain), segmented wrapper `slurm/lightly_lejepa.sbatch`. The smoke completed a
+full epoch in 21:16 on 4×H100 (their exact 2502-step semantics) — ~36 h/100 ep; the
+7-segment chain armed the same evening. Berker pushed back ("you should be able to
+exactly match. what is the problem?") and the answer landed as a concession with a
+mechanism: nothing fundamental remains now that their code is an importable ORACLE —
+the two real diffs (fp16-mixed, blur) are closeable and testable; the oracle-certified
+e27lejl relaunch = the our-stack certification twin, held as optional.
+
+**The FLOP collapse (the attribution round).** His own conditional ("if we are sure we
+can account this gain to uniform views") failed on measurement: oas-vs-v10u differ on
+four axes, and the dominant one is per-step compute (1970 vs 690 tokens/sample, ×2.86;
+wall ×1.75). Epoch-matched +7.5 (ep19: .5130 vs .4377) became a FLOP-matched TIE
+(v10u ep16 .4990 vs oas ep46 .4984), and the third point sealed it: vm4 at its
+FLOP-matched epoch reads .5032–.5053 — **all three lanes collapse onto one
+performance-vs-FLOPs curve within ~1 pt** (v10u ~+0.7 above vm4 = the real, small
+view-count bonus). The locals confusion dissolved in the same round: locals are never
+resized up — 96² enters the ViT as 37 tokens vs 197 (the SwAV compute trick), CLS
+summarizes whatever the tokens carry. Berker held that view-compute ≠ epoch-compute in
+principle; the disagreement was converted into a PRE-REGISTERED read: if 10-view
+invariance compounds, v10u's curve lifts off the shared FLOP curve late — the overlay
+(v10u cadence ckpts vs vm4/oas ep100 on the FLOP axis) is owed at the landings.
+
+**SWA (D-095).** "Implement swa, as described in lejepa" — the paper's entire spec is
+one line (*"we apply SWA on the encoder producing μ in Equation (6)"*; Izmailov
+equal-weight; VISReg checked at source: NO teacher anywhere; lightly: none; je.py still
+unpublished — the +2.9–3.4 Table-4 flag is name-only). Implemented in floorssl
+(`+method.swa=uniform`): grad-free eval twin (teacher_backbone/teacher_projector)
+deepcopied post-init — zero RNG draws, student byte-identical to its parent lane;
+per-step equal-weight running average in post_step, BN buffers copied; anchor = the
+twin's per-image all-view z-mean at the lane's own anchor set (their V_g-anchored μ
+kept as the separate inv-anchor axis); ×2V/(V−1) on the uniform branch pins the init
+pull to the calibrated w_inv; swa_k resumes via extras; the twin rides every ckpt →
+post-hoc SWA-eval free at landing. Selftest §(9) PASSED on GPU (init-parity EXACT at
+drop_path=0, hand-math average, grad-free, round-trip).
+
+**The re-base (D-095) + B opened (D-096).** Convinced by the FLOP table, Berker
+re-based the variant program onto the FLOP-matched frame: the new cells ride the EXACT
+Lightly view stack under OUR loss — `aug=lightly_mc` in floorssl (2g@224+6l@96,
+0.4-family jitter, true-p solarize global-2-only, bicubic; selftest §(10)), OAS
+no-ring per the estimator law. The program: S base **e27lmc** + **e27lmc_swa** +
+**e27lmc_b512** (flat lr; single-GPU bs-512 = the proven lejl memory path at this
+geometry), and the three ViT-B mirrors — **B does not wait for the S landings**
+(D-096, his directive; D-079b's joint-read clause superseded; B ≈ 2.2 d/100 ep at 6l).
+Both dose pilots launched the same evening (S 63239252, B 63242633; w = s*·9.0/g at
+the incumbent held-state). v10u+swa superseded pre-launch; v10u/oas land unchanged as
+the scaling story + house-aug control. Flagged-for-veto readings: 6 locals (the
+FLOP-match to the bar, vs D-088's V=10 which stays for the landing lanes), the mild
+0.4-family vs E27-T1(b)'s harsh-locals result (the price of comparability, knowingly
+paid), dose transfer to the twins (init-only law).
+
+Misc: the v10u-b512 fit smoke died on a syntax slip (`+method.grad_ckpt` on an
+existing key) and was NOT resubmitted — superseded by the re-base. Budget path at full
+sail: 2 lanes + 4 lightly + 3+3 trios = 12, VISReg at 4 = 16 exact (8 when lightly
+drains). Bench A/B passed ep25/90 mid-session; corrected 12-space probes and the
+VISReg Arrow-index smoke still filling at close. DONORS gained visreg @ 47b1cf4 and
+lightly @ f444cf36.

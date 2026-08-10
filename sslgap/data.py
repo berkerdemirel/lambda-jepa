@@ -69,6 +69,26 @@ def _dino_view(size, scale, blur_p, solar_p, cj=0.5):
     ])
 
 
+def _bench_view(size, scale, blur_p, solar_p, cj=0.5):
+    """D-092 replication view: _dino_view semantics with the solarize probability TRUE.
+    The house wrap `RandomApply([RandomSolarize], p)` halves the effective probability —
+    v2.RandomSolarize carries its own p=0.5 (measured 2026-08-10: wrapped .0988 vs bare
+    .1983 at declared .2) — so external-faithful stacks use the bare transform. The frozen
+    v1 stacks (orbit_stack/audit_v1, _dino_view) are NOT changed: their code is their
+    definition; the declaration erratum is on the E27 card §(j.9)/D-092."""
+    ops = [
+        v2.RandomResizedCrop(size, scale=scale, interpolation=v2.InterpolationMode.BICUBIC,
+                             antialias=True),
+        v2.RandomHorizontalFlip(p=0.5),
+        v2.RandomApply([v2.ColorJitter(0.8 * cj, 0.8 * cj, 0.4 * cj, 0.2 * cj)], p=0.8),
+        v2.RandomGrayscale(p=0.2),
+        v2.RandomApply([v2.GaussianBlur(kernel_size=9, sigma=(0.1, 2.0))], p=blur_p),
+    ]
+    if solar_p:
+        ops.append(v2.RandomSolarize(threshold=128, p=solar_p))
+    return v2.Compose(ops + _TAIL)
+
+
 STACKS = {
     "audit_v1": lambda s: (orbit_stack(s), orbit_stack(s)),
     "own_lejepa": lambda s: (orbit_stack(s), orbit_stack(s)),          # lejepa trains on the orbit
@@ -426,6 +446,32 @@ class LejepaMultiCropDataset(torch.utils.data.Dataset):
         img, y = self.split_src(i)
         return (torch.stack([self.tg(img) for _ in range(self.n_g)]),
                 torch.stack([self.tl(img) for _ in range(self.n_l)])), y
+
+    def __len__(self):
+        return self.split_src.n
+
+
+class LightlyLejepaMultiCropDataset(torch.utils.data.Dataset):
+    """E27 §(j)/D-092 Lightly-replication views: the exact transform behind Lightly's LeJEPA
+    ViT-S/16 64.0 row — their benchmark constructs DINOTransform(global 224 (0.3,1.0), local 96
+    (0.05,0.3), gaussian_blur=(0.5,0.5,0.5), n_local_views=6): per view bicubic RRC + flip .5 +
+    jitter(0.4,.4,.2,.1)@p.8 + gray .2 + blur@p.5 (uniform — their override of DINO's 1.0/0.1/0.5
+    asymmetry), solarize(128)@p.2 on the SECOND GLOBAL ONLY (the sole surviving per-view
+    asymmetry). House k9 blur approximates their radius-sampled PIL blur (the standing DINO-port
+    declaration, _dino_view). Returns ((g [2,C,G,G], l [n_l,C,L,L]), y)."""
+
+    def __init__(self, dataset, split, img_size, data_root=None, n_l=6, local_size=96,
+                 global_scale=(0.3, 1.0), local_scale=(0.05, 0.3)):
+        self.split_src = _FullSplit(dataset, split, data_root)
+        self.g1 = _bench_view(img_size, tuple(global_scale), blur_p=0.5, solar_p=0.0)
+        self.g2 = _bench_view(img_size, tuple(global_scale), blur_p=0.5, solar_p=0.2)
+        self.loc = _bench_view(local_size, tuple(local_scale), blur_p=0.5, solar_p=0.0)
+        self.n_l = n_l
+
+    def __getitem__(self, i):
+        img, y = self.split_src(i)
+        return (torch.stack([self.g1(img), self.g2(img)]),
+                torch.stack([self.loc(img) for _ in range(self.n_l)])), y
 
     def __len__(self):
         return self.split_src.n

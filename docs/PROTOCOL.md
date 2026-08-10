@@ -1,6 +1,11 @@
 # PROTOCOL.md — the fixed experimental frame
 
-**Version: v1-draft.7 (2026-08-07: the owed rows land — `in1k_vitb16`/`in1k_vitl16` frames per
+**Version: v1-draft.8 (2026-08-10, D-092 Berker-directed: the in1k eval frame is FULL-train
+ONLY — the train500 subsampled variant is REMOVED (extract.py raises on any in1k
+`train_per_class`; in100 m50k unchanged) — and every in1k landing adds the external-protocol
+column `bench_linear_v1` (the Lightly/MAE aug-trained linear, §4) beside the house probes:
+house v2 family stays the canonical INTERNAL headline (continuity), `bench_linear_v1` is the
+column external claims cite. prior: v1-draft.7 (2026-08-07: the owed rows land — `in1k_vitb16`/`in1k_vitl16` frames per
 D-079; §6 gains the measurement-anatomy items 10–12 (view-mean payment + slice ratios D-071,
 the warm-ring convention D-072, the OAS estimator D-073) that were approved in the ledger but
 never mirrored here; §8 corrected to D-077 (store cap 1000 GB) and D-080 (compute). No new
@@ -113,6 +118,7 @@ are still computed for continuity.
 | `linear_l2_v1` | ℓ2-normalize → Linear, same optimizer, 30 ep | E11 (probe-sensitivity study) |
 | `attentive_v1` | 1 learned query, 1 CrossAttn block (6 heads) → Linear; fixed schedule | E11; **token spaces only** — vector spaces report `not-applicable`, never a silent fallback |
 | `sololearn_linear` | solo-learn's own linear-eval recipe | `rn18_in100` port validation only |
+| `bench_linear_v1` | the Lightly/MAE ViT linear-eval recipe (`experiments/bench_probe.py`, port of lightly `linear_eval.py` read 2026-08-10): frozen trunk CLS from IMAGES (not the store), BN(affine=False)→Linear, SGD-m .9 (≡ their LARS at wd 0), lr .1·bs/256, 90 ep cosine w/ 10-ep warmup, train aug RRC+flip, metric = max val top-1/5 over epochs; + kNN rider at their t=.07 | **in1k external-protocol column (D-092)** — mandatory at every in1k landing; the number external comparisons cite (the literature's "linear probe" IS this family) |
 | *(per-method paper probes)* | e.g. MAE's BN→Linear (flag F3) | E11 arms, added when their method enters |
 
 ## 5 · Feature manifests

@@ -117,4 +117,82 @@ assert torch.allclose(t_pv["inv"], t_all["inv"], rtol=1e-5), \
 assert mp.cond_z.rho_last is not None, "perview cell must run OAS"
 print(f"[selftest] perview step: loss {t_pv['loss'].item():.4f} "
       f"cond_z {t_pv['moment_kl'].item():.4f} rho {mp.cond_z.rho_last:.3f}")
+
+# (8) perview + RING (D-088 e27pv cell): per-view rings fill to q at both taps.
+cfg_pr = OmegaConf.merge(cfg, {"cond_stream": "perview"})   # base queue_steps=3, no shrink
+mpr = FloorSSL(cfg_pr, frame)
+mods_pr = mpr.build_modules().to(dev)
+mods_pr.load_state_dict(mods.state_dict())
+for _ in range(4):
+    t_pr, _, _ = mpr.training_step(mods_pr, (g, l), dev)
+    assert all(torch.isfinite(v) for v in t_pr.values())
+t_pr["loss"].backward()
+assert all(len(getattr(mpr, f"_zq{i}")) == 3 for i in range(10))
+assert all(len(getattr(mpr, f"_hq{i}")) == 3 for i in range(10))
+print(f"[selftest] perview+ring: loss {t_pr['loss'].item():.4f} rings 10x3 both taps")
+
+# (9) SWA twin (D-095, the v10u+swa cell): teacher==student at build; at drop_path=0 and
+# matched eval BN the SWA inv (x 2V/(V-1)) equals the legacy all-pairs inv EXACTLY (the
+# anchor is then the batch's own mean); the running average matches hand math; the twin
+# takes no grad; swa_k round-trips through extras.
+cfg_s = OmegaConf.merge(cfg, {"aug": "lejepa", "V": 10, "drop_path": 0.0,
+                              "swa": "uniform"})
+ms = FloorSSL(cfg_s, frame)
+mods_s = ms.build_modules().to(dev)
+assert set(mods_s.keys()) == {"backbone", "projector", "teacher_backbone",
+                              "teacher_projector"}
+sd_s, sd_t = mods_s["backbone"].state_dict(), mods_s["teacher_backbone"].state_dict()
+assert all(torch.equal(sd_s[k], sd_t[k]) for k in sd_s), "twin != student at build"
+
+cfg_s0 = OmegaConf.merge(cfg, {"aug": "lejepa", "V": 10, "drop_path": 0.0})
+ms0 = FloorSSL(cfg_s0, frame)
+mods_s0 = ms0.build_modules().to(dev)
+mods_s0.load_state_dict(
+    {k: v for k, v in mods_s.state_dict().items() if not k.startswith("teacher_")})
+u = torch.randn(2, 10, 3, 224, 224, device=dev)
+for md in (mods_s, mods_s0):
+    md.eval()                       # matched BN stats + no drop_path -> exact identity
+t_swa, pf_s, k_s = ms.training_step(mods_s, u, dev)
+t_leg, _, _ = ms0.training_step(mods_s0, u, dev)
+assert k_s == 10 and tuple(pf_s.shape) == (20, 384)
+assert torch.allclose(t_swa["inv"], t_leg["inv"], rtol=1e-4), \
+    f"swa inv {t_swa['inv'].item():.6f} != legacy {t_leg['inv'].item():.6f} at init"
+t_swa["loss"].backward()
+assert all(p.grad is None for p in mods_s["teacher_backbone"].parameters())
+
+ref = [p.detach().clone() for p in mods_s["backbone"].parameters()]
+with torch.no_grad():
+    for p in mods_s["backbone"].parameters():
+        p.add_(1.0)
+ms.post_step(mods_s, 0, 1)          # k=0: twin := student
+with torch.no_grad():
+    for p in mods_s["backbone"].parameters():
+        p.add_(1.0)
+ms.post_step(mods_s, 1, 1)          # k=1: twin = mean of the two states
+pt = next(mods_s["teacher_backbone"].parameters())
+exp = ref[0] + 1.5                  # mean(ref+1, ref+2)
+assert torch.allclose(pt, exp, atol=1e-6), "SWA running average drifted from hand math"
+assert ms.extras() == {"swa_k": 2}
+ms.load_extras({"swa_k": 7})
+assert ms._swa_k == 7
+print(f"[selftest] swa: init-parity inv {t_swa['inv'].item():.4f} == legacy "
+      f"{t_leg['inv'].item():.4f}; running avg exact; twin grad-free; k round-trips")
+
+# (10) lightly_mc frame (D-095): the Lightly view geometry (2g+6l) under our loss —
+# dynamic trunk engaged, mc branch consumes it, swa's mc path finite at V=8, OAS live.
+cfg_lm = OmegaConf.merge(cfg, {"aug": "lightly_mc", "Vl": 6, "floor_shrink": "oas",
+                               "queue_steps": 0, "h_queue_steps": None,
+                               "swa": "uniform"})
+mlm = FloorSSL(cfg_lm, frame)
+mods_lm = mlm.build_modules().to(dev)
+assert mlm._mc, "lightly_mc must build the dynamic trunk"
+l6 = torch.randn(2, 6, 3, 96, 96, device=dev)
+t_lm, pf_lm, k_lm = mlm.training_step(mods_lm, (g, l6), dev)
+t_lm["loss"].backward()
+assert k_lm == 8 and tuple(pf_lm.shape) == (16, 384)
+assert all(torch.isfinite(v) for v in t_lm.values())
+assert mlm.cond_z.rho_last is not None, "lightly_mc cell must run OAS"
+assert all(p.grad is None for p in mods_lm["teacher_backbone"].parameters())
+print(f"[selftest] lightly_mc+swa step: loss {t_lm['loss'].item():.4f} "
+      f"inv {t_lm['inv'].item():.4f} V=8 rho {mlm.cond_z.rho_last:.3f}")
 print("[selftest] ALL PASS")

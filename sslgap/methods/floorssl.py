@@ -23,11 +23,14 @@ those are provenance/continuity, not claims. head_norm switch:
 Aug pipeline stays the BYOL pair (aug family is a separate axis; deltas remain loss/arch-only
 vs the vicreg-lane controls). Trainer surface mirrors vicreg's (house scheduler, single
 param group)."""
+import copy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from sslgap.data import LejepaMultiCropDataset, ViewsDataset, byol_pair
+from sslgap.data import (LejepaMultiCropDataset, LightlyLejepaMultiCropDataset,
+                         ViewsDataset, byol_pair)
 from sslgap.methods._common import HingeFloor, SpectralConditioner, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
@@ -96,7 +99,7 @@ class FloorSSL(SSLMethod):
         # dynamic_img_size (pos-embed interpolation; @224 forward parity-asserted by
         # e27_selftest). _dim = trunk width, so the arch axis (384/768/1024) reaches the
         # head/probe dims without hardcoding — byte-identical at ViT-S.
-        self._mc = self.cfg.get("aug") == "lejepa_mc"
+        self._mc = self.cfg.get("aug") in ("lejepa_mc", "lightly_mc")
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 dynamic_img_size=self._mc,
                                 drop_path_rate=self.cfg.drop_path)
@@ -154,7 +157,21 @@ class FloorSSL(SSLMethod):
         d_z = self.cfg.get("z_d_slice") or d_canon
         self.cond_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
                         else SpectralConditioner(d_slice=d_z, d_draw=d_canon, shrink=shr))
-        return nn.ModuleDict({"backbone": trunk, "projector": head})
+        mods = nn.ModuleDict({"backbone": trunk, "projector": head})
+        # swa (D-095; Berker 2026-08-10 "implement swa, as described in lejepa"): the
+        # paper's entire spec is "we apply SWA on the encoder producing mu in Eq. (6)"
+        # (Izmailov equal-weight averaging; their je.py unpublished). mu lives in z space,
+        # so the averaged twin is the full z path: trunk + projector. deepcopy AFTER
+        # student init draws no RNG — the student stays byte-identical to its parent lane.
+        # Twin is grad-free and eval (the house sslx-control convention: no drop_path
+        # stochasticity in targets); its BN buffers track the student's (copied at each
+        # update). The anchor SET stays the lane's own (all-views mean), so SWA is the
+        # single delta vs the parent; their V_g-anchored mu is the separate inv-anchor axis.
+        if self.cfg.get("swa"):
+            mods["teacher_backbone"] = copy.deepcopy(trunk).requires_grad_(False)
+            mods["teacher_projector"] = copy.deepcopy(head).requires_grad_(False)
+            self._swa_k = 0
+        return mods
 
     def arch(self):
         k = self.cfg.get("head_layers")
@@ -167,9 +184,12 @@ class FloorSSL(SSLMethod):
                       "kwargs": {"in_dim": dim, "hidden": self.cfg.expander_hidden,
                                  "out_dim": self.cfg.expander_dim,
                                  "norm": self.cfg.head_norm}})
-        return {"backbone": trunk_arch(self.frame, self.cfg.drop_path,
-                                       dynamic_img_size=getattr(self, "_mc", False)),
-                "projector": proj}
+        a = {"backbone": trunk_arch(self.frame, self.cfg.drop_path,
+                                    dynamic_img_size=getattr(self, "_mc", False)),
+             "projector": proj}
+        if self.cfg.get("swa"):
+            a["teacher_backbone"], a["teacher_projector"] = a["backbone"], proj
+        return a
 
     def build_train_dataset(self):
         # aug axis (E21 arm 3; Berker 2026-07-19: "lejepa's augmentations are better for our
@@ -178,6 +198,18 @@ class FloorSSL(SSLMethod):
         # zoo's biggest-win family). V=4/bs=128 keeps the floor's pooled n = 512.
         # "lejepa_mc" (Recipe v2, D-079a): the LeJEPA-recommended multicrop — Vg globals +
         # Vl locals under the same symmetric family; the E27 in1k frame point.
+        # "lightly_mc" (D-095, Berker: "the new runs should do the locals accordingly …
+        # use lightly's lejepa augmentations"): the exact Lightly view stack behind their
+        # 64.0 row — 2g@224 (0.3,1) + 6l@96 (0.05,0.3), 0.4-family jitter, true-p .2
+        # solarize on global-2 only, bicubic — under OUR loss: the frame-matched (and
+        # FLOP-matched) A/B against the e27 lejepa reproduction.
+        if self.cfg.get("aug", "byol") == "lightly_mc":
+            return LightlyLejepaMultiCropDataset(
+                self.frame.dataset, "train", img_size=self.frame.img_size,
+                data_root=self.frame.data_root, n_l=self.cfg.get("Vl", 6),
+                local_size=self.cfg.get("local_size", 96),
+                global_scale=tuple(self.cfg.get("global_scale", (0.3, 1.0))),
+                local_scale=tuple(self.cfg.get("local_scale", (0.05, 0.3))))
         if self.cfg.get("aug", "byol") == "lejepa_mc":
             return LejepaMultiCropDataset(
                 self.frame.dataset, "train", img_size=self.frame.img_size,
@@ -198,7 +230,10 @@ class FloorSSL(SSLMethod):
         # not gauge). null = the legacy single group.
         mwd = self.cfg.get("mlp_wd")
         if mwd is None:
-            return [{"params": [p for m in modules.values() for p in m.parameters()],
+            # student modules only (byte-identical legacy: the dict held exactly these
+            # two roles before the swa twin existed; the twin is never optimized)
+            return [{"params": [p for k in ("backbone", "projector")
+                                for p in modules[k].parameters()],
                      "lr": self.cfg.lr, "weight_decay": self.cfg.wd}]
         return [{"params": list(modules["backbone"].parameters()),
                  "lr": self.cfg.lr, "weight_decay": self.cfg.wd},
@@ -223,6 +258,54 @@ class FloorSSL(SSLMethod):
         out = torch.cat([x] + buf) if buf else x
         setattr(self, attr, [x.detach()] + buf[:q - 1])
         return out
+
+    def _swa_mu(self, modules, views):
+        """SWA anchor (D-095): Eq. (7)'s mu produced by the averaged twin — the twin
+        forwards the SAME views the student sees and the anchor is its per-image z-mean,
+        no grad. Twin stays eval (train_mode): deterministic targets, BN on the buffers
+        copied from the student at each update."""
+        tb, tp = modules["teacher_backbone"], modules["teacher_projector"]
+        with torch.no_grad():
+            if isinstance(views, (list, tuple)):
+                g, l = views
+                N, Vg = g.shape[:2]
+                cls = torch.cat(
+                    [tb.forward_features(g.flatten(0, 1))[:, 0].reshape(N, Vg, -1),
+                     tb.forward_features(l.flatten(0, 1))[:, 0]
+                     .reshape(N, l.shape[1], -1)], 1)
+            else:
+                N, V = views.shape[:2]
+                cls = tb.forward_features(views.flatten(0, 1))[:, 0].reshape(N, V, -1)
+            return tp(cls.flatten(0, 1)).reshape(N, cls.shape[1], -1).mean(1, keepdim=True)
+
+    def post_step(self, modules, step, total_steps):
+        # SWA update (D-095): equal-weight running average over optimizer steps
+        # (Izmailov form, the paper's citation; no momentum schedule exists to import —
+        # je.py unpublished). theta_k = (k*theta_{k-1} + student)/(k+1); BN buffers are
+        # COPIED from the student (running stats are already temporal averages).
+        if "teacher_backbone" not in modules:
+            return {}
+        k = self._swa_k
+        with torch.no_grad():
+            for role in ("backbone", "projector"):
+                t, s = modules[f"teacher_{role}"], modules[role]
+                for pt, ps in zip(t.parameters(), s.parameters()):
+                    pt.mul_(k / (k + 1)).add_(ps, alpha=1.0 / (k + 1))
+                for bt, bs in zip(t.buffers(), s.buffers()):
+                    bt.copy_(bs)
+        self._swa_k = k + 1
+        return {}
+
+    def train_mode(self, modules):
+        for name, m in modules.items():
+            m.eval() if name.startswith("teacher_") else m.train()
+
+    def extras(self):
+        return {"swa_k": self._swa_k} if hasattr(self, "_swa_k") else {}
+
+    def load_extras(self, extras):
+        if extras and "swa_k" in extras:
+            self._swa_k = extras["swa_k"]
 
     def training_step(self, modules, views, device, y=None):
         if isinstance(views, (list, tuple)):
@@ -266,7 +349,11 @@ class FloorSSL(SSLMethod):
                  modules["backbone"].forward_features(l.flatten(0, 1))[:, 0]
                  .reshape(N, V - Vg, -1)], 1)
             z = modules["projector"](cls.flatten(0, 1)).reshape(N, V, -1)
-            inv = (z - z.mean(1, keepdim=True)).square().mean()
+            # swa (D-095): the anchor becomes the averaged twin's mean — same view set,
+            # same view-to-mean form; conditioner streams stay on the student.
+            inv = ((z - self._swa_mu(modules, views)).square().mean()
+                   if "teacher_backbone" in modules
+                   else (z - z.mean(1, keepdim=True)).square().mean())
             cs = self.cfg.get("cond_stream")
             if cs == "grouped":
                 zin = (z[:, :Vg].mean(1), z[:, Vg:].mean(1))
@@ -289,9 +376,13 @@ class FloorSSL(SSLMethod):
             z = modules["projector"](cls).reshape(N, V, -1)
             # inv = all-pairs mean MSE: the V-generic form that REDUCES EXACTLY to the
             # lineage's pairwise MSE at V=2 (one pair) — no special case, v2 byte-compat
-            # preserved.
-            inv = sum(F.mse_loss(z[:, u], z[:, w])
-                      for u in range(V) for w in range(u + 1, V)) / (V * (V - 1) / 2)
+            # preserved. swa (D-095): anchor -> the twin's all-view mean, kept on the
+            # all-pairs SCALE via x 2V/(V-1) (selftest §3's identity) so the lane's
+            # calibrated w_inv keeps its realized pull at the twin==student init.
+            inv = ((z - self._swa_mu(modules, views)).square().mean() * (2 * V / (V - 1))
+                   if "teacher_backbone" in modules
+                   else sum(F.mse_loss(z[:, u], z[:, w])
+                            for u in range(V) for w in range(u + 1, V)) / (V * (V - 1) / 2))
             zin = (z.mean(1) if self.cfg.get("z_floor_batch", "pooled") == "view_mean"
                    else z.reshape(N * V, -1))
             hin = (cls.reshape(N, V, -1).mean(1)

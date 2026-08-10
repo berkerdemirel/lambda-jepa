@@ -29,5 +29,7 @@ scratch/
 third_party/dino/
 third_party/ijepa/
 third_party/mae/
+third_party/visreg/
+third_party/lightly/
 results/figures/*.png
 results/figures/*/*.png

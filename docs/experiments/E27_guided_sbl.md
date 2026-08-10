@@ -669,6 +669,370 @@ and shares · mc-vs-lg separation where paired · Ω channels · stream trace/d 
 probe@5 (indicative only, E12-T9 caveat). Takeaway = JOINT on the assembled table;
 survivors continue to full runs, then B/L + controls per the program.
 
+### (h.1) Sweep results — RAW (2026-08-08 night; all 12 landed, dv10u to ep4 of 5 on its 8h wall)
+
+| cell | shares ep4 (inv/z/h) | Σw·g | Ω_h aud | probe@5 | inv .5k→2k→10k→40k | z 2k→40k | h 2k→40k | h p99/med |
+|---|---|---|---|---|---|---|---|---|
+| e27dv4 | .588/.402/.010 | 15.2 | .548 | .2989 | .288→.467→.424→.348 ↑ | .955→.242 | 1.25→.421 | 1.24 |
+| e27dv6 | .535/.455/.010 | 13.4 | .492 | .3327 | .269→.467→.424→.318 ↑ | 1.07→.220 | 1.50→.384 | 1.28 |
+| e27dv10u | .593/.398/.010 | 14.7 | .439 | **.3340**@ep4 | .266→.454→.434→.304 ↑ | 1.18→.210 | 1.87→.362 | 1.33 |
+| e27dmc | .437/.548/.015 | 9.5 | .655 | .3067 | .132→.222→.230→.211 ↑ | 1.34→.379 | 1.41→.229 | 1.36 |
+| e27dlg | .681/.292/.027 | 3.8 | .732 | .2350 | .125→.205→.158→.098 ↑↓ | .937→.124 | 1.40→.168 | 1.23 |
+| e27dmcg | .442/.548/.010 | 13.2 | .699 | .3004 | .146→.224→.199→.184 ↑ | .916→.343 | .952→.226 | 1.27 |
+| e27dlgg | .639/.336/.025 | 3.3 | .779 | .2491 | .142→.206→.149→.094 ↑↓ | .751→.123 | 1.09→.163 | 1.25 |
+| e27dmid | .590/.385/.026 | 4.4 | .591 | .3145 | .126→.215→.203→.136 ↑ | 1.13→.182 | 1.47→.197 | 1.27 |
+| e27dhf | .458/.522/.020 | 7.3 | .586 | .3315 | .125→.222→.223→.174 ↑ | 1.27→.301 | 1.53→.223 | 1.36 |
+| e27dpv | .654/.319/.027 | 5.3 | .591 | .3251 | .466→.445→.343→.258 ↓ (OAS-immediate) | .140→.083 | .176→.060 | 1.27 |
+| e27dmco | .576/.403/.021 | 18.2 | .527 | .3231 | .489→.604→.460→.331 ↑ | .628→.165 | .954→.125 | 1.37 |
+| e27dmc48 | .489/.501/.010 | 15.2 | .615 | .2957 | .164→.392→.409→.330 ↑ | 1.07→.244 | 1.54→.296 | 1.44 |
+
+**Separations (mc vs lg), matched steps:** all-views @10k inv .072 / moment .41 / h .25;
+@40k .113/.25/.062. Grouped @10k .050/.32/.18. Wave-1 range .014–.031 / .16–.52; wave-3
+.00005–.0005 / .0004–.0014 — **the axis is alive in BOTH streams at proper doses,
+~1000× wave 3.** Ω direction: Ω(lg) > Ω(mc) in both streams (.732/.779 vs .655/.699) —
+the P-E27-2 aug-axis direction; the nearer-band version (mc) also wins the probe.
+h-spread: EVERY cell 1.23–1.44 vs wave-1 mc's 1.6–1.9 — the oscillation is gone at
+healthy dose levels, including on wave-1-mc's exact stream (e27dmc). e27dv4 re-anchor
+reproduces vm4's signature (inv .467@2k vs .457; spread 1.24) — code path validated.
+Same-day context: the voas landing (OAS, V=4) lost the A/B to vm4's ring by −4.2 linear /
+−7.6 kNN at land — ep5 probe leads of the OAS cells (dpv/dmco) must be read against that.
+
+## (i) The FINAL S wave — 5×100 ep on the adopted frame (D-088, 2026-08-08 night)
+
+Berker's constraints after the sweep read: V=10 constant (the adopted in1k convention —
+CHECKED: DINO repo default 2g+8l, DINOv2 2+8, LeJEPA V_g=2/V_l=8; SwAV 2+6 the
+exception); aug family constant (changing it risks less diversity + unmatched compute);
+≤1 OAS variant ("dont get fixated on oas … vm4 is the clear winner from the curves");
+plus the uniform lane restored → five runs. Everything byte-matched except the delta:
+
+| run | delta | aug | stream / estimator | w | segs |
+|---|---|---|---|---|---|
+| e27mc | — (main line) | mc 2g+8l | all-views mean / ring q3 | 21.4/49.6/1.89 | 12 |
+| e27oas | estimator | mc 2g+8l | all-views / OAS no-ring | same | 12 |
+| e27grp | stream | mc 2g+8l | grouped / ring q3 | same | 12 |
+| e27pv | stream | mc 2g+8l | per-view / ring q3 | same | 12 |
+| e27v10u | the lane | V=10 uniform (0.08,1)@224 | all-views (legacy) / ring q3 | 26.9/129.2/1.679 | 21 |
+
+Jobs 63202191–63202259; ep10 ckpt + health check on all five (combined watcher); landing
+chains at ep100; band-steering cells RETIRED from this wave (steering dissolved into the
+diagnostic program; the R6/Ω read is observational — uniform lane in-band at ep5, mc
+family above). e27lej control continues (ep60+ .4378). Read at land: probe/kNN vs vm4
+.6416/.6554-l2 + Lightly 64.0 + e27lej; stream/estimator verdicts feed the B/L design
+(D-079b). 5 + control = 6 of the 8 in1k budget.
+
+**Interruption note (2026-08-09):** a cluster NFS outage 02:32–03:25 killed all running
+segments and drained the singleton chains (follow-ups failed at 0 s, no output files);
+every `_last.pt` verified intact and all six lanes resumed (chains 63209099–70). wandb
+runs show a "crashed"/frozen window while each cell re-trains its unlogged stretch past
+the step high-water mark — cosmetic, self-healing.
+
+**ep10 HEALTH CHECK — PASSED on all cells, NO corrections (rule fires only on
+pathology; 2026-08-09):**
+
+| cell | ep10 shares (inv/z/h) | Σw·g | Ω_h aud | Λ | probe |
+|---|---|---|---|---|---|
+| e27mc | (at ep13–14 by read time) | — | — | — | **.4152@ep14** (vm4's online ep16 = .4188; wave-1 smc ep16 = .3558) |
+| e27oas | .584/.384/.032 | 6.4 | **.426 (in-band)** | 1.44 | .3889@ep10 |
+| e27grp | .500/.482/.018 | 3.8 | .525 | 1.30 | .3945@ep10 |
+| e27pv | .667/.321/.012 | 3.0 | .644 | 1.41 | .3879@ep11 |
+| e27v10u | ep4: matches its diag twin (.3332 vs .3340) | — | — | — | on-pace |
+
+Tight four-way race in the mc family (.388–.395 at ep10, all shapes healthy); e27mc is
+pacing AT the vm4 online curve — the dose-level fix visible at scale. e27lej at ep88
+.4851, finishing today.
+
+**§(i) ADDENDUM — mc + grp cancelled on the ring-staleness diagnosis (D-089,
+2026-08-09 evening).** Berker flagged both lanes; the trajectories confirm: e27mc probe
+non-monotone past the noise band (.4228→.4069 ep22; .4292→**.3999** ep24, g_h ×2.4 at
+the dip; chronic z-share .46–.52) and e27grp with episodic conditioner explosions
+(ep16 measurement batch: g_cond_z .034→**.575**→.032, shares .945/.053; probe
+.4334→**.3961** ep19). The healthy contrasts pin the mechanism — oas (no ring, same
+stream as mc) monotone to .4402; pv (per-view rings, scale-homogeneous within each)
+smooth .4262; v10u/vm4 (rings on homogeneous means) smooth — **the ring is toxic
+specifically on heterogeneous-mean streams** (mc's all-10 mean, grp's locals-group
+mean): stale rows of a fast-moving noisy mean → episodic −logdet blowups → violent
+conditioner steps. The E24 staleness lesson at the D-084-caveat's predicted site; the
+sanctioned OAS fallback invoked. Cancelled at ep24/ep19 (curves = the recorded
+ring-vs-OAS A/B on these streams; ckpts trimmed to _last). Replacements fresh:
+**e27grpo** (grouped+OAS; first-run combo, early-watched) and **e27pvo** (per-view+OAS
+= the diag leader config; completes the stream×estimator grid with pv-ring live).
+Wave now: **oas · pv · grpo · pvo · v10u** + lej. mc's LeJEPA-matched main-line story
+transfers to e27oas verbatim (identical aug + stream; the estimator is an internal
+dial, not part of the matched-frame claim).
+
+**e27lej LANDED (2026-08-10, RAW):** ep100 online best .4929 → landed at
+`student.h.cls`: **linear_raw_v2 .5718 · house_v2 .5551 · l2_v2 .5722 · kNN k200
+.3373 / k20 .3795** (landed ≫ online here — their online monitor rides the 512-embed,
+not cls). Depth: L09 .488, L06 .29, L03 .15; gap .500. References beside it: vm4
+(V=4 ring incumbent) .6416 raw / .6554 l2 / .5335 kNN → **+7.0 linear / +19.6 kNN
+over the matched-frame lejepa control**; Lightly external 64.0 is not at this frame
+(their protocol/schedule) — the control exists precisely to replace that comparison.
+The wave cells' target stands: beat vm4 on lej's own V=10 frame. Numbers:
+`results/probes/in1k.lejepa.s0.e27lej.extL.csv`; battery/instruments landing.
+**Landed Ω_h(cls) from the o8 store (2026-08-10): lej = .1446** — .20 of the c²=.708
+threshold, BELOW vm4's .30-of-threshold placement, with the wide linear-vs-kNN gap
+(.57/.34) riding it (raw; R6/zoo-placement data point for the joint read).
+
+**D-087 SWEEP TAKEAWAY — E27-T1, USER-APPROVED (Berker 2026-08-10: "d087 agreed";
+wording Fable, veto stays open; scope ViT-S/in1k, 5-ep health reads + the running
+wave):**
+*Scaling V=4→V=10 succeeds or fails on dose level and stream homogeneity — not on
+view count or crop harshness.* (a) The share recipe must be driven at the family's
+realized total (Σw·g ≈ 7–10): deriving w at a transient early state starved wave 1
+(Σ≈1.2) and produced every "instability"; at proper level all 12 sweep configs are
+shape-healthy. (b) The aug axis is real and favors small/harsh locals — large locals
+collapse the diversity V=10 exists to buy (−7..−10 pts at ep5, Σ≈3.5). (c) Pure
+view-count scaling pays monotonically at fixed weights (v4 .2989 → v6 .3327 → v10
+.3340 at ep5). (d) Estimator follows stream homogeneity: ring on scale-homogeneous
+streams, OAS on heterogeneous-mean streams (D-089 spike evidence + voas's
+homogeneous-V=4 landed loss to the ring close the law both ways). Probe orderings at
+ep5 indicative only; the 100-ep wave is the confirming instrument.
+
+## (j) The lejepa faithfulness cross-match — Lightly 64.0 vs e27lej .5718 (2026-08-10, Berker priority (i); every external fact below fetched live from the named sources this day)
+
+**(j.0) Provenance of the 64.0 — it is Lightly's own reproduction, not a paper number.**
+Full row (docs.lightly.ai benchmarks, LightlySSL 1.5.25; run artifacts on their S3):
+LeJEPA | ViT-S/16 | bs 512 | 100 ep | **linear top1 64.0** / top5 85.8 | finetune 78.7/94.5 |
+kNN top1 47.1 / top5 74.3. The run's own `hparams.yaml`: 128/device (×4 devices ⇒ 512),
+lr 5e-4, wd .05; its checkpoint filename carries **`val_online_cls_top1=0.5623`** at ep99.
+The LeJEPA paper (arXiv 2511.08544v3) contains **no ViT-S in1k number at all** — its in1k
+runs are ViT-L/14 (online probe **77.1**, 100 ep) and ConvNeXtV2-H (78.5); ViT-H/14 "79%"
+abstract-only. **The owed L transcription (§refs): paper Table 2, LeJEPA ViT-L 304M IN-1k
+100 ep frozen-backbone few-shot — 1-shot avg 29.55 / 10-shot avg 60.95 / all-shots avg
+79.48.** Added to the program's reference sheet: Lightly PR #1932 reports an unpublished
+ViT-L/14 run (linear 71.6, kNN 53.4) that never landed in their docs table.
+
+**(j.1) Axis table — our control vs the Lightly-64.0 implementation vs the official at-scale
+recipe** (Lightly: `benchmarks/imagenet/vitb16/lejepa.py` + `lightly/loss/lejepa_loss.py` +
+`lightly/transforms/dino_transform.py`, master; official: galilai-group/lejepa README +
+`scripts/launch_*_ablation.md` + paper v3; ✔ = matches ours):
+
+| axis | ours (e27lej) | Lightly 64.0 run | official at-scale |
+|---|---|---|---|
+| views | 2g@224 (0.3,1) + **8l@96** (0.05,0.3) | 2g@224 (0.3,1) + **6l@96** (0.05,0.3) | README 2g@224+**6l@98**; paper appendix default 6l@96; §6.1 rec V_l=8; in1k ablation cmds g@238/l@98 (/14-aligned). Paper Table 1b: V=8 (2g+6l) 74.24 **>** V=10 (2g+8l) 74.06 — the §6.1 V_l=8 rec sits below their own table optimum |
+| photometrics | jitter **(0.8,.8,.8,.2)** p.8 · gray .2 · blur k7 p.5 · solarize p.2 **all views** · flip | jitter **(0.4,.4,.2,.1)** p.8 · gray .2 · blur p.5 all views · **solarize p.2 on global-2 only** · flip · bicubic | README publishes the table: **(0.4,.4,.2,.1)** p.8, gray .2, blur .5, solarize .2, flip — "applied identically to both view types" (symmetric). Our 0.8-family rode MINIMAL.md's single-res script |
+| inv anchor | mean over **ALL 10 views**, every view pulled | **globals-only mean**; the 6 locals pulled to it (globals enter via centroid gradient only) | paper Eq. 6–8/Alg. 2: μ = mean of the **V_g globals**; **all V views** regress to it (all-views mean = the ResNet/single-res special case) — **ours is the wrong functional for multicrop** |
+| SIGReg coverage | all 10 views | **locals only** (globals get no SIGReg — Lightly's own deviation from paper Eq. 9) | paper Eq. 9: (λ/V)·Σ over **all** views |
+| SIGReg estimator | **256 slices**, 17 knots, t_max 3 | **1024 slices**, 17 knots, t_max 3, DDP all-reduced (sees the global 512 batch) | §6.1 rec: 17 pts, 1024 slices (domain [−5,5]); Table 1a best [−3,3]/2048/5pts. Ours 256 rode MINIMAL |
+| projector | 512-embed → MLP [2048,2048,**16**] BN | **384 → [2048,2048,64]** BN (no embed layer at all) | in1k cmds `projector_dim=512`, `embedding_dim=512`; Table 1d best **64** (75.3–75.65) > 512 (73.9–74.8) > 1024; 16 = imagenette-minimal, untested at scale |
+| λ / form | .05, convex ✔ | .05, convex ✔ | §6.1 rec .05 ✔ (stable-pretraining sibling uses inv+λ·sigreg non-convex, sigreg pooled — a third official variant) |
+| optimizer | AdamW 5e-4 flat, wd 5e-2 ✔ | AdamW 5e-4 **flat at bs 512** (no scaling rule), wd 5e-2 | README: AdamW 5e-4 "good starting point", wd 5e-2 ViT ✔ |
+| bs | **128** | **512** (SIGReg + head-BN see 512) | paper: "competitive with batch sizes as small as 128"; Table 1c optimum **512** (74.72 vs 128's 72.20, +2.5); ablation cmds scale bs with V (V=10 → 640) |
+| schedule | warmup 1 ep (.01×), cosine → lr/1000 ✔ | identical (warmup 1 ep from .01×, cosine → .001×) ✔ | README final = lr/1000 ✔; at-scale warmup duration unpublished (MINIMAL 1 ep = our source; stable-pretraining 10; VISReg 5) |
+| clip / EMA / masking | none / none / none | none / none / none ✔ | README quotes no-clip; **but every in1k ablation cmd carries `teacher_student=true` (SWA teacher; paper Table 4: +3.4 on in100 vit_s8) and `patch_mask_ratio=0.3`** — the paper's Table 1 numbers were produced WITH both |
+| precision | bf16 | 16-mixed (fp16) | bf16 ✔ |
+| epochs / arch | 100, ViT-S/16, drop_path .1, dynamic_img_size ✔ | identical ✔ | 100 ✔, drop_path .1 ✔ |
+| **linear eval** | house `raw_v2`: frozen STORED feats (Resize+CC224), plain Linear, AdamW 1e-3/wd 1e-7, no augs, best-val | **MAE recipe**: frozen backbone, CLS; BN(affine=False)+Linear; "LARS" 0.1·bs/256 m.9 wd 0 (≡ plain SGD-m at wd 0 — their LARS skips trust scaling for wd=0 params); **90 ep, RRC+flip train augs**, max val_top1 over epochs | README: concat CLS of **last two layers** + LayerNorm, AdamW wd 1e-6, lr sched as pretraining; paper: "online linear probe" (details unspecified) |
+| kNN | k200 **t=.1**, cosine, L2, bank **500/class (train500 — see (j.5))** | k200 **t=.07**, cosine, L2, **full-train bank** | not reported |
+| online monitor | Linear on the **512-embed**, aug'd views → .4929 | Linear on **CLS**, global view 1 → **.5623** | — |
+
+**(j.2) Protocol share, measured on THEIR side:** the same Lightly weights read **56.23
+online-CLS vs 64.0 offline-MAE-recipe — +7.8 pts is protocol alone**. Our whole headline
+gap is 64.0 − 57.18 = 6.8. Direct decomposition on OUR weights LAUNCHED: the Lightly
+protocol ported as `experiments/bench_probe.py` (port notes in-file; declared deviations:
+single GPU bs 1024 with their self-scaling lr rule, bf16, ImageFolder) running on
+e27lej_ep100 (job 63222504) and d256vm4_ep100 (63222505) →
+`results/probes/<run_id>.bench.csv` (+ kNN at their t=.07 beside our t=.1 as
+`.bench_knn.csv`). **kNN cross-check says the gap is NOT protocol-only:** near-matched
+functional (same InstDisc form; deltas only t .1→.07 and our 500k bank vs their full) reads
+.3373 vs .471 — a −13.4 that linear-protocol differences cannot carry; training-side
+mismatches are real contributors.
+
+**(j.3) Port-fidelity misses vs sources AVAILABLE at the D-082 recheck (honest record):**
+(1) **inv anchor** — the paper's multicrop prediction target (Eq. 6–8: globals-mean) was in
+the paper we cited; we ported MINIMAL's all-views form onto multicrop. Weight (1−λ)=.95
+rides this term, and the object it anchors to (the locals-dominated all-10 mean) is the
+same malformed mean §(d.2)/D-086 diagnosed in our own lane. (2) **photometric family** —
+the README's augmentation table (0.4-family) was present in the README whose geometry
+paragraph D-082 transcribed; we kept MINIMAL's 0.8-family. (3) **SIGReg slices** — 256
+(MINIMAL) vs the README quick-start/ablation-cmd 1000–1024. (4) **proj_dim 16** — the
+in1k ablation files (`projector_dim=512`, Table 1d best 64) were in `scripts/`; 16 is
+imagenette-minimal. Newly learned, not knowable then: their in1k Table-1 runs used an SWA
+teacher + 30% patch masking (ablation cmd flags) — the "no heuristics" branding does not
+describe their own at-scale commands; our no-EMA/no-mask control matches the paper's
+*recommendation*, not their Table-1 practice. `scripts/je.py` + configs remain unpublished
+(inventory re-checked today; repo unchanged since 2026-01-25, now at galilai-group/lejepa).
+
+**(j.4) Independent corroboration — VISReg (HaiyuWu/visreg, arXiv 2606.02572, Wu +
+Balestriero + Levine, code Apr/Jun 2026), the lineage's only PUBLISHED full multicrop in1k
+ViT trainer** (the session's JOB-2 reference; see §(j.8)): inv anchor =
+`proj[:n_global].mean(0)` — globals-only, credited by their paper to LeJEPA (confirms
+axis 3 of (j.1)); photometrics 0.4-family jitter (0.4/0.4/0.2/0.05) p.8 + gray .2 +
+blur .5 + solarize .2; locals **96 at ViT-B/16 and 98 at ViT-L/14** — independently
+validates our D-082 "96 is the /16 adaptation" call; AdamW wd 5e-2 bf16 cosine→lr/1000;
+their deltas from LeJEPA: 4 globals + 6 locals, eff. bs 512 (16×32 H100), warmup 5,
+**grad_clip 1.0**, λ=.9(B)/.8(L) on an SWD-sketch regularizer (Epps–Pulley replaced),
+proj [2048,2048,256/384] BN+**GELU**, probe = DINOv2 protocol (concat CLS last-4, SGD
+lr-grid, SyncBN head). Their in1k LP: B/16 400ep 75.7, L/14 400ep 77.0 (no ViT-S rows).
+
+**(j.5) EVAL-FRAME INCIDENT found during the cross-match (D-090): the 08-08/09 landings
+rode the SUPERSEDED train500 frame.** `in1k.floorssl.s0.e24voas.extL` and
+`in1k.lejepa.s0.e27lej.extL` extracted their train manifest at the yaml default
+`train_per_class=500` → `in1k.train500.v1L` (500k rows) — the exact subsampled frame
+**D-066 (REVISED, USER-APPROVED 07-29) superseded** — while every vm-era comparator
+(d256vm/vm3/vm4) rode the standard FULL train (1,281,167; their 07-30 extracts passed
+`train_per_class=null` explicitly). Consequences: (a) the E24-T3 landed A/B magnitudes
+(voas −4.2/−4.2/−7.6 vs vm4) are confounded in vm4's favor — probe fit on 2.56× the rows
++ 2.56× kNN bank; (b) e27lej's landed .5718/.3373 and the "+7.0/+19.6" margins carry the
+same confound direction; (c) the wave landings would have inherited it. **Corrections all
+launched 2026-08-10:** dataset-keyed guard in `experiments/extract.py::_manifests`
+(`train_per_class: null` now resolves to the PROTOCOL standard per dataset — in1k FULL,
+in100 m50k 500/class; yaml default flipped 500→null); full-train backfill extracts
+e27lej_ep100 (63222500) + e24voas_ep100 (63222502) with standard-frame 12-space probe
+reruns chained (63222501/63222503, 24 h walls, `probe.py` now writes its CSV cumulatively
+per space — the 08-09 lej probe died at its 4 h wall with 8/12 spaces probed, no CSV, no
+z-taps; numbers had been stdout-harvested); wave landing chains RE-ARMED corrected for all
+five lanes (extract singleton-gated on each lane's drain + probe + audit: 63222506–20; the
+previously armed chains had drained in the 08-09 NFS outage). Until the reruns land, the
+canonical comparison set (vm4/vm3/vm on full-train) excludes voas+lej; corrected numbers
+replace the landed ones on this card and E24's when they arrive, with the deltas reported.
+
+**(j.6) Comparable-protocol readings available already** (raw, for the joint read):
+our landed offline `raw_v2` on CLS .5718 sits next to their ONLINE CLS monitor .5623
+(different protocols, both weaker-than-MAE-recipe reads); their offline-vs-online delta
+is +7.8 on identical weights; our own online (512-embed, aug'd) reads .4929 vs landed
+.5718 — the embed-riding monitor's −7.9 underread noted at landing. vm4's raw .6416 /
+l2 .6554 (full-frame, no-aug probe) ≥ the 64.0 bar measured under their aug-assisted
+MAE recipe — the P-E27-4 comparison as currently claimable rides a HARSHER protocol on
+our side; the bench-probe pass upgrades it to same-protocol.
+
+**(j.7) Control-fix options (PROPOSED — nothing launched; the S wave and its e27oas
+main-line A/B are UNAFFECTED — λ never enters our lane):**
+- **P (paper-faithful control at the MATCHED frame) — my recommendation:** keep the frame
+  identical to our lanes (2g@224+8l@96, bs 128 — paper-blessed floor, single GPU), fix the
+  loss to paper Eq. 6–9 (inv anchor = globals-mean, all views pulled; SIGReg over all
+  views), README photometrics (0.4-family, symmetric), 1024 slices, proj_dim 64
+  (Table 1d best; embed 512 stays), leave no-EMA/no-mask (the paper's recommended,
+  heuristic-free configuration — declared, since their Table-1 practice differs). One
+  ViT-S slot ~2.5 d. Decide AFTER the bench-probe lands (if protocol explains most of the
+  linear gap, the rerun's case rests on the kNN gap + loss-form correctness).
+- **L (Lightly replication):** their exact lejepa.py (6 locals, locals-only inv+SIGReg,
+  solarize asymmetry, proj 64 no-embed, bs 512) — reproduces the 64.0 bar itself; needs
+  DDP-4 or waits for the DDP build (their SIGReg all-reduces over the global batch;
+  grad-accum is NOT equivalent for SIGReg/BN). A replication exercise, not our matched
+  control — only if Berker wants the bar validated in-house.
+- **E (eval-only):** no rerun; the bench-probe + corrected-frame numbers become the
+  official comparison basis. Cheapest; leaves the control's loss-form deviation standing.
+
+**(j.8) JOB 2 — the vicreg/visreg reference check (session priority (ii), closed):**
+`facebookresearch/vicreg` is ARCHIVED (Nov 2024; last commit Dec 2022): full in1k
+pretraining + eval code but **ResNet-only, LARS, no ViT ever**; linear protocol =
+SGD m.9 wd 1e-6, head-only lr .3 (README .02), 100 ep, RRC+flip, trunk 2048-d, frozen
+backbone in eval mode. solo-learn lists ViT backbones but has **no ViT-VICReg result/
+checkpoint anywhere** — a ViT-S VICReg cell would be an adaptation with no published
+reference. **The useful second reference is VISReg** (§(j.4)) — same author lineage,
+full published multicrop ViT in1k trainer with configs + weights (ViT-B/L; CC BY-NC),
+DINOv2-protocol eval; closest existing public analogue of LeJEPA's unpublished je.py,
+and it even ships a `vicreg.py` baseline inside its ViT multicrop trainer.
+
+## (j.9) D-092 execution log (2026-08-10, Berker's cross-match-round directives)
+
+**e27lejl — the Lightly-replication control, LAUNCHED** (chain + landing armed; see the
+S-wave §(i) conventions). Config = Lightly's benchmark lejepa.py verbatim, single H100:
+
+| axis | e27lejl (replication) | (e27lej, for contrast) |
+|---|---|---|
+| views | 2g@224 (0.3,1) + **6l**@96, jitter **(0.4,.4,.2,.1)** p.8, solarize p.2 **global-2 only**, blur p.5 all, bicubic | 8l, jitter (0.8,.8,.8,.2), solarize all views, bilinear |
+| loss | .05·SIGReg(**locals**, **1024** slices) + .95·MSE(**locals → globals-mean**) | SIGReg(all 10, 256) + MSE(all → all-10 mean) |
+| head | 384 → [2048,2048,**64**] BN — **no embed stage**; h = trunk CLS | 512-embed → [2048,2048,16] |
+| opt | AdamW 5e-4 flat, wd 5e-2, warmup 1 ep, cosine→lr/1000, no clip, no EMA, **bs 512 global, one GPU** (≡ their 4×128: SIGReg/BN see the global batch either way), grad_ckpt | same opt dials at bs 128 |
+| declared deviations | bf16 (theirs fp16-mixed); house k9 blur approximating their PIL radius blur; seed 0 (theirs unseeded); house online monitor (CLS, all views) | — |
+
+Targets at land (full-frame + bench column): Lightly linear 64.0 / kNN 47.1 / online-CLS
+56.23. e27lej stays on the card as the declared matched-frame variant (its corrected-frame
+reprobe pending, D-090). New guarded code paths (all legacy paths byte-identical, selftest
+§5–7 incl. a hand-pinned legacy inv): `lightly_mc` views (`LightlyLejepaMultiCropDataset`),
+`mc_form=lightly`, `n_slices`, `grad_ckpt`, `emb_dim=0` bare-CLS anatomy (+ adapter branch:
+h = `student.h.cls`, no z.embed space).
+
+**AUG-DECLARATION ERRATUM (found by the D-092 selftest, measured 2026-08-10):** the house
+pattern `RandomApply([v2.RandomSolarize(...)], p=.2)` HALVES the effective probability —
+torchvision-v2 RandomSolarize carries its own p=.5 (measured: wrapped .0988 vs bare .1983
+over 20k trials). Scope: `orbit_stack` (audit_v1 + the lejepa/floorssl training family)
+and `_dino_view` — **every house run's effective solarize is ≈.1 where docs said .2.**
+Frozen stacks are NOT changed (v1 semantics = the code; internal comparisons all rode the
+same effective value); the §(j.1) photometric row corrects to "solarize eff .1". The
+replication's `_bench_view` uses the bare transform (true .2 = Lightly's own
+RandomSolarization(prob=.2)). Same trap found IN VISReg's shipped multicrop
+(`RandomApply([RandomSolarize], p=.2)`, multicrop.py:118) — their published numbers ran
+effective ≈.1 and our faithful repro will match them as shipped; by coincidence the house
+effective .1 equals VISReg's.
+
+**in1k eval standard (PROTOCOL v1-draft.8):** full-train only — the train500 variant is
+REMOVED (stores + manifest deleted, 8.1 G; extract.py raises on in1k per-class; the
+confounded voas CSV preserved as `*.train500-superseded.csv`) — and every in1k landing now
+carries `bench_linear_v1` (+ t=.07 kNN rider) beside the house probes; bench jobs armed on
+all five wave lanes and the replication.
+
+**VISReg reproduction staged:** donor pinned `third_party/visreg` @ 47b1cf4; runnable copy
+`~/visreg_repro` on their pins (py 3.12, torch 2.8 — their 07-22 SyncBN commit makes pins
+load-bearing) with ONE declared patch (HF hub → local imagefolder; `PATCHES.md`). Runs the
+shipped ViT-B config as-is: 4g@224+6l@96, λ=.9 on the SWD sketch, proj [2048,2048,256]
+BN+GELU, K=4096 projections, AdamW 9e-4, wd 5e-2, warmup 5, clip 1.0, bf16, 100 ep,
+effective bs 512. Upstream ambiguities flagged (paper says K=2048 + 400-ep results; config
+ships 4096/100 — we run the config). Their co-trained probe is gradient-isolated
+(`probe(emb.detach())` — a monitor, no supervised leakage). Launch = accelerate multi-GPU
+(N × 512/N) as wave landings free H100 slots; fit smoke first.
+
+## (k) D-094 execution log (2026-08-10 late — the S-read round)
+
+**Berker's S read (verbatim in D-094): v10u = the winner; keep only e27v10u + e27oas;
+lejepa → "the lightly numbers, i want no diff"; variant program (v10u+swa, v10u+bs512,
++ the three ViT-B mirrors) conditional on attributing the gain to uniform views.**
+
+**Kills executed:** e27pv (ep44) · e27grpo (ep25) · e27pvo (ep25) — segments, landing
+chains, bench jobs cancelled; ckpts → `_last` only (D-089 policy). Curve record at kill:
+pv plateaued .45–.46 from ep34 (last reads .4587/.4521/.4475); grpo .4527, pvo .4649 —
+all below oas's matched-epoch curve. Stream verdict material (raw): all-views-mean ≥
+grouped ≈ per-view at S; estimator question inside per-view (pv vs pvo) dies half-answered.
+
+**The attribution table (raw, mid-training — the (h)-style read behind Berker's
+conditional):** e27oas and e27v10u differ on FOUR axes, not one — geometry, estimator
+(ring is D-089-illegal on mc's heterogeneous mean, so each lane rides its legal-best),
+dose weights (per-lane share-parity derivations), and **per-step compute: 1970 vs 690
+tokens/sample = ×2.86** (wall ×1.75: ≈101 vs ≈58 min/ep).
+
+| comparison | v10u | oas | Δ |
+|---|---|---|---|
+| epoch-matched (ep19) | .5130 | .4377 | **+7.5** |
+| FLOP-matched (≈46 mc-ep-eq: v10u ep16 vs oas ep46) | .4990 | .4984 | **+0.1 ≈ tie** |
+
+**lejepa zero-diff vehicle = Lightly's own code (D-094(2)):** e27lejl stood down while
+queued (deviations bf16/blur/seed/monitor = the "no diff" violations; drop_path 0.1
+verified matched, a diff-candidate closed). `third_party/lightly` @ f444cf36 pristine;
+`~/lightly_repro` runnable, zero patches (REPRO.md); `slurm/lightly_lejepa.sbatch` =
+segmented 4×H100 wrapper around THEIR `main.py --methods lejepa` defaults (4×128 = bs
+512, 16-mixed, unseeded, their eval chain; finetune-eval skipped, declared); smoke
+63229333. Their-code details confirmed at source: backbone carries `drop_path_rate=0.1`,
+online monitor = first-global-view CLS (detached), scheduler = per-step cosine from
+1-ep warmup (.01×→lr→.001×), current HEAD transforms are BICUBIC (#2018).
+
+**Variant riders staged for the ruling:** SWA-teacher = declared reconstruction
+(`je.py`/configs unpublished; only post-hoc weight-averaging is fully defined);
+v10u-B ≈ 2.9× the measured mc-B pin → ≈6.5–7.3 d/100 ep single-GPU (mc-B 2.6 d);
+bs-512 v10u fit unproven (lejl's proven bs-512 path was 616 tokens/sample; v10u is
+1970 — fit smoke required before promising single-GPU).
+
+**(k.1) D-095 — the ruling landed: FLOP-matched re-base + SWA implemented (same
+evening).** Berker, convinced by the FLOP-collapse table: the new cells ride the exact
+Lightly view stack (2g@224+**6l**@96, 0.4-family jitter, true-p solarize global-2-only,
+bicubic) under OUR loss — frame- AND FLOP-matched to the lejepa reproduction bar.
+`aug=lightly_mc` in floorssl (selftest §10); estimator OAS no-ring (heterogeneous mean,
+D-089 law). SWA per the paper's one-line spec (*"SWA on the encoder producing μ in
+Eq. (6)"*, Izmailov equal-weight): grad-free eval twin deepcopied post-init (student
+byte-identical to parent), per-step equal average, anchor = twin's all-view z-mean at
+the lane's own anchor set, ×2V/(V−1) on the uniform branch pins the init pull to the
+calibrated w_inv; swa_k in extras; twin in ckpts (post-hoc SWA-eval free). Selftest
+§(9) PASSED on GPU (in-job 63232096: init-parity exact, hand-math average, grad-free,
+round-trip). Program: **e27lmc** (pilot 63239252, dose from the [share] ep1 g's at
+s*=(.63,.34,.03), T=9.0) → **e27lmc_swa** (base doses, ~+⅓ step) + **e27lmc_b512**
+(flat lr; the lejl bs-512 single-GPU path IS this geometry) → three ViT-B mirrors.
+v10u+swa superseded pre-launch; v10u/oas land unchanged (scaling story + house-aug
+control; FLOP-overlay read pre-registered). Same-evening greens: Lightly repro smoke
+TRAINING on 4×H100 (63229333, epoch 0 at their exact 1.28M/512 = 2502 steps);
+b512fit past construction no-OOM; T1(b) harsh-locals tension of the mild 0.4-family
+flagged in-conversation.
+
 ## Gates
 
 - **D-079a: USER-APPROVED 2026-08-06 (Berker: "we launch s and then you start
@@ -681,4 +1045,12 @@ survivors continue to full runs, then B/L + controls per the program.
 
 ## AGREED TAKEAWAY
 
-*(joint only — empty until discussed)*
+**E27-T1 (USER-APPROVED, Berker 2026-08-10: "d087 agreed"):** *Scaling V=4→V=10
+succeeds or fails on dose level and stream homogeneity — not on view count or crop
+harshness.* Full four-clause wording in §(h.1) (dose level Σw·g ≈ 7–10 · aug axis
+favors small/harsh locals, large locals collapse diversity · pure view-count scaling
+pays monotonically · estimator follows stream homogeneity: ring↔homogeneous,
+OAS↔heterogeneous). Scope ViT-S/in1k 5-ep health reads; the 100-ep wave is the
+confirming instrument. Mirrored to DECISIONS.
+
+*(further rows joint, as the wave lands)*

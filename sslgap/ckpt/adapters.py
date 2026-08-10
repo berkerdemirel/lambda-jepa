@@ -214,6 +214,13 @@ def _asm_deitlite(mods, ck):
 def _asm_lejepa(mods, ck):
     # encoder = timm ViT WITH the emb Linear (exact port); split into trunk + embed for the
     # two-space layout — z.embed is LeJEPA's h (D-003v2 F4).
+    # D-092 Lightly-replication anatomy (emb_dim=0): bare-CLS encoder, NO embed stage — the
+    # encoder module IS the trunk (timm num_classes=0); h = trunk CLS (their evaluated
+    # feature), z = projector taps only (no z.embed space exists).
+    if ck["arch"]["encoder"]["kwargs"].get("emb_dim", 512) == 0:
+        return ({"student": Branch(mods["encoder"], TVMLPTaps(mods["projector"], "proj"),
+                                   "cls")},
+                "student", "student.h.cls")
     fr = ck["frame"]
     trunk, embed = _trunk_from_vit_sd(mods["encoder"].state_dict(), fr["model_name"],
                                       fr["img_size"], fr.get("dynamic_img_size", False))

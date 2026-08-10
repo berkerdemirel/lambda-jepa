@@ -1,0 +1,7 @@
+name: in1k
+model_name: vit_large_patch16_224
+img_size: 224
+dataset: imagenet1k           # ImageFolder at data_root/{train,val}; 1,281,167 / 50,000 verified (D-055)
+data_root: ~/data/imagenet
+epochs: 100                   # epochs-matched across S/B/L (E27 program, D-079); PROTOCOL §2 row v1-draft.7
+grad_clip: 1.0                # frame default; method overrides only via DECISIONS row
