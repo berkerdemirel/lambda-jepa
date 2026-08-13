@@ -24,6 +24,7 @@ Aug pipeline stays the BYOL pair (aug family is a separate axis; deltas remain l
 vs the vicreg-lane controls). Trainer surface mirrors vicreg's (house scheduler, single
 param group)."""
 import copy
+import math
 
 import torch
 import torch.nn as nn
@@ -280,18 +281,28 @@ class FloorSSL(SSLMethod):
             return tp(cls.flatten(0, 1)).reshape(N, cls.shape[1], -1).mean(1, keepdim=True)
 
     def post_step(self, modules, step, total_steps):
-        # SWA update (D-095): equal-weight running average over optimizer steps
-        # (Izmailov form, the paper's citation; no momentum schedule exists to import —
-        # je.py unpublished). theta_k = (k*theta_{k-1} + student)/(k+1); BN buffers are
-        # COPIED from the student (running stats are already temporal averages).
+        # SWA update (D-095): swa="uniform" = equal-weight running average over steps
+        # (Izmailov form, the paper's literal citation; no cadence exists to import —
+        # je.py unpublished). D-098 postmortem: uniform-from-step-0 anchors early
+        # training to near-init weights (both swa lanes ran −14/−15 under their bases
+        # with pathological h_moment_kl) → swa="ema" = the lineage teacher (DINO
+        # convention: tau cosine swa_tau→1 over total steps), declared deviation from
+        # the paper's literal SWA. BN buffers are COPIED from the student either way
+        # (running stats are already temporal averages).
         if "teacher_backbone" not in modules:
             return {}
         k = self._swa_k
+        if self.cfg.get("swa") == "ema":
+            t0 = self.cfg.get("swa_tau", 0.996)
+            tau = 1 - (1 - t0) * (math.cos(math.pi * step / max(1, total_steps)) + 1) / 2
+            w_old, w_new = tau, 1 - tau
+        else:
+            w_old, w_new = k / (k + 1), 1.0 / (k + 1)
         with torch.no_grad():
             for role in ("backbone", "projector"):
                 t, s = modules[f"teacher_{role}"], modules[role]
                 for pt, ps in zip(t.parameters(), s.parameters()):
-                    pt.mul_(k / (k + 1)).add_(ps, alpha=1.0 / (k + 1))
+                    pt.mul_(w_old).add_(ps, alpha=w_new)
                 for bt, bs in zip(t.buffers(), s.buffers()):
                     bt.copy_(bs)
         self._swa_k = k + 1

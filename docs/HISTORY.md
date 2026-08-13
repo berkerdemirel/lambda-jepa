@@ -738,3 +738,114 @@ sail: 2 lanes + 4 lightly + 3+3 trios = 12, VISReg at 4 = 16 exact (8 when light
 drains). Bench A/B passed ep25/90 mid-session; corrected 12-space probes and the
 VISReg Arrow-index smoke still filling at close. DONORS gained visreg @ 47b1cf4 and
 lightly @ f444cf36.
+
+## 2026-08-11 → 08-12 — the incident-and-payoff day (Fable): SWA cured by option (a), four harness fires fought, the repro lands ON TARGET, the frame-matched tie, the combo round
+
+Overnight from the trio launches, four infrastructure fires, each diagnosed to root:
+**(1) e27oas crash-drain** — native CUDA abort on gpu270 at ep71; follow-ups died on the
+sick node, the drain fired the landing chain onto a missing ep100 (harmless). Resumed
+ep70 `_last` with the node excluded. **(2) e27lm4b5b OOM-relay** — every bs512×4g
+segment host-OOM-killed after ~1 epoch (1.6 GB decoded batches × 28 workers vs 200G);
+Berker's "why does the curve start at ep3" was the symptom (wandb's step high-water
+swallowed each relay's points). Fixed 400G + 12 workers — then a SECOND relay of
+16-second failures from the `frame.num_workers` vs top-level `num_workers` key slip;
+third relaunch TRAINING. **(3) The queue mystery** — Berker asked why jobs pend with
+"free space": measured answer — 27 idle GPUs strand three ways (12 behind CPU-exhausted
+nodes, ~8 reserved for a top-priority whole-node job, the rest behind MEMORY windows:
+gpu265 had 119G free vs our 128G habit-ask). The 110G resubmit scheduled in seconds —
+memory-window fitting became the standing trick. **(4) VISReg-B launch** — three
+attempts: `num_workers` needs `+` (undeclared key); accelerate needs `--multi_gpu`; then
+explicit `--gpu_ids 0,1,2,3` after it refused a 4-GPU allocation it provably held.
+Attempt 3 UP, wandb ONLINE (team entity, SSL-ImageNet1K-VIT-B/sbe9q03e). Also: the
+lejepa repro was invisible to Berker — their harness is TB-only; `wandb_bridge.py`
+republishes to `lightly.lejepa.repro` (v2 after the DeviceStatsMonitor 2M-point parse
+stall: allowlist + per-file cache). VISReg's imagefolder crashes root-caused to the
+data tree (stray val tarball auto-extracted into a hash-label; split-name inference
+"val"→validation) — tar moved, patch takes the sole split; PATCHES.md updated.
+
+**The science:** Berker's wandb read killed the sick SWA lanes (−14/−15, pathological
+h_moment_kl) and chose option (a); postmortem = BOTH axes (inherited doses mis-set ×1.45
+at init + the paper-literal uniform-from-0 average = a near-init anchor early).
+`swa=ema` (DINO τ cosine .996→1, declared deviation) + swa-ACTIVE pilots → relaunched
+lanes track AT their bases from ep1 (S ep3 .2458 vs base .2437; B ep1 .1421 vs .1443) —
+cure confirmed, then SURPASSING: lmcse +3.0 over base at ep15. **The repro landed its
+online monitor at .5584 vs Lightly's published 56.23** — the zero-diff replication on
+target; offline evals running. **The matched-epoch table** (D-099): the frame-matched
+bs512 pair is a DEAD HEAT ep10–30; bs128 early "edges" are small-batch fast-start;
+the real gains at matched batch are swa +3.0 and bs512 +3–4, independently — Berker:
+combine them → the 2×2 completes with e27lmcs5 / e27lm4s5b, own pilots submitted
+(63394507/8), chains fire on their ep1 lines. oas reached ep96 with its landing chain
+re-armed (63394461-64); bench A/B continuations resubmitted after their 24h walls
+(cumulative CSVs resume); lightly eval segment mid-linear at close of the round.
+Next session declared: THEORY from Berker's uploaded file + the submission plan,
+while the arms run.
+
+## 2026-08-12/13 — the theory round + the two-space measurement program (D-100)
+
+Berker's paper draft landed in `docs/paper/` (main.tex + appendix.tex + references.bib).
+Read in full, every proof verified line-by-line — all correct (two cosmetic notes: App C.2
+reuses Q for two objects; Thm C.2 wants the rank(M_z)=r_z half-sentence). Discussion round
+settled the positioning (D-100): Thm 2.1 is NOT tautological — the three-stage construction
+is the content and the literature genuinely confuses the two spaces; empirical support =
+each method's stated desideratum at its declared loss tap vs h on TRAINED models, choosing
+strong failure points without promising h is always worse. Stores PERSISTED (427G, D-005
+purge suspended). ICLR 9/24 target; C5 (FLOP-collapse) out of this paper; seeds after a
+promising single seed.
+
+Built and validated same-day: `sslgap/metrics/twospace.py` (paired-view B̂/Â with even/odd
+cross-group canary, truncated-support whitening, held-out whitened R²_acc + Σ_c spectra,
+the Θ(I+Θ)⁻¹ fidelity-law test, Ĝ/Ŝ split with any-predictor lower-bound logic, per-class
+organization/decomposition) + driver/sbatch/selftest (18/18 GREEN incl. exact synthetic
+recovery of the law). Run over ~60 stores incl. fresh multi-view layered extracts for the
+e20f controls and all trajectory checkpoints.
+
+Checklist-driven figure deck (Berker: "work with a checklist… every item a figure"):
+`docs/paper/CHECKLIST.md` + `experiments/paper_checklist_figs.py` → results/figures/paper/
+C1–C8b rendered. Lane truth pinned after two wrong-lane incidents (C1 first rode treated
+e20f arms; e12 pairs were the wrong treatment family): treatment pairs = E20F wave
+(control `in100.<m>.s0` vs `in100.<m>.s0.e20f`), C1 = controls only, and — Berker
+2026-08-13 standing rule — EVERY treated/untreated measurement includes the ours pair.
+
+The missing experiment (Berker: "in100 run with our loss only after mlp") — `d256vm4zonly`
+= vm4 with h_lamb=0, one H100. First launch CRASHED (hand-copied overrides; num_classes
+default 10 + bs default 256 — the second one silent). Fix protocol now standing (memory:
+twin-launch-config-diff): mechanical resolved-config diff vs the reference ckpt cfg + a
+first-epoch watcher. Relaunch verified: diff = {h_lamb, tag} only; landed ep100 online
+.7048, full landing chain + trajectory extracts + MLP pass complete same night.
+
+Headline raw results (all landed, artifact-checked; interpretation joint, D-100 records):
+- Fidelity law holds per model at corr .990–.9997 across every Θ eigendirection (C4);
+  downstream decomposition identity per class (C8b).
+- ±h-moment-floor, six single-factor pairs incl. ours: B-rank of h ×2–3 up (ours 181→371),
+  trΘ/r UP in all six (Berker's "treatment raises Θ" — confirmed), held-out whitened R²_acc
+  up where headroom exists (vicreg .07→.18, simclr .64→.85, ours .44→.49). C8 term-shift:
+  the floor buys organization (d_h² down .08–.17) at a small view-fidelity price (+.02–.06).
+- C6: standard SSL training DEGRADES h→z accessibility over epochs in both arms
+  (vicreg/simclr/dino); ours is the only lane where it RISES. Thickness thins with depth
+  ~10× and the bridge forms only past L06 (C7, all 6 columns).
+- MLP center-predictor with source-split early stopping FAILS to tighten the linear
+  Ĝ bound on 10/11 runs (val≈test, train<val — generalization-limited): the view→center
+  conditional mean is essentially linear at N=10k; C5's excess-share lower bounds .45–.87
+  ride the closed form.
+- Gaussian-family ±treatment table (+ vm4/zonly): floor improves moments/tails/radial in
+  ~every cell; sliced-EP moves independently (the E12-T5 lesson alive at small amplitude).
+  vm4 z = moment-KL .01 with kurt 195 — moment-perfect, shape-extreme. zonly h: moment-KL
+  3.28/kurt 27 → vm4 .51/1.54 — our h-term reproduces the whole treatment signature.
+- Marginal-entropy instrument (Berker spec: 10 bins, min/max, Σ per-dim, 5 Haar rotations):
+  range-binned AND variance-scaled variants both show every treated arm moving toward the
+  Gaussian reference, 10–100× CI; var-scaled is the corrected reading (Gaussian = ceiling
+  2.4061); zonly 2.3587→vm4 2.4044 = the largest arrow. results/compare/marginal_entropy_h.csv.
+- E20 guillotine regenerated with the 8th row (ours: zonly grey vs vm4 green).
+
+E27 arms meanwhile: lightly repro CLOSED — offline linear 64.11 / kNN 47.06 vs published
+64.0/47.1 (the zero-diff S anchor certified). visreg-b attempt 3 TRAINING (first run to
+survive the launcher errors; the HF arrow build was first-execution, ~2h; wandb
+SSL-ImageNet1K-VIT-B/sbe9q03e; ep19 test .4833). oas landed ep100 .6049 online; extract
+200G OK after a 96G OOM; probe TIMEOUT@4h → 24h rerun (partial CSV: h.cls raw_v2 .6268 /
+house_v2 .6383); audit OOM@96G → 200G rerun. Both combo chains fired off their own pilot
+ep1 lines (S 3.53/4.46/0.180; B 5.07/8.97/0.335). Bench A/B hit their 24h walls at ep87/90
+(lej best .6058 vs vm4 .6633, +5.75 frame-matched) — finals resubmitted. byol 4096-d taps
+hung twospace 4h → max_tap_d cap. Faithfulness incidents on record: "e27lmc done" claimed
+off the plan while wandb read ep87 (Berker caught it; artifact-check-before-claiming now
+the standing rule), plus the --wrap/sh-source and doubled-path submit failures — all
+repaired same-day, all landings re-verified from disk.

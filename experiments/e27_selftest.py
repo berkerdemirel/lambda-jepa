@@ -178,6 +178,21 @@ assert ms._swa_k == 7
 print(f"[selftest] swa: init-parity inv {t_swa['inv'].item():.4f} == legacy "
       f"{t_leg['inv'].item():.4f}; running avg exact; twin grad-free; k round-trips")
 
+# (9b) swa="ema" (D-098): one update at step 0 of T=100 must give
+# theta_t = tau0*theta_t + (1-tau0)*theta_s with tau0 = swa_tau exactly.
+cfg_e = OmegaConf.merge(cfg_s, {"swa": "ema", "swa_tau": 0.996})
+me = FloorSSL(cfg_e, frame)
+mods_e = me.build_modules().to(dev)
+pt0 = next(mods_e["teacher_backbone"].parameters()).detach().clone()
+with torch.no_grad():
+    for p in mods_e["backbone"].parameters():
+        p.add_(1.0)
+me.post_step(mods_e, 0, 100)
+pte = next(mods_e["teacher_backbone"].parameters())
+assert torch.allclose(pte, pt0 * 0.996 + (pt0 + 1.0) * 0.004, atol=1e-6), \
+    "ema update drifted from hand math"
+print(f"[selftest] swa=ema: tau0 update exact")
+
 # (10) lightly_mc frame (D-095): the Lightly view geometry (2g+6l) under our loss —
 # dynamic trunk engaged, mc branch consumes it, swa's mc path finite at V=8, OAS live.
 cfg_lm = OmegaConf.merge(cfg, {"aug": "lightly_mc", "Vl": 6, "floor_shrink": "oas",

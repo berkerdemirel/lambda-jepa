@@ -1,0 +1,541 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,tabularx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+% \usepackage[round,authoryear]{natbib}
+\usepackage[numbers]{natbib}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{linkblue}{RGB}{20,70,120}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,
+  citecolor=linkblue,
+  urlcolor=linkblue,
+  pdftitle={Two-Space Faithfulness in Projector-Based Self-Supervised Learning},
+  pdfauthor={Anonymous Authors}
+}
+\urlstyle{same}
+
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{0pt}
+\setlist[itemize]{leftmargin=*,topsep=3pt,itemsep=2pt}
+\setlist[enumerate]{leftmargin=*,topsep=3pt,itemsep=2pt}
+\numberwithin{equation}{section}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newenvironment{takeaway}
+{\par\smallskip\noindent\begin{minipage}{\linewidth}\hrule\smallskip\textbf{Takeaway.}\ }
+{\smallskip\hrule\end{minipage}\par\smallskip}
+
+\newcommand{\TODO}[1]{\textcolor{red!70!black}{\textbf{TODO:} #1}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\srank}{\operatorname{srank}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\sign}{\operatorname{sign}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\range}{\operatorname{range}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+
+
+\title{Two-Space Faithfulness in Projector-Based Self-Supervised Learning}
+% \author{Berker Demirel}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Projector-based self-supervised learning optimizes a projected representation $Z=p(H)$ but typically discards the projector and retains the backbone $H$. This creates a two-space mismatch: the pretraining objective directly constrains $Z$, whereas downstream use depends on $H$. We formalize the gap through factorization non-identifiability: distinct backbone--projector pairs can induce the same projected variables while changing properties of the retained representation.
+
+We separate stable source-center spread from augmentation-cloud thickness through $C_s=B_s+A_s$, where $B_s=\Cov(m_s(Q))$ captures across-source center variation and $A_s=\E[\Cov(S\mid Q)]$ captures total within-source view variation. Pooled-center moment control protects $B_h$ and $B_z$ up to the finite-view correction $A_s/V$. We then measure the missing $H\to Z$ bridge by held-out linear accessibility: multivariate $R^2$ summarizes average recovery of projected center organization, while directional residuals track particular distinctions. After this bridge is established, we analyze the retained backbone through center organization $d_h(y)$ and normalized cloud thickness $\Theta_h=B_h^{\dagger/2}A_hB_h^{\dagger/2}$. In center-whitened coordinates, $\Theta_h$ admits the PSD decomposition $\Theta_h=G_h+S_h$: $G_h$ is the irreducible single-view prediction-error covariance of the represented source centers, while $S_h\succeq0$ is excess thickness beyond that requirement. View-difficult represented distinctions require corresponding mass in $G_h$; excess $S_h$ is not needed for that representation and only worsens the view-to-center fidelity certified here.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+Projector-based self-supervised learning (SSL) typically computes
+\[
+H=h(V),\qquad Z=p(H),
+\]
+applies the pretraining objective to $Z$, and retains $H$ downstream. This pattern is standard in contrastive and non-contrastive pipelines \citep{simclr2020,vicreg2022,xue2024,ouyang2025}. The representation most directly optimized during pretraining is therefore not the representation ultimately used for downstream prediction.
+
+This raises four questions: what can a $Z$-only objective certify about $H$; what stable structure must exist in both spaces; when is the organization learned in $Z$ linearly available from $H$; and, once it is, which retained augmentation sensitivity is required by represented distinctions and which is excess?
+
+\paragraph{1. What does a projected-space guarantee say about the retained backbone?}
+In general, it does not identify a non-invariant property of $H$. A $Z$-only objective observes the backbone and projector only through $p\circ h$, so distinct admissible factorizations can produce the same $Z$ while changing covariance, Gaussianity, linear margins, or linearly available information in $H$. Theorem~\ref{thm:discrepancy} formalizes this obstruction, which already appears under invertible reparameterizations, non-injective projections, and ignored backbone coordinates.
+
+\paragraph{2. What capacity must be present before a cross-space certificate is nondegenerate?}
+For $S\in\{H,Z\}$, write
+\[
+B_s=\Cov(m_s(Q)),\qquad
+A_s=\E[\Cov(S\mid Q)],\qquad
+C_s=\Cov(S)=B_s+A_s.
+\]
+The relevant noncollapse notion is stable source-center capacity in $B_h$ and $B_z$, not generic marginal spread in $C_s$: within-source augmentation variation can keep $C_s$ large even when stable source distinctions collapse. For $V$ independent views of the same source, the pooled-center covariance is $B_s+A_s/V$, so pooled-center moment regularization protects stable center spread up to an explicit finite-view correction.
+
+\paragraph{3. Is the organization selected in \texorpdfstring{$Z$}{Z} accessible from \texorpdfstring{$H$}{H}?}
+Because the pairwise SSL objective acts directly on $Z$, we use it as the augmentation-organized anchor and ask
+\[
+H\longrightarrow Z.
+\]
+A population or held-out least-squares map from backbone centers to center-whitened projected centers measures this relation. Average multivariate $R^2$ summarizes recovered projected center variation, while directional residuals measure particular projected distinctions. Uniform and principal-angle refinements appear in Appendix~\ref{app:accessibility}.
+
+\paragraph{4. Once the anchor is accessible, what should the retained backbone preserve beyond it?}
+The retained representation has two distinct properties: center organization, measured by the best center-level approximation error $d_h(y)$, and within-source spread around those centers. On the support of $B_h$, the normalized cloud thickness
+\[
+\Theta_h=B_h^{\dagger/2}A_hB_h^{\dagger/2}
+\]
+measures this spread relative to stable across-source separation.
+
+Section~\ref{sec:resolution-main} decomposes $\Theta_h=G_h+S_h$. The structured term $G_h$ is the irreducible single-view prediction-error covariance of the represented source centers, while the PSD remainder $S_h$ is excess thickness.
+
+The cumulative argument is
+\[
+\boxed{
+\begin{gathered}
+Z\text{-only guarantees do not identify }H\\
+\Downarrow\\[-2pt]
+\text{stable center capacity in }H,Z
++
+\text{measured }H\to Z\text{ accessibility}\\
+\Downarrow\\[-2pt]
+\text{center organization }+\text{ structured/excess thickness in }H
+\end{gathered}
+}
+\]
+We summarize the picture as an \emph{accessible projected anchor plus selectively retained augmentation sensitivity}. Uniform accessibility, a supporting connection to augmentation-operator/spectral SSL theory, and estimator details are deferred to the appendix.
+
+\section{\texorpdfstring{$Z$}{Z} does not identify \texorpdfstring{$H$}{H}}\label{sec:discrepancy}
+
+A $Z$-only objective sees the backbone--projector pair only through $p\circ h$, so the relevant identification object is an equivalence class of factorizations rather than a unique backbone geometry.
+
+\begin{theorem}[$Z$-only objectives identify only the projected factorization class]\label{thm:discrepancy}
+Suppose an objective $J(h,p)$ depends on $(h,p)$ only through the projected variables $Z=p(h(V))$. For any admissible pair $(\widetilde h,\widetilde p)$ in the model class satisfying
+\[
+\widetilde p(\widetilde h(V))=p(h(V))
+\]
+pathwise, one has
+\[
+J(\widetilde h,\widetilde p)=J(h,p).
+\]
+Consequently, a backbone property can be uniformly certified by a $Z$-only objective only if it is constant over every admissible backbone--projector factorization of the same projected map.
+\end{theorem}
+
+An admissible invertible change of backbone coordinates can be absorbed by the projector. If the projector factors through a coarsening of $H$, backbone information can be deleted while preserving $Z$; if extra backbone coordinates are ignored by the projector, information can be appended without changing $Z$. Thus the obstruction is broader than coordinate indeterminacy and does not require projector nonlinearity. Explicit fixed-$Z$ counterexamples for Gaussianity and linear separability appear in Appendix~\ref{app:discrepancy}; positive identification becomes possible when additional model or latent-variable structure restricts the admissible factorization class \citep{roeder2021,vonkugelgen2021}.
+
+\begin{takeaway}
+A projected-space guarantee alone cannot certify a non-invariant property of the retained backbone; a cross-space certificate first requires stable structure in both spaces.
+\end{takeaway}
+
+\section{Stable source-center capacity in both spaces}\label{sec:setup}
+
+To compare source structure in $H$ and $Z$, both spaces must carry stable source variation. Let $Q\sim\pi$ index source objects and let $V\sim\mathsf A(\cdot\mid Q)$ be an augmented view. For $S\in\{H,Z\}$, with $s\in\{h,z\}$ denoting the space, define
+\[
+m_s(Q)=\E[S\mid Q],\qquad
+\mu_s=\E[S],\qquad
+\xi_s=S-m_s(Q),
+\]
+\[
+B_s=\Cov(m_s(Q)),\qquad
+A_s=\E[\xi_s\xi_s^\top]=\E[\Cov(S\mid Q)].
+\]
+\[
+C_s:=\Cov(S)=B_s+A_s.
+\]
+We call $B_s$ \emph{stable source-center spread} and $A_s$ \emph{augmentation-cloud thickness}. The central capacity requirement is nondegenerate $B_h$ and $B_z$. High marginal covariance is not enough: $C_s$ can remain large solely because within-source variation contributes $A_s$. At this stage $A_s$ is only a total covariance; it does not distinguish augmentation sensitivity required by a represented source distinction from additional within-source spread. Section~\ref{sec:resolution-main} makes that distinction for the retained backbone.
+
+On the support of $B_s$, define the relative thickness
+\begin{equation}\label{eq:theta}
+\Theta_s=B_s^{\dagger/2}A_sB_s^{\dagger/2}.
+\end{equation}
+Equivalently, along any direction $a$ with $a^\top B_sa>0$, the scalar ratio
+\[
+\lambda_s(a)=\frac{a^\top A_sa}{a^\top B_sa}
+\]
+measures total within-source variation relative to stable source variation. We use $\Theta_h$ as the total normalized thickness of the retained backbone and $\Theta_z$ as a descriptor of the projected augmentation anchor.
+
+With two conditionally independent views $S_1,S_2$ of the same source,
+\begin{equation}\label{eq:paired-inline}
+B_s=\E[(S_1-\mu_s)(S_2-\mu_s)^\top],
+\qquad
+A_s=\frac12\E[(S_1-S_2)(S_1-S_2)^\top],
+\end{equation}
+so the two components can be estimated separately without a distributional assumption. The formal statement and proof are in Appendix~\ref{app:capacity}.
+
+\subsection{Pooled-center moment control protects stable capacity}
+
+For $V$ conditionally independent views of the same source, define the pooled source center
+\[
+\overline S_V=\frac1V\sum_{v=1}^V S^{(v)}.
+\]
+Writing $S^{(v)}=m_s(Q)+\xi^{(v)}$ with $\E[\xi^{(v)}\mid Q]=0$, conditional independence immediately gives
+\begin{equation}\label{eq:pooled-cov-main}
+\widetilde B_{s,V}
+:=\Cov(\overline S_V)
+=
+B_s+\frac1V A_s.
+\end{equation}
+A pooled-center covariance penalty therefore sees stable source spread plus only a $1/V$ fraction of the within-source cloud, targeting $B_s$ increasingly directly as the number of independent views grows.
+
+For a positive-definite pooled covariance $\widetilde B$ on a $d$-dimensional active subspace, we use the log-determinant moment penalty
+\[
+\cK_{\rm ctr}(\mu,\widetilde B)
+=
+\frac12\bigl(\norm{\mu}^2+\tr\widetilde B-\log\det\widetilde B-d\bigr).
+\]
+Its role is easiest to see first in the exact-whitening limit.
+
+\begin{proposition}[What pooled-center whitening protects]\label{prop:capacity-main}
+Suppose
+\[
+\mu_s=0,
+\qquad
+\widetilde B_{s,V}=I_d,
+\qquad
+\norm{A_s}_{\rm op}\le\alpha<V.
+\]
+Then
+\[
+B_s=I_d-\frac1V A_s,
+\]
+and hence
+\[
+\left(1-\frac{\alpha}{V}\right)I_d
+\preceq B_s\preceq I_d.
+\]
+In particular, the stable center covariance is full rank and
+\[
+\srank(B_s)\ge d\left(1-\frac{\alpha}{V}\right).
+\]
+Applied separately in $H$ and $Z$, pooled-center whitening therefore protects nondegenerate stable center spaces up to the explicit $A_s/V$ correction.
+\end{proposition}
+
+The proof is immediate from \eqref{eq:pooled-cov-main}. Appendix~\ref{app:capacity} gives the finite-loss extension for approximate pooled whitening.
+
+We next measure how these stable center spaces are related.
+
+\section{Accessibility is the missing \texorpdfstring{$H\to Z$}{H to Z} bridge}\label{sec:accessibility}
+
+Because the pairwise SSL objective acts directly on the projected representation, we use it as the anchor and measure how much of its center organization is recoverable by a linear readout of the retained backbone.
+
+\subsection{Projected and backbone center spaces}
+
+Assume $B_z$ has rank $r_z$ and choose a center-whitening map $R_z$ with
+$R_zB_zR_z^\top=I_{r_z}$. Define
+\[
+\overline Z=R_z(Z-\mu_z),\qquad
+\overline m_z(Q)=\E[\overline Z\mid Q],\qquad
+\Theta_z=R_zA_zR_z^\top.
+\]
+Let $\cM_z$ be the span in $L^2_0(\pi)$ of the coordinates of $\overline m_z(Q)$, and let $\cM_h$ be the span of the coordinates of $m_h(Q)-\mu_h$. For any centered source target $y$, define the center-organization errors
+\begin{equation}\label{eq:center-organization}
+ d_z(y):=\min_{g\in\cM_z}\norm{y-g}_{L^2},
+ \qquad
+ d_h(y):=\min_{g\in\cM_h}\norm{y-g}_{L^2}.
+\end{equation}
+These quantities answer a simple question: how well can the source-level target be organized by a linear combination of the representation centers? They are separate from the amount of view-level spread around those centers.
+
+\subsection{Average and task-direction center accessibility}
+
+Let $W_c$ be the population least-squares map from centered backbone centers to center-whitened projected centers,
+\[
+W_c
+=
+\arg\min_W
+\E\norm{\overline m_z(Q)-W(m_h(Q)-\mu_h)}^2,
+\]
+with residual
+\[
+e_c(Q)=\overline m_z(Q)-W_c(m_h(Q)-\mu_h),
+\qquad
+\Sigma_c:=\Cov(e_c).
+\]
+Because $\Cov(\overline m_z)=I_{r_z}$, define the average center-accessibility score
+\begin{equation}\label{eq:average-access}
+R^2_{\rm acc}
+:=
+1-\frac{\tr\Sigma_c}{r_z}.
+\end{equation}
+This is the population version of held-out multivariate $R^2$: it measures the average fraction of center-whitened projected variation linearly accounted for by backbone centers.
+
+\begin{theorem}[Accessibility decomposition and task-direction organization transfer]\label{thm:accessibility}
+For the least-squares map above,
+\begin{equation}\label{eq:access-cov-decomp}
+I_{r_z}=W_cB_hW_c^\top+\Sigma_c.
+\end{equation}
+Consequently:
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Average accessibility.}
+\[
+R^2_{\rm acc}
+=
+\frac{\tr(W_cB_hW_c^\top)}{r_z}
+=
+1-\frac{\tr\Sigma_c}{r_z}.
+\]
+Thus $R^2_{\rm acc}$ is exactly the average explained variance over center-whitened projected directions.
+
+\item \textbf{Directional accessibility.} For any projected direction $u\in\R^{r_z}$,
+\[
+\min_a
+\E\!\left[
+\bigl(u^\top\overline m_z(Q)-a^\top(m_h(Q)-\mu_h)\bigr)^2
+\right]
+=
+u^\top\Sigma_cu.
+\]
+Thus $u^\top\Sigma_cu$ is the exact unexplained variance for that projected distinction.
+
+\item \textbf{Task-direction transfer.} For any centered target $y$, write its projection onto $\cM_z$ as
+\[
+P_{\cM_z}y=u_y^\top\overline m_z(Q).
+\]
+Then
+\begin{equation}\label{eq:organization-transfer}
+ d_h(y)
+\le
+ d_z(y)+\sqrt{u_y^\top\Sigma_cu_y}.
+\end{equation}
+Hence organization already present in $Z$ transfers to $H$ whenever the corresponding projected direction is linearly accessible.
+\end{enumerate}
+\end{theorem}
+
+$R^2_{\rm acc}$ is an average diagnostic; a particular downstream distinction is characterized by its directional residual $u^\top\Sigma_cu$. Appendix~\ref{app:accessibility} gives implications for most residual eigen-directions and stronger uniform and viewwise certificates. In experiments, accessibility is measured on held-out source centers after training.
+
+\begin{takeaway}
+Projected center organization should be linearly accessible from $H$ in the relevant directions; average multivariate $R^2$ summarizes accessibility, and directional residuals resolve particular distinctions.
+\end{takeaway}
+
+\section{Task-dependent retained augmentation sensitivity after accessibility}\label{sec:resolution-main}
+
+Once projected organization is accessible from $H$, we separate within-source variation required by represented backbone-center distinctions from excess variation. We track center organization $d_h(y)$ from \eqref{eq:center-organization} together with
+\[
+\Theta_h=B_h^{\dagger/2}A_hB_h^{\dagger/2},
+\]
+which measures total within-source spread relative to stable across-source separation.
+
+\subsection{View difficulty and normalized backbone thickness}
+
+For a centered source target $y\in L^2_0(\pi)$, define its \emph{view difficulty}
+\begin{equation}\label{eq:view-difficulty}
+\cE_{\mathsf A}(y)
+:=
+\min_{f\in L^2_0(\nu)}
+\E\bigl[(y(Q)-f(V))^2\bigr].
+\end{equation}
+Thus $\cE_{\mathsf A}(y)$ measures how much of a source-level distinction is lost when only one augmented view is observed. For example, cropping can remove evidence needed to identify a fixed source label.
+
+Assume $B_h$ has rank $r_h$ and choose a center-whitening map $R_h$ with row space $\range(B_h)$ such that $R_hB_hR_h^\top=I_{r_h}$. Define
+\[
+\overline H=R_h(H-\mu_h),\qquad
+\overline m_h(Q)=\E[\overline H\mid Q],\qquad
+\Theta_h=R_hA_hR_h^\top.
+\]
+The coordinates of $\overline m_h$ are orthonormal source functions and span the same center space $\cM_h$ defined above.
+
+Along a stable direction $a$ in the unwhitened coordinates,
+\[
+\lambda_h(a)=\frac{a^\top A_ha}{a^\top B_ha}
+\]
+is the within-source augmentation spread relative to across-source center spread. The eigenvalues of $\Theta_h$ are the corresponding multivariate normalized thicknesses. In the center-whitened coordinates,
+\[
+\overline H=\overline m_h(Q)+\xi_h,
+\qquad
+\Cov(\overline m_h)=I,
+\qquad
+\Cov(\xi_h)=\Theta_h.
+\]
+Thus stable center variation has unit scale and $\Theta_h$ directly measures the total cloud thickness of individual views around it. When $B_h$ is already close to identity, $\Theta_h$ is correspondingly close to $A_h$ in the active coordinates.
+
+To isolate the part of this thickness that is forced by the represented center distinctions, let
+\[
+m_h^{\rm view}(V):=\E[\overline m_h(Q)\mid V]
+\]
+and define the \emph{structured view-difficulty matrix}
+\begin{equation}\label{eq:structured-G-main}
+G_h
+:=
+\E\!\left[
+(\overline m_h(Q)-m_h^{\rm view}(V))
+(\overline m_h(Q)-m_h^{\rm view}(V))^\top
+\right].
+\end{equation}
+For every $a\in\R^{r_h}$, conditional expectation is the least-squares predictor, so
+\begin{equation}\label{eq:G-view-difficulty-main}
+a^\top G_ha
+=
+\cE_{\mathsf A}\!\left(a^\top\overline m_h(Q)\right).
+\end{equation}
+The single-view backbone coordinate $a^\top\overline H$ is another admissible predictor of the same center distinction. Therefore
+\[
+a^\top G_ha
+\le
+\E[(a^\top(\overline m_h-\overline H))^2]
+=
+a^\top\Theta_ha
+\]
+for every $a$, and hence $0\preceq G_h\preceq\Theta_h$. We may therefore write the exact PSD decomposition
+\begin{equation}\label{eq:theta-GS-main}
+\Theta_h=G_h+S_h,
+\qquad
+S_h:=\Theta_h-G_h\succeq0.
+\end{equation}
+The matrix $G_h$ records augmentation sensitivity forced by represented center distinctions: a distinction that is intrinsically difficult from one view requires corresponding normalized thickness. The remainder $S_h$ is excess thickness. Both terms contribute to view-to-center loss, but only $G_h$ is required by those represented distinctions; $S_h$ may carry view-specific or task-specific information outside the source-center questions studied here.
+
+\begin{theorem}[Organization and retained augmentation sensitivity]\label{thm:retained-resolution}
+Let $y\in L^2_0(\pi)$ with $\norm{y}\le1$.
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Low retained resolution constrains representable distinctions.} For any center direction $a\in\R^{r_h}$,
+\begin{equation}\label{eq:center-view-predictable-main}
+\cE_{\mathsf A}\!\left(a^\top\overline m_h(Q)\right)
+=
+a^\top G_h a
+\le
+a^\top\Theta_h a.
+\end{equation}
+In particular, every unit-variance distinction represented by the backbone centers has view difficulty at most $\norm{\Theta_h}_{\rm op}$. Therefore
+\begin{equation}\label{eq:too-thin-main}
+ d_h(y)
+\ge
+\left(
+\sqrt{\cE_{\mathsf A}(y)}
+-
+\sqrt{\norm{\Theta_h}_{\rm op}}
+\right)_+.
+\end{equation}
+A source distinction whose view difficulty exceeds the retained-resolution budget cannot lie exactly in the backbone center span.
+
+\item \textbf{View-to-center fidelity.} Let
+\[
+W_{\rm ctr}=\argmin_W\E\norm{\overline m_h(Q)-W\overline H}^2.
+\]
+Then
+\begin{equation}\label{eq:center-fidelity-main}
+W_{\rm ctr}=(I+\Theta_h)^{-1},
+\qquad
+\Cov\!\left(\overline m_h-W_{\rm ctr}\overline H\right)
+=\Theta_h(I+\Theta_h)^{-1}.
+\end{equation}
+If $v$ is a unit eigenvector of $\Theta_h$ with eigenvalue $\lambda$, the corresponding unit-variance center coordinate has
+\[
+R^2_{\rm ctr}(v)=\frac{1}{1+\lambda}.
+\]
+
+\item \textbf{Downstream decomposition.} If $P_{\cM_h}y=a^\top\overline m_h(Q)$, then
+\begin{equation}\label{eq:organization-thickness-decomp}
+\inf_{u\in\R^{r_h}}
+\E[(y-u^\top\overline H)^2]
+=
+\underbrace{d_h(y)^2}_{\text{center organization}}
++
+\underbrace{a^\top\Theta_h(I+\Theta_h)^{-1}a}_{\text{view-to-center loss}}.
+\end{equation}
+The second term is monotone nondecreasing in $\Theta_h$ for fixed center organization and task direction $a$.
+\end{enumerate}
+\end{theorem}
+
+Part (i) identifies $G_h$ as the necessary augmentation-sensitive budget: a center span containing view-difficult distinctions must have enough normalized thickness to dominate their conditional-prediction error covariance. The coarser $\norm{\Theta_h}_{\rm op}$ bound follows from $G_h\preceq\Theta_h$, while accessibility transfers relevant organization from $Z$ to $H$ through \eqref{eq:organization-transfer}.
+
+Parts (ii) and (iii) depend on the total thickness $\Theta_h=G_h+S_h$. In raw coordinates, $\lambda_h(a)=a^\top A_ha/(a^\top B_ha)$ compares within-source spread with stable center separation along $a$; larger values reduce view-to-center fidelity. For fixed center organization and $G_h$, increasing $S_h$ therefore worsens these guarantees. Because agreement pressure acts directly in $Z$, retaining $H$ can preserve augmentation sensitivity for view-difficult distinctions while the projector enforces stronger agreement, but the same freedom can produce excess $S_h$.
+
+Proofs and the supporting operator interpretation appear in Appendix~\ref{app:resolution}.
+
+\begin{takeaway}
+Center organization and within-source spread play distinct roles: $G_h$ captures structured view difficulty, while $S_h$ captures excess thickness.
+\end{takeaway}
+
+\section{Training objective and measurement}\label{sec:objective}
+
+This yields the following training-and-measurement program. Let $\cL_{\rm pair}$ be the ordinary projected pairwise loss. For pooled source centers in the two spaces, consider
+\begin{equation}\label{eq:objective}
+\cL
+=
+\cL_{\rm pair}(Z_1,\ldots,Z_V)
++
+\lambda_z\cK_{\rm ctr}(\widehat\mu_z,\widehat B_{z,V_z}^{\rm train})
++
+\lambda_h\cK_{\rm ctr}(\widehat\mu_h,\widehat B_{h,V_h}^{\rm train}).
+\end{equation}
+The terms and diagnostics have distinct roles:
+\begin{itemize}
+\item the pair loss directly organizes $Z$ under the chosen augmentation relation;
+\item pooled-center moment control protects stable center capacity $B_h$ and $B_z$ up to the $A_s/V_s$ correction;
+\item held-out center accessibility measures whether projected organization is actually available from $H$, with average multivariate $R^2$ as the primary summary and direction-specific residuals as the sharper diagnostic;
+\item $d_h(y)$ measures task-specific center organization; $G_h$ records the structured view difficulty forced by the represented center distinctions; and the total $\Theta_h=G_h+S_h$ determines, through $\Theta_h(I+\Theta_h)^{-1}$, how faithfully those center coordinates remain linearly recoverable from individual views.
+\end{itemize}
+
+Appendix~\ref{app:experiments} describes finite-batch covariance estimation, random orthonormal slices, shrinkage, running-covariance variants, paired-view estimators for $B_s,A_s$, and held-out accessibility estimation.
+
+Validation follows the same order. First, measure stable center capacity $B_h,B_z$ and the finite-view correction. Second, fit the $H$-center $\to$ whitened-$Z$-center regression and report held-out multivariate $R^2$ together with directional residuals. Third, measure view-to-center fidelity in $H$ and compare the residual spectrum with $\Theta_h(I+\Theta_h)^{-1}$. With a sufficiently accurate held-out predictor of $\overline m_h(Q)$ from a single view, its residual covariance estimates $G_h$ and $\Theta_h-G_h$ diagnoses excess thickness; otherwise report the directly estimated $\Theta_h$ and task-aligned view difficulties. Finally, compare $H$ and $Z$ downstream while tracking $d_h(y)$ and task-aligned thickness, and sweep augmentation strength or direct thickness control to test the two sides of Theorem~\ref{thm:retained-resolution}.
+
+\section{Related work}\label{sec:related}
+
+\paragraph{Spectral SSL and augmentation operators.}
+Augmentation-graph and operator theories connect positive-pair objectives to spectral structure induced by the augmentation relation. HaoChen et al.\ analyze a population augmentation graph and obtain linear-probe guarantees from spectral contrastive learning \citep{haochen2021}. Balestriero and LeCun connect contrastive and non-contrastive objectives to global and local spectral embeddings \citep{balestriero2022}; Johnson et al.\ characterize positive-pair Markov eigenfunctions for approximately view-invariant targets \citep{johnson2023}; and Zhai et al.\ develop an RKHS approximation and regression view of augmentation-based pretraining \citep{zhai2024}. We use this established operator viewpoint to link augmentation smoothness of the projected center space to the low-frequency structure in our two-space accessibility argument. The retained-backbone analysis in Theorem~\ref{thm:retained-resolution} focuses instead on task-specific center organization, the structured view-difficulty budget $G_h$, excess normalized thickness $S_h$, and the total $\Theta_h=G_h+S_h$ governing view-to-center fidelity.
+
+\paragraph{Invariance versus downstream information preservation.}
+Tian et al.\ study view selection through the balance between shared information and task-relevant content \citep{tian2020}. Balestriero and LeCun analyze downstream consequences when the pair relation is misaligned with the target \citep{balestriero2022}, while CASSLE conditions the projector on augmentation information so that the retained feature extractor preserves augmentation-sensitive content \citep{przewiezlikowski2024}. Our analysis distinguishes structured from excess sensitivity through $G_h$ and $S_h$, respectively.
+
+\paragraph{Collapse, rank, and dual-space stable capacity.}
+Variance/covariance methods such as VICReg, Barlow Twins, and W-MSE control collapse through objectives applied to projected embeddings \citep{vicreg2022,barlow2021,wmse2021}. Mialon et al.\ show how variance--covariance regularization at the projector output can induce independence structure at its input \citep{mialon2022}. Effective representation rank is also a useful diagnostic for SSL quality \citep{rankme2023}, and DirectCLR and WERank address encoder rank more directly by removing the trainable projector or regularizing encoder weights \citep{jing2021directclr,werank2024}. Our setting keeps the usual backbone--projector factorization and protects \emph{stable source-center capacity} in both spaces before asking whether the projected anchor is accessible. The relevant objects are $B_h$ and $B_z$: augmentation variation can increase the marginal covariances $C_s=B_s+A_s$ while stable source distinctions collapse. This motivates explicit capacity control at both the projected representation and the retained backbone.
+
+\paragraph{Stable and residual covariance geometry.}
+Li et al.\ decompose diffusion representations into conditional-mean and residual components and use generalized covariance ratios to diagnose representation behavior across diffusion noise levels \citep{li2026icr}. We use $B_s,A_s$, and $\Theta_s$ to build a two-space theory for projector-based SSL: $B_h$ and $B_z$ define the stable capacities maintained across both spaces, accessibility links projected organization to the retained backbone, and the retained total thickness $\Theta_h$ is further decomposed into structured view difficulty $G_h$ and excess PSD slack $S_h$.
+
+\paragraph{Projection heads and pre-/post-projector representations.}
+Several works explain why pre-projector and post-projector representations differ. Gui et al.\ analyze expansion and shrinkage induced by linear projectors \citep{gui2023}; Xue et al.\ derive layerwise feature-reweighting effects and exhibit features retained before nonlinear projection but absent afterward \citep{xue2024}; Ouyang et al.\ study the projector as an information bottleneck \citep{ouyang2025}; and Chaudhry analyzes projection heads as trainable geometric buffers \citep{chaudhry2026}. Our theory formalizes the two-space relation: Theorem~\ref{thm:discrepancy} characterizes factorization-level information left undetermined by a $Z$-only objective, stable center capacity enables comparison, and Theorem~\ref{thm:accessibility} measures when organization selected in $Z$ is linearly recoverable from $H$. Appendix~\ref{app:accessibility} gives stronger uniform and viewwise certificates.
+
+\paragraph{Subspace angles and the anchor-plus-complement picture.}
+Under a worst-direction accessibility certificate, the residual admits a principal-angle interpretation between finite-dimensional center subspaces \citep{stewart2016cs}. Appendix~\ref{app:accessibility} records this refinement alongside the average and directional diagnostics used in the main text.
+
+\paragraph{Identifiability and inductive bias.}
+Roeder et al.\ establish linear identifiability for broad discriminative model families under diversity conditions \citep{roeder2021}, while von K\"ugelgen et al.\ identify augmentation-invariant latent content under a latent content/style model \citep{vonkugelgen2021}. Saunshi et al.\ emphasize the role of function class and optimization biases in connecting contrastive objectives to downstream behavior \citep{saunshi2022}. Our factorization theorem complements these positive results by characterizing the equivalence class induced by a projected-space objective over the admissible backbone--projector factorizations.
+
+\section{Conclusion}\label{sec:conclusion}
+
+Projector-based SSL is a two-space problem: the objective directly constrains $Z=p(H)$ while downstream use retains $H$, so a $Z$-only guarantee identifies a factorization class rather than a unique retained geometry. Stable source-center covariances $B_h$ and $B_z$ provide nondegenerate spaces for comparison, with pooled-center moment control protecting them up to the finite-view correction $A_s/V_s$. Held-out multivariate $R^2$ and directional residuals then measure how much projected center organization is linearly accessible from $H$.
+
+Within the retained backbone, $d_h(y)$ measures center organization and $\Theta_h$ measures total normalized view spread. The decomposition $\Theta_h=G_h+S_h$ separates view-difficulty covariance forced by represented center distinctions from excess PSD thickness. The resulting picture is an accessible projected anchor with selectively retained augmentation sensitivity.
+
+\begingroup
+\small
+\bibliographystyle{plainnat}
+\bibliography{references}
+\endgroup
+
+\clearpage
+\appendix
+\input{appendix}
+
+\end{document}
