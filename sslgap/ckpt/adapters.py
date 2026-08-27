@@ -21,8 +21,8 @@ from torchvision.ops import MLP
 from sslgap.ckpt.schema import Branch, LoadedCkpt
 from sslgap.methods.ijepa import MaskSampler
 from sslgap.models.backbones import build_vit_trunk
-from sslgap.models.heads import (ByolHeads, DINOHead, DinoHeadTaps, LejepaHeads, LinearTap,
-                                 TVMLPTaps)
+from sslgap.models.heads import (ByolHeads, DINOHead, DinoHeadTaps, DonorProjTap, LejepaHeads,
+                                 LinearTap, TVMLPTaps)
 from sslgap.models.vitops import vit_tokens
 
 
@@ -30,10 +30,11 @@ def _split_prefix(sd, prefix):
     return {k[len(prefix):]: v for k, v in sd.items() if k.startswith(prefix)}
 
 
-def _trunk_from_vit_sd(vit_sd, model_name, img_size, dynamic_img_size, drop_path=0.1):
+def _trunk_from_vit_sd(vit_sd, model_name, img_size, dynamic_img_size, drop_path=0.1, **kw):
     """vit_sd = a timm ViT state dict possibly containing classifier head.* keys.
     Returns (trunk with num_classes=0 loaded, the head Linear or None)."""
-    trunk = build_vit_trunk(model_name, img_size, dynamic_img_size, drop_path_rate=drop_path)
+    trunk = build_vit_trunk(model_name, img_size, dynamic_img_size, drop_path_rate=drop_path,
+                            **kw)
     head_w, head_b = vit_sd.get("head.weight"), vit_sd.get("head.bias")
     trunk_sd = {k: v for k, v in vit_sd.items() if not k.startswith("head.")}
     missing, unexpected = trunk.load_state_dict(trunk_sd, strict=False)
@@ -228,9 +229,20 @@ def _asm_lejepa(mods, ck):
             "student", "student.z.embed")
 
 
+def _asm_visreg(mods, ck):
+    # house VISReg (E29): lejepa's two-space layout assembled from the CANONICAL roles
+    # (backbone/embed/projector — visreg has no seed-faithful monolith to split);
+    # z.embed = the declared h (D-036 lejepa-family convention).
+    return ({"student": Branch(mods["backbone"], LejepaHeads(mods["embed"], mods["projector"]),
+                               "cls")},
+            "student", "student.z.embed")
+
+
 _NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "floorssl": _asm_projector,
                "byol": _asm_byol,
-               "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa, "deitlite": _asm_deitlite, "pivot": _asm_pivot}
+               "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa,
+               "visreg": _asm_visreg,  # house VISReg = lejepa anatomy in canonical roles (E29)
+               "deitlite": _asm_deitlite, "pivot": _asm_pivot}
 
 
 def _resolve(dotted):
@@ -271,7 +283,133 @@ def from_native(path, run_id, random_init=False, seed=0):
                       cfg=ck["cfg"], branches=branches, probed_branch=probed, provenance=prov)
 
 
+def from_lightly_lejepa(path, run_id, random_init=False, seed=0):
+    """Lightly-benchmark LeJEPA pretrain ckpt (Lightning format; ~/lightly_repro
+    benchmark_logs — the certified S external anchor, D-094): state_dict = timm
+    vit_small_patch16_224 under "backbone." + LeJEPAProjectionHead under
+    "projection_head." (Linear 384->2048 no-bias, BN, ReLU, Linear 2048->2048 no-bias,
+    BN, ReLU, Linear 2048->64; lightly heads.py:778). Lean lift: trunk + z.proj.out
+    only — no multi-layer z taps (Berker 2026-08-24)."""
+    ck = torch.load(path, map_location="cpu", weights_only=False)
+    sd = ck["state_dict"]
+    proj = nn.Sequential(
+        nn.Linear(384, 2048, bias=False), nn.BatchNorm1d(2048), nn.ReLU(inplace=True),
+        nn.Linear(2048, 2048, bias=False), nn.BatchNorm1d(2048), nn.ReLU(inplace=True),
+        nn.Linear(2048, 64))
+    if random_init:
+        torch.manual_seed(seed)
+        trunk = build_vit_trunk("vit_small_patch16_224", 224, True, drop_path_rate=0.0)
+    else:
+        trunk, _ = _trunk_from_vit_sd(_split_prefix(sd, "backbone."),
+                                      "vit_small_patch16_224", 224, True, drop_path=0.0)
+        proj.load_state_dict(_split_prefix(sd, "projection_head.layers."))
+    prov = {"source": str(path), "epoch": ck.get("epoch"), "adapter": "lightly_lejepa",
+            "random_init": random_init, "seed": seed if random_init else None}
+    return LoadedCkpt(run_id=run_id, method="lejepa",
+                      frame={"model_name": "vit_small_patch16_224", "img_size": 224,
+                             "dynamic_img_size": True, "dataset": "imagenet1k",
+                             "data_root": "~/data/imagenet"},
+                      cfg={}, branches={"student": Branch(trunk, DonorProjTap(proj), "cls")},
+                      probed_branch="student", provenance=prov)
+
+
+_PUBVIT_DROP = ("head.", "cva_module_proj.", "proj.", "projection_head.", "predictor.",
+                "momentum_encoder.", "fc.", "criterion.", "online_classifier.", "decoder.",
+                "mask_token", "norm_patch.")   # norm_patch = OK-AI iBOT's separate
+                                               # patch-token LN (MIM path only; CLS
+                                               # trunk path never touches it)
+_PUBVIT_ARCH = {(384, 16): "vit_small_patch16_224", (768, 16): "vit_base_patch16_224",
+                (1024, 16): "vit_large_patch16_224", (1024, 14): "vit_large_patch14_224"}
+
+
+def from_pubvit(path, run_id, random_init=False, seed=0):
+    """Generic public-ViT trunk lift for the D-102 placement-table program (Berker
+    2026-08-24, cls-only: no taps, no heads). Accepts the official/community formats
+    downloaded to ~/ckpts_public — moco-v3 tars (module.base_encoder.*), iBOT teacher
+    ckpts, OK-AI safetensors (backbone.* + the method head stored as
+    backbone.cva_module_proj), VISReg HF flat backbones — plus "timm:<model.tag>" to
+    lift a timm-hub checkpoint (dino). Normalizes state_dict nesting + prefixes
+    (_orig_mod./module./backbone./base_encoder.), DROPS method-head keys, infers the
+    timm model from patch_embed shape, and strict-loads the trunk (unexpected/missing
+    raise — the mapping gate; the per-ckpt bench vs the method's published linear level
+    is the semantic gate)."""
+    model_kw = {}
+    if str(path).startswith("timm:"):
+        import timm
+        trunk = timm.create_model(str(path)[5:], pretrained=not random_init,
+                                  num_classes=0, dynamic_img_size=True)
+        if random_init:
+            torch.manual_seed(seed)
+        model_name = str(path)[5:]
+    else:
+        if str(path).endswith(".safetensors"):
+            from safetensors.torch import load_file
+            sd = load_file(path)
+        else:
+            ck = torch.load(path, map_location="cpu", weights_only=False)
+            sd = ck.get("state_dict", ck.get("net_state_dict", ck.get("model", ck)))
+        flat = {}
+        for k, v in sd.items():
+            for pre in ("_orig_mod.", "module.", "backbone.", "base_encoder."):
+                while k.startswith(pre):
+                    k = k[len(pre):]
+            if not k.startswith(_PUBVIT_DROP) and "parametrizations" not in k:
+                flat[k] = v
+        pw = flat["patch_embed.proj.weight"]
+        model_name = _PUBVIT_ARCH[(pw.shape[0], pw.shape[2])]
+        # MoCo-v3's ViT-Small is 12-head (their vits.py) vs timm's 6 under IDENTICAL
+        # tensor shapes — invisible to the strict-load mapping gate (the 08-24 45.11
+        # mislift incident). Only checkpoint provenance can tell: their save format =
+        # top-level arch tag + module.base_encoder.* keys.
+        if (not str(path).endswith(".safetensors") and ck.get("arch") == "vit_small"
+                and any(k.startswith("module.base_encoder.") for k in sd)):
+            model_kw = {"num_heads": 12}
+        if random_init:
+            torch.manual_seed(seed)
+            trunk = build_vit_trunk(model_name, 224, True, drop_path_rate=0.0, **model_kw)
+        else:
+            trunk, _ = _trunk_from_vit_sd(flat, model_name, 224, True, drop_path=0.0,
+                                          **model_kw)
+    prov = {"source": str(path), "adapter": "pubvit", "model_name": model_name,
+            "model_kw": model_kw,
+            "random_init": random_init, "seed": seed if random_init else None}
+    return LoadedCkpt(run_id=run_id, method="pub",
+                      frame={"model_name": model_name, "img_size": 224,
+                             "dynamic_img_size": True, "dataset": "imagenet1k",
+                             "data_root": "~/data/imagenet"},
+                      cfg={}, branches={"student": Branch(trunk, None, "cls")},
+                      probed_branch="student", provenance=prov)
+
+
+def from_visreg(path, run_id, random_init=False, seed=0):
+    """VISReg-B repro latest.pt (~/visreg_repro, the D-097 B-rung external anchor):
+    net_state_dict = their ViTEncoder — "backbone." timm vit_base_patch16_224
+    (num_classes=0, dynamic_img_size) + projector keys, torch.compile may prefix
+    _orig_mod. Trunk-only lift (projector dropped): h-space claims only, per the
+    checkpoint-provenance rule."""
+    ck = torch.load(path, map_location="cpu", weights_only=False)
+    sd = ck.get("net_state_dict", ck)
+    sd = {(k[len("_orig_mod."):] if k.startswith("_orig_mod.") else k): v
+          for k, v in sd.items()}
+    if random_init:
+        torch.manual_seed(seed)
+        trunk = build_vit_trunk("vit_base_patch16_224", 224, True, drop_path_rate=0.1)
+    else:
+        trunk, _ = _trunk_from_vit_sd(_split_prefix(sd, "backbone."),
+                                      "vit_base_patch16_224", 224, True)
+    prov = {"source": str(path), "epoch": ck.get("epoch"), "adapter": "visreg",
+            "random_init": random_init, "seed": seed if random_init else None}
+    return LoadedCkpt(run_id=run_id, method="visreg",
+                      frame={"model_name": "vit_base_patch16_224", "img_size": 224,
+                             "dynamic_img_size": True, "dataset": "imagenet1k",
+                             "data_root": "~/data/imagenet"},
+                      cfg={}, branches={"student": Branch(trunk, None, "cls")},
+                      probed_branch="student", provenance=prov)
+
+
 ADAPTERS = {"lejepa_minimal": from_lejepa_minimal, "sslx_dino": from_sslx_dino,
+            "visreg": from_visreg, "lightly_lejepa": from_lightly_lejepa,
+            "pubvit": from_pubvit,
             "native": from_native}
 
 

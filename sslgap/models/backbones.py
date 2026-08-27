@@ -8,11 +8,13 @@ import timm
 import torch
 
 
-def build_vit_trunk(model_name, img_size, dynamic_img_size=False, drop_path_rate=0.0):
-    """Headless ViT (num_classes=0) — h never contains a classifier layer."""
+def build_vit_trunk(model_name, img_size, dynamic_img_size=False, drop_path_rate=0.0, **kw):
+    """Headless ViT (num_classes=0) — h never contains a classifier layer. kw overrides
+    timm model args for public checkpoints whose architecture deviates from the timm
+    default under the same tensor shapes (e.g. MoCo-v3 ViT-S: num_heads=12 vs timm's 6)."""
     return timm.create_model(model_name, pretrained=False, num_classes=0,
                              img_size=img_size, dynamic_img_size=dynamic_img_size,
-                             drop_path_rate=drop_path_rate)
+                             drop_path_rate=drop_path_rate, **kw)
 
 
 @torch.inference_mode()

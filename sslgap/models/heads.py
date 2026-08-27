@@ -136,6 +136,18 @@ class ByolHeads(nn.Module):
         return {**p, **self.pred(p["proj.out"])}
 
 
+class DonorProjTap(nn.Module):
+    """A donor-format projector rebuilt verbatim, exposing ONLY its output (z.proj.out) —
+    the lean anchor lift (no intermediate z taps; Berker 2026-08-24)."""
+
+    def __init__(self, seq: nn.Sequential):
+        super().__init__()
+        self.seq = seq
+
+    def forward(self, cls):
+        return {"proj.out": self.seq(cls)}
+
+
 class LejepaHeads(nn.Module):
     """The lejepa-minimal head stack: trunk CLS (384) -> timm classifier Linear 384->512
     (= the recipe's "emb"; our tap z.embed, D-003) -> torchvision MLP projector (z.proj.*)."""
