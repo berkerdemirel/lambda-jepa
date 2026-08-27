@@ -24,9 +24,15 @@ FAMILIES = [
     ("vicreg", [("ctrl", "vicreg_ctrl", "in100.vicreg.s0.e17c.ext", "#8c8c8c"),
                 ("e20f", "vicreg_e20f", "in100.vicreg.s0.e20f.extL", "#c23b3b")]),
     ("dino", [("ctrl", "dino_ctrl", "in100.dino.s0.e17c.ext", "#8c8c8c"),
-              ("e20f (overshoot dose)", "dino_e20f", "in100.dino.s0.e20f.extL", "#d4820a")]),
+              # overshoot λ=.258 demoted to the light shade; the winner-dose arm takes the
+              # family color (Berker 2026-08-26: "e20fwlo is the winner ... add it to our zoo")
+              ("e20f (overshoot dose)", "dino_e20f", "in100.dino.s0.e20f.extL", "#e8bd7a"),
+              ("e20fwlo (winner λ=.01)", "dino_e20fwlo", "in100.dino.s0.e20fwlo.extL", "#d4820a")]),
     ("lejepa", [("ctrl", "lejepa_ctrl", "in100.lejepa.s0.e17c.ext", "#8c8c8c"),
                 ("e20f", "lejepa_e20f", "in100.lejepa.s0.e20f.ep100.extL", "#2e8b57")]),
+    # house VISReg pair (E29; Berker 2026-08-26 "do the same for visreg treated + untreated")
+    ("visreg", [("ctrl", "visreg_ctrl", "in100.visreg.s0.extL", "#8c8c8c"),
+                ("+floor λ=.0123", "visreg_f", "in100.visreg.s0.visregf.extL", "#b3477d")]),
     ("mae", [("ctrl", "mae_ctrl", "in100.mae.s0.extL", "#8c8c8c"),
              ("e20f", "mae_e20f", "in100.mae.s0.e20f.extL", "#8a5cb8")]),
     ("ijepa", [("ctrl", "ijepa_ctrl", "in100.ijepa.s0.extL", "#8c8c8c"),
@@ -80,7 +86,8 @@ for fam, members in FAMILIES:
 M = {}
 for mp in (f"{ROOT}/results/diag/e17_depth_metrics.csv",
            f"{ROOT}/results/diag/e20_zoo_depth_metrics.csv",
-           f"{ROOT}/results/diag/e20_ours_depth_metrics.csv"):
+           f"{ROOT}/results/diag/e20_ours_depth_metrics.csv",
+           f"{ROOT}/results/diag/e20_new_arms_depth_metrics.csv"):
     if os.path.exists(mp):
         for r in csv.DictReader(open(mp)):
             st = station_of(r["space"])
@@ -115,7 +122,8 @@ QUANTS = [  # (name, getter, ylim: (0,1) | "row"=per-method autoscale | None=col
 # the o8 retro (results/diag/e23_retro_spaces.csv, raw framing); a/b/Λ oriented
 # station→z.out (remaining-path transmission: cls = the declared headline, ≡1 at z.out).
 WB, WBo = {}, {}
-_PREF = {"dino_ctrl": "teacher", "dino_e20f": "teacher"}   # declared teacher lane (zoo)
+_PREF = {"dino_ctrl": "teacher", "dino_e20f": "teacher",
+         "dino_e20fwlo": "teacher"}   # declared teacher lane (zoo)
 for _fam, _members in FAMILIES:
     for _lab, _mlab, _run, _c in _members:
         pref = _PREF.get(_mlab, "student")
@@ -211,7 +219,7 @@ for row, (fam, members) in enumerate(FAMILIES):
         ax.tick_params(length=0, labelsize=5.6)
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
-fig.suptitle("E20 zoo guillotine — 7 method rows × 12 quantity columns (+Ω · a·b·Λ station→z.out, o8 orbit calculus), e20f floor arm (colored) vs control (grey) vs depth; "
+fig.suptitle("E20 zoo guillotine — 8 method rows × 12 quantity columns (+Ω · a·b·Λ station→z.out, o8 orbit calculus), floor arm (colored) vs control (grey) vs depth; "
              "y fixed 0–1 for bounded quantities, ranks ÷ station dimension, gauss_kl + Ω·a·b·Λ per-method-row y (unbounded, within-space reading) "
              "(L-taps = trunk cls readouts; dotted = trunk|head; class-cos as the MARGIN same−diff) — RAW",
              fontsize=9.5, y=0.998)

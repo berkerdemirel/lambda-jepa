@@ -114,7 +114,11 @@ def measure(label, ck_path, state, nb, want_cos, overrides=None, dev="cuda"):
             vec[k] = torch.cat([(x if x is not None else torch.zeros_like(p)).reshape(-1)
                                 for x, p in zip(g, params)]).float()
         gs = {k: vec[k].norm().item() for k in names}
-        w = {k: float(mcfg[pull_w[k]]) for k in names}
+        # PULL_W values: cfg-key string, or a literal number for weights fixed by the
+        # loss code itself (dino/byol main terms = 1 by construction; 2026-08-25 — old
+        # ckpts predate any cfg key for them; the weight is a property of the code)
+        w = {k: (float(pull_w[k]) if isinstance(pull_w[k], (int, float))
+                 else float(mcfg[pull_w[k]])) for k in names}
         tot = sum(w[k] * gs[k] for k in names) or 1.0
         # f64 dot: fp32 over ~21M dims drifts ~.5% (the e21_vmcos control lesson)
         cos = {}
@@ -160,20 +164,25 @@ def main():
     for i in range(0, len(args), 3):
         rows += measure(args[i], args[i + 1], args[i + 2], nb, want_cos, over)
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    # Non-floorssl methods carry method-specific pairwise-cos columns; per the schema
+    # guard's own policy ("write to a new path — never append mismatched rows"), each
+    # method gets its own stable-schema file; floorssl keeps the legacy path/history.
+    meth = rows[0].get("method")
+    out = OUT if meth == "floorssl" else OUT.with_name(f"{OUT.stem}_{meth}{OUT.suffix}")
     fields = list(rows[0])
     # Appending a WIDER schema to an existing CSV silently shifts every column of the new
     # rows (caught 2026-08-07 the first time `--set` added `cond_stream`). Refuse instead:
     # a results file that reads fine and means something else is the worst failure mode here.
-    if OUT.exists():
-        with open(OUT, newline="") as f:
+    if out.exists():
+        with open(out, newline="") as f:
             have = next(csv.reader(f), [])
         assert have == fields, (
-            f"schema mismatch on {OUT}\n  file: {have}\n  rows: {fields}\n"
+            f"schema mismatch on {out}\n  file: {have}\n  rows: {fields}\n"
             f"Migrate the file (add the missing columns with their legacy defaults) or write "
             f"to a new path — never append mismatched rows.")
-    with open(OUT, "a", newline="") as f:
+    with open(out, "a", newline="") as f:
         wr = csv.DictWriter(f, fieldnames=fields)
-        if not OUT.stat().st_size:
+        if not out.stat().st_size:
             wr.writeheader()
         wr.writerows(rows)
     print("appended", OUT, flush=True)

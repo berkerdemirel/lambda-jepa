@@ -26,6 +26,9 @@ def byol_h_predictor(dim=384):                # E17: byol's predictor at h, mini
 
 
 class BYOL(SSLMethod):
+    # pull-instrument weight map (added 2026-08-25, E20 dino re-dose program: byol =
+    # the winner-share reference lane); w_regress defaults to 1.0 in the method config.
+    PULL_W = {"regress": 1.0, "h_align": "h_align", "h_moment_kl": "h_lamb"}
     name = "byol"
 
     def build_modules(self):

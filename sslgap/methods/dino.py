@@ -35,6 +35,10 @@ def dino_ce(t_logits, s_logits, center, t_temp, s_temp):
 
 
 class DINO(SSLMethod):
+    # pull-instrument weight map (D-103-era convention: every measured method declares
+    # its own; added 2026-08-25 for the E20 dino re-dose). "dino" and "h_protoce" carry
+    # their own cfg weights; w_dino defaults to 1.0 in the method config.
+    PULL_W = {"dino": 1.0, "h_moment_kl": "h_lamb", "h_protoce": "h_protoce"}
     name = "dino"
 
     def build_modules(self):

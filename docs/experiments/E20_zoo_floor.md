@@ -400,3 +400,103 @@ overshoot, 3.13 bottleneck) sit off the gain band. lejepa's Λ 3.13 is real — 
 + scale gauge, Λ cancels both) — but mechanism-distinct (512→16 hard bottleneck = selectivity by
 subspace choice, not reshaping): excluded from band estimation. mae/ijepa excluded (no aug
 objective; the conditioner is actively toxic for mae: Ω 3.4→13.4, probes collapse .41→.33 lin).
+
+## Addendum (2026-08-25): the dino re-dose — `e20fw` (Berker: "we owe dino another shot
+## with our treatment ... repeat it with our calculated pull story"; A100s)
+
+**Directive + design (pre-registered BEFORE pilot numbers).** The e20f dino arm was the
+T1-recorded overshoot (λ=.258 calibrated 6%-share; ladder .02 → −0.1 lin/+2.6 knn ·
+.02+.0401 → −1.4/+1.9 · .258 → −2.5/−0.4, monotone in lin). The redo replaces the
+held-state one-shot share transfer with the current winner-dose procedure (D-102 analogue
+at E20): **target = the WINNING lane's realized floor share, doses solved by pilot
+measurement, curvature captured by a measured λ-ladder instead of a linear secant.**
+- **Reference (τ_ref):** byol e20f (the +6.1 co-winner) realized h-floor share, measured
+  by warm `pull.py` on its ep25 + ep100 ckpts (jobs 63673138/39); dino e20f ep25/ep100
+  pulled alongside (63673140/41) as the overshoot DIAGNOSTIC (what share .258 actually
+  realized). lejepa (the other winner) is NOT measurable yet: its inv weight is DERIVED
+  (1−lamb), which PULL_W's cfg-key contract cannot express — **flagged as a convention
+  question for Berker, not patched**; τ_ref stands on byol alone, declared.
+- **Machinery added (the designed pattern, not a shim):** `PULL_W` declared on DINO and
+  BYOL (`w_dino`/`w_regress` unit weights added to their method configs).
+- **Pilots:** 2-ep dino+floor at λ ∈ {.005, .015, .04} (tags `e20fw_p5/p15/p4`;
+  63673146–48, A100), exact lane geometry verified against the e20f ckpt cfg
+  (local_size=96 caught differing from the yaml default 64 — pilots relaunched).
+- **Dose rule:** λ* interpolates the measured pilot share-vs-λ ladder to hit τ_ref;
+  chain `in100.dino.s0.e20fw` 100 ep on A100 (gpu partition — the H100 pool stays with
+  the 400 round).
+- **Pre-registered predictions:** P-fw-A: at the winner-share dose, dino lin lands ≥
+  control (+0.5 band) — the sixth arrow completes. P-fw-B (null, live given the monotone
+  lin ladder): dino's lin is not improvable by the h-floor at any dose — reported as-is
+  if it lands; the kNN column (+2.6 at gd) rides as secondary. Watch: ep1–2 share lines,
+  probe band vs the e20f smokes (.1168 @ep2), kill-trigger discipline standing.
+
+**Warm-pull reads (RAW, 2026-08-25 evening; jobs 63673565–68, per-method CSVs
+results/diag/pull_{byol,dino}.csv — the pull writer gained per-method output paths, and
+PULL_W gained literal-number weights for code-fixed terms):** byol e20f (λ=.0205 from
+its ckpt cfg) realized floor share **.030–.036 @ep25 → .014 @ep100** (the winner's floor
+decays); dino e20f (λ=.258) realized **.067–.071 @ep25 → .036 @ep100** — i.e. the
+calibrated cell DID realize ≈ the designed 6% at formation; the miss is that dino
+cannot tolerate what byol won at (~2.4× the winner's share at every matched state).
+Share-matched dino dose triangulates to **λ* ≈ .10–.12** (ep25-state algebra .115,
+ep100-state .10, plain ratio .258/2.4 ≈ .11) — sits INSIDE the old outcome ladder where
+interpolation reads ≈ −1.3 lin: the two instruments tension, raised to Berker with a
+two-arm proposal (winner-share λ* + low-dose λ≈.01 bracket) BEFORE the 100-ep spend;
+**RULED (Berker 2026-08-25 evening): TWO ARMS, on A100, launch after the pilots** —
+`in100.dino.s0.e20fw` (winner-share λ*, pilot-refined) + `in100.dino.s0.e20fwlo`
+(λ=.01, below the ladder's knee). Bonus geometry (raw): cos(dino, floor) ≈ 0 (orthogonal), byol's
+cos(regress, floor) −.07…−.14. byol-ep100's first pull attempt OOM'd on a 10.6 GiB
+card — pull.sbatch runs get the ≥40G constraint from now on (the D-102 probe rule
+extended to pulls).
+
+**Pilot ladder LANDED + THREE arms LAUNCHED (2026-08-25 ~21:40–22:05):** pilots ran
+after a constraint broadening (A100-literal = the single gpu238 node, scheduler est.
+10:04/18:05 next day for 15-min jobs; scontrol → A100|L40S|A40 per this addendum's own
+"gpu partition — the H100 pool stays with the 400 round" intent; measurement is
+hardware-agnostic, E27/E29 pilot precedent). **ep1 ladder** (ep0 lines exact
+init-twins, shares ∝ λ as they must be; every printed share reproduces from
+w_dino=1 + h_lamb to 3 decimals):
+| λ | g_dino | g_h | share_h (ep1) |
+|---|---|---|---|
+| .005 | 1.347 | 2.041 | .008 |
+| .015 | 1.497 | 2.468 | .024 |
+| .04 | 1.696 | 3.220 | .071 |
+**g_h GROWS with λ** (share superlinear — the floor pulls harder per unit weight at
+higher dose; OPPOSITE of E29-gvinv's self-quenching h_inv). **λ* fork surfaced at
+fire time:** τ_ref exists only at ep25-state (byol/dino e20f predate the share
+instrument — wandb history has NO share/orbit keys, confirmed) while the ladder
+measures ep1-state, and formation shares run ~3× hotter → three readings: **.115**
+(ep25-state algebra, the ruling's quoted basis; extrapolated formation share ~.2,
+hot but < the .258 arm's formation) · **≈.02** (ladder-letter interpolation to .033
+at ep1; state-mismatched; near-collapses onto the .01 low arm) · **≈.07** (curvature-
+corrected, double extrapolation). Presented live with rec .115; **Berker RULED
+(verbatim): "do both. .115 and .02."** → arms, pilot geometry verbatim (local_size=96,
+bs=128, ema_base .996, share_log_every=1): `in100.dino.s0.e20fw` λ=.115 (63688745–47)
+· `in100.dino.s0.e20fw02` λ=.02 (63688748–50) · `in100.dino.s0.e20fwlo` λ=.01
+(63688751–53); 3×8h singleton chains, A100|L40S|A40. Watch standing per pre-reg:
+ep1–2 share lines (the .115 arm's formation heat is THE watch), probe band vs the
+e20f smokes (.1168 @ep2), kill-trigger discipline.
+
+**ARMS LANDED + WINNER RULED (2026-08-26 morning):** e20fwlo (λ=.01) best **.7144** ·
+e20fw (λ=.115) best **.6940** · e20fw02 (λ=.02) **CANCELLED at ep87 (.6924) by
+Berker's ruling (verbatim: "for dino e20fwlo is the winner (you can cancel
+e20fw02)")** — both segments cancelled ~11:00. Directed follow-ups executed same
+morning: guillotine landing pipeline for e20fwlo (extract 63705003 with
+h_layers=[3,6,9]+o8 → twospace 63705004 + audit 63705005 + probe 63705006, run_id
+`in100.dino.s0.e20fwlo.extL`); zoo row gains the winner arm (family color; the λ=.258
+overshoot arm demoted to the light shade, kept); the four paper exhibits
+(fig_treatment_main / fig_treatment_appendix / fig_treatment_arrows /
+fig_org_vs_sensitivity) re-pointed from the overshoot arm to e20fwlo (asterisk +
+overshoot footnotes retired). Figures regenerate when the pipeline lands.
+
+**Formation lines (RAW, 23:25 08-25 — all three watch checks PASS, no kills):**
+| arm | share ep0→1→2 | g_h ep0→1→2 | probe ep1→2(→3) |
+|---|---|---|---|
+| e20fw .115 | .332→.165→.127 | 7.171→2.851→1.704 | .0588→.1232→.1602 |
+| e20fw02 .02 | .080→.038→.042 | 7.171→2.941→2.286 | .0590→.1132 |
+| e20fwlo .01 | .042→.014→.022 | 7.171→2.305→1.851 | .0558→.1004→.1406 |
+ep0 lines exact init-twins (shares ∝ λ to 3 decimals). Probe band: all at/near the
+.1168@ep2 smoke band, .115 arm ABOVE it. The .115 formation share realized
+.165@ep1 — the ladder's superlinear extrapolation (~.2) overshot: g_h at .115 is
+2.851, BELOW the .04 rung's 3.220 — the g_h-grows-with-λ trend from the ladder
+TURNS OVER between .04 and .115 (dose-curvature is non-monotone; raw). omega_h
+non-monotone over formation in all arms (dip then rise; .115: 4.17→3.55→5.15).
