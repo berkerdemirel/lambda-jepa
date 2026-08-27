@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in1k.pub.visregb400.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.1291052435784919,0.1283801498543099,0.129803300786412,100000,768,cheap
+in1k.pub.visregb400.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.9354473782107496,0.9350266299641418,0.9358258191183487,100000,768,cheap
+in1k.pub.visregb400.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.05793376371248534,0.057674488038987844,0.05816661611223111,100000,768,cheap
+in1k.pub.visregb400.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.9710331181437539,0.9709116494713583,0.9711473405428915,100000,768,cheap

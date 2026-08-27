@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in1k.pub.oklejepas100.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.5080774895943491,0.5058937199035958,0.5101518870095767,100000,384,cheap
+in1k.pub.oklejepas100.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.7459612552027227,0.7447797562417635,0.7471605383330057,100000,384,cheap
+in1k.pub.oklejepas100.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.3343429119534128,0.3330383686132917,0.33553936967867687,100000,384,cheap
+in1k.pub.oklejepas100.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.8328285440232,0.8321419146355796,0.8333318322099718,100000,384,cheap

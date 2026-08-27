@@ -1,0 +1,5 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in1k.pub.oklejepab300.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.33983524334489323,0.338297619398965,0.3414783122135963,100000,768,cheap
+in1k.pub.oklejepab300.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.8300823783275146,0.8291712176980589,0.8309594047173882,100000,768,cheap
+in1k.pub.oklejepab300.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.22288315191312663,0.22202705288349428,0.22390279911749816,100000,768,cheap
+in1k.pub.oklejepab300.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.8885584240433868,0.8881432859138148,0.8889224711657232,100000,768,cheap
