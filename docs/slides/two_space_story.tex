@@ -1,0 +1,219 @@
+% ============================================================================
+%  two_space_story.tex -- lean talk deck for the two-space paper (sslgap)
+%  Built 2026-08-26 from SESSION_OPENER_SLIDES.md. Consumes EXISTING exhibits
+%  only: no new figures, no re-plotting, no compute. Do not edit paper .tex,
+%  cards, DECISIONS or the exhibit generators from here.
+%
+%  SPINE (Berker verbatim 2026-08-26 -- the canonical narrative, do not reword):
+%
+%   P1. Self-supervised learning objectives are typically enforced after a
+%       projector, while downstream tasks use the backbone representation H.
+%       Properties guaranteed in the projector space therefore need not hold
+%       in H. Linear accessibility provides a way to relate the two spaces,
+%       but requires sufficient rank and dimensionality in both.
+%
+%   P2. Motivated by feature-learning results on the rank and dimensionality
+%       of learned representations, we introduce a dual-space regularizer with
+%       a spectral barrier against collapse. Applied to both H and Z, it
+%       directly controls the capacity required by the accessibility bridge.
+%
+%   P3. The same regularizer also changes how much augmentation variation is
+%       retained in H. We show that this variation is meaningful relative to
+%       image-to-image variation, and that neither too little nor too much is
+%       desirable. Our method typically moves this ratio in a favorable
+%       direction while achieving competitive performance as a standalone SSL
+%       objective.
+%
+%  STATUS DISCIPLINE (docs/paper/CHECKLIST.md): every caption carries AGREED
+%  (usable as a claim), RAW (data only, reading not yet agreed) or THEORY.
+%  Vocabulary follows docs/GLOSSARY.md + docs/paper/main.tex; retired words
+%  (floorssl, orbit, gauge) appear nowhere -- except inside frozen run-ids, which
+%  are data, not vocabulary (GLOSSARY frozen-strings rule).
+%
+%  BUILD:  cd docs/slides && pdflatex two_space_story.tex   (twice)
+%  Figures are referenced by path, so regenerating an exhibit flows into the
+%  deck on the next compile.
+% ============================================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+
+\graphicspath{{assets/}{../paper/figures/}{../../results/figures/paper/}}
+
+% ---------------------------------------------------------------- look & feel
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=0.7cm,text margin right=0.7cm}
+
+\definecolor{ink}{HTML}{1A1A1A}
+\definecolor{mut}{HTML}{6B6B6B}
+\definecolor{zcol}{HTML}{2A78D6}      % z = loss space (deck palette, D-100)
+\definecolor{hcol}{HTML}{D4820A}      % h = retained backbone
+\definecolor{treat}{HTML}{008300}     % treated arm
+\definecolor{ctrlc}{HTML}{4A3AA7}     % control arm
+\definecolor{agfg}{HTML}{15603A}
+\definecolor{agbg}{HTML}{E4F1E9}
+\definecolor{rwfg}{HTML}{8A5200}
+\definecolor{rwbg}{HTML}{FBEFDC}
+\definecolor{thfg}{HTML}{294B7A}
+\definecolor{thbg}{HTML}{E6EDF6}
+
+\setbeamercolor{structure}{fg=ink}
+\setbeamercolor{frametitle}{fg=ink,bg=white}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{frametitle}{\vspace{0.2em}\insertframetitle\par\vspace{-0.6em}}
+\setbeamertemplate{footline}{%
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=1.6ex,dp=1.0ex,leftskip=0.7cm,rightskip=0.7cm]{}%
+  {\tiny\color{mut}two-space faithfulness in projector-based SSL}%
+  \end{beamercolorbox}}}
+
+% ------------------------------------------------------------------- macros
+\newcommand{\spine}[2]{{\small\color{ctrlc}\textbf{#1}\ \itshape #2\par}\vspace{0.3em}}
+\newcommand{\tagA}{\colorbox{agbg}{\color{agfg}\scriptsize\bfseries AGREED}}
+\newcommand{\tagR}{\colorbox{rwbg}{\color{rwfg}\scriptsize\bfseries RAW}}
+\newcommand{\tagT}{\colorbox{thbg}{\color{thfg}\scriptsize\bfseries THEORY}}
+\newcommand{\reads}[1]{{\scriptsize\color{mut}#1\par}\vspace{0.15em}}
+\newcommand{\say}[2]{{\footnotesize #1\ #2\par}\vspace{0.15em}}
+\newcommand{\sayS}[2]{{\scriptsize #1\ #2\par}\vspace{0.15em}}
+\newcommand{\fpath}[1]{{\tiny\color{mut}\texttt{\detokenize{#1}}\par}}
+\newcommand{\shot}[2][\linewidth]{\begin{center}\includegraphics[width=#1]{#2}\end{center}}
+\newcommand{\sumpar}[2]{{\footnotesize\textbf{\color{ctrlc}#1}\ \itshape #2\par}\vspace{0.5em}}
+
+\title{Two-Space Faithfulness in Projector-Based Self-Supervised Learning}
+\date{}
+
+\begin{document}
+
+% =========================================================== 1. title
+\begin{frame}[plain]
+  \vspace{0.5cm}
+  {\LARGE\bfseries Two-Space Faithfulness in\\[0.25em]
+   Projector-Based Self-Supervised Learning\par}
+  \vspace{0.7em}
+  {\large The objective acts on $Z=p(H)$; downstream use keeps $H$.\par}
+  \vspace{1.1em}
+  {\footnotesize\color{mut}
+  \begin{tabular}{@{}ll@{}}
+    \textbf{\color{ink}1.}& the gap, and the bridge that relates the two spaces\\[0.3em]
+    \textbf{\color{ink}2.}& a dual-space regularizer that controls what the bridge needs\\[0.3em]
+    \textbf{\color{ink}3.}& how much augmentation variation $H$ should retain --- and what it buys\\
+  \end{tabular}\par}
+\end{frame}
+
+% =========================================================== 2. P1a -- the gap
+\begin{frame}{Each method's own promise: at $z$ and $h$}
+  \spine{\S1}{Properties guaranteed in the projector space need not hold in $H$.}
+  \shot[0.78\linewidth]{fig_discrepancy.png}
+\end{frame}
+
+% =========================================================== 3. P1b -- the bridge
+\begin{frame}{The bridge: how much of $Z$'s organization is linearly available from $H$?}
+  \spine{\S1}{Linear accessibility provides a way to relate the two spaces, but requires
+  sufficient rank and dimensionality in both.}
+  \shot[0.94\linewidth]{C3b_accessibility_profile.png}
+  \reads{Mean explained variance over the $k$ best-explained whitened $z$ directions vs.\ $k$
+  (on held out data); each curve runs to that method's \emph{own} target rank at $z$, its
+  endpoint dot is $R^2$. Violet dashed = control, green = $+$ the $h$-side
+  regularization.}
+\end{frame}
+
+% =========================================================== 4. P2 -- the method
+\begin{frame}{The objective: one regularizer, applied in both spaces}
+  \spine{\S2}{We introduce a dual-space regularizer with a spectral barrier against collapse.
+  Applied to both $H$ and $Z$, it directly controls the capacity required by the accessibility bridge.}
+  {\small
+  \[\begin{aligned}
+    \mathcal L\;&=\;\underbrace{\mathcal L_{\text{pair}}(z_1,\dots,z_V)}_{\text{organizes }z}
+    \;+\;\lambda_z\,\mathcal K(\widehat\mu_z,\widehat\Sigma_z)
+    \;+\;\lambda_h\,\mathcal K(\widehat\mu_h,\widehat\Sigma_h),\\[0.5em]
+    \mathcal K(\mu,\Sigma)\;&=\;\tfrac12\bigl(\|\mu\|^{2}
+    +\operatorname{tr}\Sigma-\log\det\Sigma-d\bigr).
+  \end{aligned}\]}
+  \vspace{0.35em}
+  {\footnotesize
+  A \textbf{center} is one image's $V$ augmented views, embedded and averaged.
+  $\widehat\mu_s,\widehat\Sigma_s$ are the mean and covariance of those centers across a batch,
+  in the backbone ($s=h$) or after the projector ($s=z$); $d$ is that space's dimension.
+  \par\smallskip
+  \begin{itemize}\setlength\itemsep{0.2em}
+    \item \textbf{The barrier.} $-\log\det\Sigma$ diverges as any eigenvalue of $\Sigma$
+      approaches $0$; $\operatorname{tr}\Sigma$ penalizes the other side and $\|\mu\|^2$ pulls
+      the mean to the origin.
+    \item \textbf{Why centers.} $\operatorname{Cov}(\text{centers})
+      =\operatorname{Cov}(\text{exact centers})+\tfrac1V\operatorname{Cov}(\text{views of one
+      image})$ --- averaging first shrinks the augmentation part by $1/V$, so the term protects
+      across-image spread rather than augmentation spread.
+    \item \textbf{Both ends.} The same term at $z$ and at $h$.
+  \end{itemize}}
+\end{frame}
+
+% =========================================================== 5. P2 -- capacity
+\begin{frame}{It protects stable center capacity in the retained backbone}
+  \spine{\S2}{\dots it controls the capacity required by the accessibility bridge.}
+  % depth version (Berker 2026-08-26); epochs version = C2b_capacity_traj.png
+  \shot[\linewidth]{depth_capacity.png}
+\end{frame}
+
+% =========================================================== 6. P2/P3 -- treatment
+\begin{frame}{Added to existing methods, it moves each one the same way}
+  \spine{\S3}{The same regularizer also changes how much augmentation variation is retained in $H$.}
+  \shot[0.83\linewidth]{fig_treatment_arrows.png}
+  \reads{One arrow per method, control $\to$ treated, in (retained view-sensitivity $\Theta_h$
+  at CLS, probe accuracy): linear top-1 left, kNN-200 right.}
+\end{frame}
+
+% =========================================================== 7. P3 -- the ratio
+\begin{frame}{Where the gain comes from}
+  \spine{\S3}{\dots neither too little nor too much is desirable.}
+  \shot[0.765\linewidth]{fig_org_vs_sensitivity.png}
+  \reads{One arrow per model, control $\to$ treated (left: mean over the 100 classes; right:
+  our pair, one arrow per class). \textbf{y-axis} $=1-$MSE (test) of a linear
+  probe on view-averaged features. \textbf{Right} $=$ what
+  a \emph{single} view costs relative to that average, along the class's own readout direction.}
+\end{frame}
+
+% =========================================================== 8. IN-1k
+\begin{frame}{Competitive as a standalone objective (ImageNet-1k, one protocol)}
+  \spine{\S3}{\dots while achieving competitive performance as a standalone SSL objective.}
+  \vspace{-0.2em}
+  \begin{center}\small
+  \begin{tabular}{llrrr}
+    \toprule
+    Method & Backbone & Ep. & Linear & kNN \\
+    \midrule
+    LeJEPA  & ViT-S/16 & 100 & 64.1 & 47.1 \\
+    DINO             & ViT-S/16 & 100 & 70.0 & 64.7 \\
+    iBOT             & ViT-S/16 & 100 & 70.9 & 65.7 \\
+    \textbf{Ours}            & ViT-S/16 & 100 & \textbf{66.3} & \textbf{54.5} \\
+    \midrule
+    VISReg      & ViT-B/16 & 100 & 70.3 & --- \\
+    \textbf{Ours}            & ViT-B/16 & 100 & \textbf{71.2} & \textbf{56.0} \\
+    \midrule
+    \textbf{Ours}            & ViT-L/16 & 100 & --- & --- \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+\end{frame}
+
+% =========================================================== 9. summary
+\begin{frame}{Summary}
+  \sumpar{1.}{Self-supervised learning objectives are typically enforced after a projector, while
+  downstream tasks use the backbone representation $H$. Properties guaranteed in the projector
+  space therefore need not hold in $H$. Linear accessibility provides a way to relate the two
+  spaces, but requires sufficient rank and dimensionality in both.}%
+  \sumpar{2.}{Motivated by feature-learning results on the rank and dimensionality of learned
+  representations, we introduce a dual-space regularizer with a spectral barrier against collapse.
+  Applied to both $H$ and $Z$, it directly controls the capacity required by the accessibility
+  bridge.}%
+  \sumpar{3.}{The same regularizer also changes how much augmentation variation is retained in
+  $H$. We show that this variation is meaningful relative to image-to-image variation, and that
+  neither too little nor too much is desirable. Our method typically moves this ratio in a
+  favorable direction while achieving competitive performance as a standalone SSL objective.}%
+\end{frame}
+
+\end{document}

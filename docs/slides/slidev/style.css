@@ -1,0 +1,47 @@
+/* Palette mirrors the beamer deck (docs/slides/two_space_story.tex) and the exhibit
+   generators: ink #1A1A1A, muted #6B6B6B, control violet #4A3AA7, treated green #008300. */
+
+.slidev-layout {
+  padding: 1.6rem 2.2rem 1.2rem;
+  color: #1A1A1A;
+}
+
+.slidev-layout h1 {
+  font-size: 1.55rem;
+  line-height: 1.25;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+/* the verbatim narrative clause carried on every content slide */
+.spine {
+  color: #4A3AA7;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  margin: 0.1rem 0 0.7rem;
+}
+
+/* "what you are looking at" line under a figure */
+.reads {
+  color: #6B6B6B;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  margin-top: 0.6rem;
+}
+
+.fig {
+  display: block;
+  margin: 0 auto;
+}
+
+.body { font-size: 0.82rem; line-height: 1.45; }
+.body li { margin: 0.25rem 0; }
+.sum p { margin: 0.55rem 0; }
+
+.agenda { font-size: 0.85rem; color: #6B6B6B; margin-top: 1.1rem; }
+.agenda li { margin: 0.3rem 0; }
+
+.tbl table { font-size: 0.8rem; margin: 0.6rem auto 0; }
+.tbl th, .tbl td { padding: 0.18rem 0.7rem; }
+
+.katex { font-size: 1em; }
