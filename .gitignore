@@ -33,3 +33,6 @@ third_party/visreg/
 third_party/lightly/
 results/figures/*.png
 results/figures/*/*.png
+slurm-*.out
+texput.log
+SESSION_OPENER_SLIDES.md
