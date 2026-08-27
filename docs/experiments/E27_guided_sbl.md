@@ -1033,6 +1033,396 @@ TRAINING on 4×H100 (63229333, epoch 0 at their exact 1.28M/512 = 2502 steps);
 b512fit past construction no-OOM; T1(b) harsh-locals tension of the mild 0.4-family
 flagged in-conversation.
 
+## (l) The estimator A/B — e27lmcs5q (Berker directive 2026-08-15; pre-registered BEFORE pilot numbers)
+
+**Context (the S-cell diagnosis, `results/figures/e27/s_cells_online_traj.png`):** the landed
+S cells split into two curve families — {vm4 .6392, v10u .6581@92} (homogeneous @224 views,
+E24 grid doses, ring q=3) vs {oas .6063, lmc .6026, lmcb5 .5982, lmcse .6150} (multicrop,
+pilot-law doses, OAS q=0) — with the vm4-family advantage forming in the LAST THIRD of
+training (vm4 mid-pack until ~ep60). Within-family axes measured small: photometrics −0.4
+(oas↔lmc), bs512 a crossover (+4 mid, −0.4 end, ep99 share state shifted), swa +1.24.
+Between-family +3.3–5, carried by three entangled axes: view geometry / dose regime /
+estimator. **This section = the estimator axis, isolated at the bs512+swa point.**
+
+**Directive:** lmcs5 (S · lightly_mc 2g+6l · bs512 · swa=ema · OAS q=0 · w 3.53/4.46/0.180)
+already exists (mid-flight ep39) → launch its **ring-queue twin `e27lmcs5q`**: identical
+config except `floor_shrink=null queue_steps=3` (the vm4-family estimator, both taps —
+h_queue_steps unset falls through to queue_steps).
+
+**Dose procedure (the standing per-config pilot law, T=9.0):** pilot `e27lmcs5qp`
+(63571049, 4h H100) runs the q-config at lmcs5's incumbent w; chain doses
+w_i = 9.0·τ_i/g_i^ep1 with **τ = lmcs5's own realized ep1 shares (.492/.474/.035)** —
+the twin targets its partner's formation, the L↔B precedent (D-097 arc). Chain launches
+on the pilot ep1 line (watcher armed); one-shot transfer, negative-feedback miss expected
+and reported as at B/L.
+
+**Relation to E27-T1/D-089 (NOT a silent protocol change):** T1's estimator clause
+(ring↔homogeneous, OAS↔heterogeneous) was agreed on 5-ep health reads with "the 100-ep
+wave is the confirming instrument" — this A/B is that instrument for the clause: ring
+deliberately run on the heterogeneous mc stream (view_mean anatomy: the per-step ring
+objects are view-means, homogeneous ACROSS steps; the heterogeneity lives inside each
+mean).
+
+**Pre-registered predictions (committed 2026-08-15, no pilot numbers exist):**
+- **P-l-A (estimator carries the family gap):** lmcs5q develops the vm4-style late slope —
+  tracks lmcs5 through mid-training, separates in the last third, endpoint ≥ +1 online.
+- **P-l-B (null):** twins track within ±0.5 throughout → estimator not the driver at this
+  point; the family gap falls to dose regime / view geometry (separator cells:
+  lmc-at-heavy-doses, v4-at-pilot-doses — not launched, Berker's call).
+- **P-l-C (T1-clause vindication):** ring on the mc stream is actively worse — instability
+  or endpoint ≤ −1 vs lmcs5.
+
+**Read protocol:** A/B at ep100 ONLY (both arms) + bench columns; NO mid-run reads — the
+bs512 mid-phase inflation is measured (lmcb5 +4 at ep25/50, endpoint −0.4). lmcs5's own
+A-side endpoint is pending (ep39) — the A/B completes when BOTH land.
+
+**Pilot record + launch (2026-08-15 night, RAW):** pilot 63571049 ep1 under ring q=3 at
+incumbent w: shares (.728/.232/.040), **g = (0.158 / 0.040 / 0.172)** — an order of
+magnitude below lmcs5's OAS ep1 g's (1.008/0.768/1.388): the estimator swap alone
+collapses the formation gradients (ring's n=bs×4 + no OAS inflation). ep1 probe .0434
+(lmcs5's own ep1 .0565 — same band at mis-calibrated doses); no instability. Doses by the
+law: **w_q = (28.03 / 106.65 / 1.831)**. FLAG (raw, un-interpreted): this share-matched
+point lands nearly ON vm4's E24 grid optimum (26.9/129.2/1.679) — the "light pilot-law
+doses vs heavy grid doses" distinction between the two curve families may be largely the
+OAS-vs-ring g-scale difference expressed through the same law; if so the entangled
+dose-regime and estimator axes partially merge, and this run tests them jointly rather
+than estimator-alone. Chain: 4×24h singleton 63571153–56; pilot cancelled after ep1
+(read-and-cancel). ep1 recalibration check owed (realized vs τ; one-shot miss expected
+per B/L).
+
+**Chain ep1 recalibration check (63571153, RAW):** realized shares **(.678/.283/.038)**
+vs τ (.492/.474/.035) — the B/L-style negative-feedback miss, inv-heavy/moment-light:
+raising w_inv 3.53→28.03 doubled g_inv (0.158→0.314); w_floor ×24 barely moved g_m
+(0.040→0.034). Same direction as L's accepted miss (.656/.323/.021 vs .576/.397/.027),
+larger split; note lmcs5 itself missed the trio τ the OTHER way (.474 moment vs .34).
+**Dose level Σw·g(ep1) = 12.9 — ABOVE the E27-T1 healthy band 7–10** (the one borderline
+number; T1's band was a 5-ep health heuristic). Live health all normal: ep1 probe .0421
+(band: lmcs5 .0565), omega_z 6.61→3.02 declining, lam .865, no NaN. Per the §(l)
+pre-registration the one-shot procedure stands: run continues, ep2–5 settling + the
+Σ-level watched (health watcher armed); accept-vs-redose = Berker's call, as at L.
+
+**ep2–5 settling record (RAW, watcher 2026-08-16):** shares settle at **≈(.80/.19/.01)**
+(ep2 transient .875 inv, then .795/.791/.807) — the inv-heavy miss PERSISTS; the twin's
+realized share state is materially off both τ and the A-side's own settled state
+(lmc/lmcb5 ep25 ≈ .60–.61/.36–.38/.02–.03), so the A/B carries a dose-realization
+confound alongside the estimator swap. **Σw·g descended INTO the T1 band: 12.9 → 22.3
+(ep2 g_inv transient) → 10.1 → 7.95 → 7.0 by ep5** — the level concern resolved. Probe
+.0421→.0992→.1527→.1959→.2332 (trails lmcs5's ep1–3 by ~.02–.03 — consistent with the
+P-l-A shape, judged at ep100 only). omega_h 2.26→1.18, omega_z 3.02→0.88, lam .865→1.16
+— healthy throughout. Options if the share miss is ruled unacceptable: second-shot
+re-dose (w_inv↓/w_floor↑ from the settled g's — would be NEW procedure, the program is
+one-shot to date) vs accept-with-confound-noted (the L precedent).
+
+**Second shot — e27lmcs5q2 (Berker directives 2026-08-23):** first directive "compute and
+launch another variant … applying the correct ratios sounds important" → a twin-target
+secant (τ = lmcs5 ep1, T=9.0, g = q1's chain-ep1 → w = 14.10/125.47/1.158) was launched
+(63583136–40) and **cancelled pre-ep1, no ckpt written**, on Berker's mid-session
+correction: *"apply and calculate your doses from the winners (without watching what has
+happened in our existing runs, adjustments and tunings wont be as strong). compare
+multiple runs' forces along with how they performed (in a matched compute frame)."*
+
+**The winner-derived dose (the launched one).** Cross-run force census (per-run `[share]`
+ep1 lines re-read from first-segment logs; share = w·g/Σ verified exact on every cell;
+resume-first-line transients excluded — v10u ep75/ep93 carry cold-resume artifact lines):
+ring family — **v10u ep1 shares (.441/.542/.017), g (.935/.239/.576), Σw·g = 57.0** at the
+E24 grid w (26.9/129.2/1.679); vm4 ep1 pre-dates the share logger, its E22 warm-pull read
+(held state) gives shares (.535/.452/.012) at Σ≈10.9 — corroborates the moment-rich shape,
+not the ep1 level. OAS family ep1: oas (.462/.505/.033) Σ=76.8 (w 21.4/49.6/1.89) · lmc
+(.476/.488/.036) Σ=8.98 (trio w 11.43/13.85/0.451, the pilot-law T=9 exactly) · lmcb5
+(.388/.581/.031) Σ=20.4 (same trio w, bs512-shifted g's) · lmcse (.567/.395/.038, own
+pilot w — trio-w algebra fails on it alone) · lmcs5 (.492/.474/.035) Σ=7.24 · q1
+(.678/.283/.038) Σ=12.9. Finals against these: 68.41/66.25/65.69/65.12/64.49/62.77 —
+within the 616–690 tok/s frame the pattern is NOT monotone in any single number (lmcb5 is
+the most moment-rich ep1 AND worst; oas ran Σ77 mid-pack), flagged raw for the joint read;
+the clean winner fact is v10u's formation point.
+
+Target = the top cell's clean ep1: **τ_win = (.441/.542/.017), Σ_win = 57.0** (ring↔ring
+comparable with q2; geometry differs by design — that IS the §(l) axis). Doses solved
+through the measured ring-internal response exponents rather than the frozen-g secant
+(pilot→chain pair: g_inv ∝ w^.33, g_m ∝ w^−.051, g_h ∝ w^.197): solve w·g(w) = Σ_win·τ_i
+→ **w2 = (61.75 / 1020.0 / 3.19)** (frozen-g secant would give (80.1/908.7/3.56) and
+forecast an inv-heavy miss (.554/.429); the exponent solve forecasts landing ≈ τ_win at
+Σ≈57 IF the power laws extrapolate — w_floor extrapolates ×9.6 past the measured range,
+declared). Config identical to q1 otherwise (submit-line diff = the three w's + tag).
+Chain 5×24h singleton **63583418–22** (`--exclude=gpu269,gpu273`, post-maintenance
+sick-GPU incident). **ep1 recalibration check OWED on q2's first `[share]` line** —
+judged against τ_win and Σ≈57, grad-norm kill-trigger discipline applies (q1 at Σ12.9 was
+"above the T1 band"; the winner's own measured 57 supersedes the band as the reference
+point for this lane, the §(l) partial-merge flag playing out). Context for the read: q1's
+drift continued past the ep5 settle (ep60 = .898/.100/.002, g (0.354/0.010/0.014)); the
+dose targets ep1 FORMATION per the standing law.
+
+**q2 chain ep1 recalibration (63583418, RAW):** realized shares **(.688/.301/.011)**,
+g = (0.775/0.021/0.248), **Σw·g = 70.1** — level lands in the winner regime (×1.23 over
+the 57 target; q1 sat at 12.9), shape misses inv-heavy AGAIN and lands ≈ q1's own ep1
+(.678/.283/.038). The fitted exponents did NOT extrapolate: realized local exponents on
+the 28→61.75 / 106.65→1020 / 1.831→3.19 legs are g_inv ∝ w^1.14 (near-linear, vs .33
+fitted), g_m ∝ w^−.21 (w_floor ×9.6 DROPPED g_m .034→.021 — cumulative: w_floor ×229
+since lmcs5 moved g_m only .040→.021), g_h ∝ w^−.17 (sign flip). RAW FLAG for the joint
+read: on the ring/mc-stream lane the moment share appears w_floor-UNREACHABLE beyond
+~.30 at ep1 — the winner profile (.54 moment) may not be expressible through w in this
+configuration; whether that is itself the §(l) answer (estimator/stream sets the share
+ceiling, doses only pick the level) is an interpretation and WAITS. Health at ep1:
+probe .0370 (q1 .0421, lmcs5 .0565 — lower, watched), omega_z 3.94, lam .753, epoch
+completed with no kill-trigger. Per the pre-registration the one-shot stands: run
+continues, ep2–5 settle to be recorded, ep100 + bench = the read.
+
+**q2 vs d256vm4 matched-epoch loss read (RAW, Berker request 2026-08-25, q2 at ep43):**
+`results/figures/e27/q2_vs_vm4_losses.png` + `results/compare/q2_vs_vm4_losses_perep.csv`
+(wandb per-step means bucketed per epoch; vm4=wezwcmvp, q2=9ri419ko; term scales differ by
+geometry/doses — shapes and slopes are the comparable part). Headline values (q2/vm4):
+moment_kl ep10 **.037/.211**, ep43 **.029/.166** — q2 quenches the z-moment residual to
+~1/6 of vm4's level by ep10 and holds flat, BELOW lmcs5's .090 (the previous lowest),
+despite w_floor=1020 (the w-unreachable flag holding in the loss values, not just the g's).
+inv slope ep5–10: q2 −.0227/ep vs vm4 −.0074/ep (fast-falling; the winner v10u's was
+rising). h_moment_kl ep43: q2 .173 vs vm4 .281. Online acc ep43: q2 .546 vs vm4 .499 —
+q2 +4.7 at matched epoch, the exact magnitude of the measured bs512 mid-phase inflation
+(lmcb5 +4@25/50 → −0.4 endpoint), overlay = band context only. Moment SHARE (q2 own logs):
+ep25 .152 → ep40 .144 → ep43 .191 (noisy tick-up; the pre-registered ep25→50 drift knot
+lands ~ep50). Instrument state at ep43: mkl-residual + early-inv-slope carry the
+saturator profile, share-drift unresolved until ep50; per pre-registration these kill,
+never crown — the §(l) read stays ep100+bench.
+
+**Matched-STEP amendment (Berker 08-25: "epoch nums can be confounded" — bs512 vs bs128
+= 4× fewer steps/epoch):** `results/figures/e27/q2_vs_vm4_losses_steps.png` +
+`results/compare/q2_vs_vm4_losses_perstep.csv` (window = q2's 110k steps = vm4's ep11;
+schedule phase declared 4× misaligned: warmup ends q2 25k / vm4 100k). The moment-quench
+is AXIS-ROBUST: at every common step q2's mkl is 6–10× below vm4's (10k: .070/.499;
+110k: .029/.205), the quench completes by ~10k steps at lr ≤ .4·peak inside q2's own
+warmup, and it holds on the samples axis too (5.12M samples: q2 .070 vs vm4 ≈.26); vm4
+reaches mkl .095 only at its OWN 1M-step endpoint — still 3× q2's level. The inv
+contrast does NOT survive the axis change: the epoch-axis level gap was mostly the 4×
+step deficit (values near-converge at the window edge, .311/.296), and slopes converge
+(50–100k: q2 −.00098/1k vs vm4 −.00070/1k). METHOD NOTE for the 400-round watch pair:
+the early-inv-slope instrument is axis-confounded across batch sizes — read slope signs
+on the STEP axis or within-bs cohorts; mkl-residual + moment-share drift are the
+axis-robust pair.
+
+**q2 ep2–8 settle (RAW, read 08-23 20:16):** shares (.765/.226/.010) → (.840/.154/.006)
+→ (.829/.166/.005) → (.779/.216/.006) → (.758/.236/.006) → (.799/.198/.004) →
+(.786/.210/.003). **Σw·g: 70.1 (ep1) → ≈20 by ep5, HOLDING 19–20 through ep8** — the
+second shot sustains ~2.7× q1's settled level (7.0), while the share shape settles onto
+q1's own settled shape (≈.79/.21/.005 vs q1's .80/.19/.01): with both shots now settled,
+the lane's realized SHAPE is dose-invariant and only the LEVEL moved — the ep1 raw flag
+holding at settle. Probe .0370 → .1966 (ep5) → .2748 (ep8); ep5 vs q1's ep5 .2332 =
+−.037 (band-adjacent, trailing). omega_h/z declining (0.97/0.76 at ep8), lam 1.13 —
+healthy, no kill-trigger. Read at ep100 + bench per §(l).
+
+## (m) The 400-epoch round (D-103, launched 2026-08-25; deadline 24 Sep)
+
+**Cells (all six + twins, Berker directive):** B1 `e27lm4sbe400` · B3 `e27lm4sbetl400`
+(sbe + eta_min 5e-5 = lr/20, one delta) · L1 `e27lm4Ls5b400` · L3 `e27lm4Ls5btl400` ·
+B2′ `e27v6b400` / L2′ `e27v6L400` (all-global: aug=lejepa V=6@224, ring z-q3/h-q7(B)/q11(L),
+h_d_slice 256/384, swa, 1182 tok = ×1.17 anchor) · twins `e27lm4sbetl100`,
+`e27lm4Ls5btl100`, `e27v6b100`, `e27v6L100`. DDP-2/-4, 120h singleton segments,
+exclusions gpu269/273/267. Pilots `e27v6b_pilot`/`e27v6L_pilot` at grid w; chain doses
+w_i = 57.0·τ_win,i/g_i^ep1 (D-102 winner procedure, τ_win = v10u).
+
+**Pre-registered predictions (committed BEFORE any numbers; 2026-08-25):**
+- **P-m-1 (epoch scaling):** B1/L1 land above their 100-ep selves on bench by an amount
+  in the VISReg band (+3…+5; VISReg-B measured +4.3 on our yardstick). Below +2 =
+  our-recipe-specific saturation, the round's central negative result.
+- **P-m-2 (the moment hypothesis, main):** B2′/L2′ hold the moment channel (no q2-style
+  quench: pilot/early mkl NOT <.1 by ep2 — that pattern = kill) and show the vm4-family
+  shape: track the mc incumbents mid-run at matched epochs, separate UPWARD in the last
+  third. Directional: v6-400 ≥ sbe-400 at matched FLOPs (×1.17 declared).
+- **P-m-3 (tail cells):** per the agreed hypothesis the mc saturation is moment-vacuity,
+  NOT lr schedule → B3 ≈ B1 and L3 ≈ L1 (Δ ≤ +0.5 bench); the 100-ep twins referee the
+  same direction cheaply by ~09-04. A large B3−B1 gap would REFUTE the hypothesis's
+  sufficiency and revive the schedule arm.
+- **Watch protocol per cell:** ep1–5 formation gate (kill authority) · watch pair =
+  mkl-residual + moment-share drift, both on the STEP axis for cross-bs reads (the §(l)
+  amendment; kill only when both agree, never crown) · matched-epoch online overlay vs
+  100-ep incumbents as a BAND (declared confound: 400-cosine lr phase) · endpoint reads =
+  ep400 + bench only.
+
+**B2′ pilot ep1 + chain launch (RAW, 2026-08-25 ~12:45):** pilot 63665081 at grid w
+(26.9/129.2/1.679): ep1 shares **(.618/.373/.008)**, g = **(1.102/0.139/0.239)**, ep1
+probe .0949, omega_h .720 / omega_z .816 / lam .940 — healthy, no kill-trigger;
+moment SHARE .373, moment-KL VALUE ≈ .44 at ep1-end (wandb; the P-m-2 quench gate is on
+the VALUE, <.1 by ep2 — far clear; CORRECTED 08-25 14:20, the first write quoted the
+share as the value). Law applied:
+**w = 57.0·τ_win/g^ep1 = (22.81 / 222.26 / 4.054)** — extrapolation ×0.85/×1.72/×2.41
+from pilot w (modest; the q2 lesson's ×9.6 territory avoided). Chains launched on the
+line per D-103: `e27v6b400` 3×120h (63668566–68) + twin `e27v6b100` 2×120h (63668569–70),
+DDP-2. Chain-ep1 recalibration check OWED (shape expected to land between pilot's
+inv-heavy (.618/.373) and τ_win (.441/.542) per the standing negative-feedback miss).
+
+**Chain ep1 recalibration (RAW, 63668566 ~13:55):** realized shares **(.654/.339/.007)**
+— inv-heavy again, slightly PAST the pilot's own shape (the negative-feedback miss,
+stronger than forecast); g = (4.089/0.218/0.255) → **Σw·g = 142.8, ×2.5 over the
+Σ=57 target** (q2's own ep1 overshot ×1.23 then settled 70→20 by ep5 — level settles
+down as g's shrink; watched). ep1 probe .0918 (pilot band ✓), moment SHARE .339 / moment-KL VALUE ≈ .29 easing to
+.24 into ep2 (wandb; the vm4 early band, nowhere near q2's .09-by-ep3 collapse — the
+quench gate is on the value; share≠value correction as in the pilot block), omega_h
+.813 / omega_z .943 / lam .929, in-job selftests ALL PASS. No kill trigger; per the
+one-shot procedure the run continues, ep2–5 settle = the formation-gate record.
+
+**ENOSPC incident (14:04–14:08, during the disk-full window):** the group fs hit 100%
+(38G free) mid-launch; `e27v6b400` seg1 died on its ep2 `_last` checkpoint write (file
+truncated to 0 bytes), its two singleton spares then started into the full disk and died
+at the gate within 90 s — the whole chain burned; the mocov3-S re-bench (63662294) died
+mid-write too. The B2′ TWIN on the same node survived (its ep2 ckpt landed complete).
+Repair after the purge freed 391G: corrupt 0-byte ckpt removed, `e27v6b400` relaunched
+fresh 3×120h (63671801–03; ~2 epochs lost, same doses — the ep1 recalibration numbers
+above remain the measured formation state), mocov3-S bench relaunched (63671804,
+RESUMES from its intact ep-20 head state — the resume machinery's first live save).
+Lesson for the round: chain spares burn fast when the failure is environmental —
+restock after any multi-segment failure event.
+
+**L2′ pilot ep1 + chain launch (RAW, 63665136 ~14:15):** ep1 shares **(.828/.169/.003)**,
+g = **(1.776/0.075/0.095)**, ep1 probe .0554, moment-KL VALUE ≈ .53, omega_h .802 /
+omega_z 1.135 / lam .841 — healthy, no kill-trigger. Law applied: **w = 57.0·τ_win/g =
+(14.15 / 411.9 / 10.20)** — extrapolation ×0.53/×3.19/×6.08 from grid w; the h_lamb ×6.08
+is the program's second-largest single-knob transplant (after q2's failed ×9.6),
+DECLARED. Chains launched per D-103: `e27v6L400` 5×120h (63669105–09) + twin `e27v6L100`
+2×120h (63669110–11), DDP-4. **THE 12-RUN GRID IS FULLY QUEUED as of 14:20.** Chain-ep1
+recalibration owed on e27v6L400's first line.
+
+**Mean-washing readout (RAW, `e27_meanwash.py` → results/compare/e27_meanwash.csv,
+2026-08-25 ~12:00; 7 ckpts × own training geometry, N=512, fixed 128-slice, exact
+scatter):** the hypothesis's PREMISE holds — pairwise view correlations split global
+(r_gg .87–.97) vs local (r_ll .40–.69) on every mc cell, q2 the extreme (.454 z /
+.396 h); view-mean effective-n: all-global cells 1.11 vs mc 1.23–1.68 (q2 max). The
+naive SHAPE mechanism does NOT: centered-covariance KL of the view-mean ≈ per-view
+(wash_ratio 1.03–1.09 at z, >1 at h) — the mc mean is not more isotropic in raw shape,
+so "the mean Gaussianizes" fails as stated for raw z. Refined candidate (raw, awaits
+joint read): the quench lives in the ESTIMATOR-relative residual — higher n_eff shrinks
+the stream's step-to-step moment fluctuations, the ring estimate tracks the stream
+tightly, and the CONDITIONED KL collapses without the raw shape being "done"
+(functional conclusion unchanged: the constraint loses grip on the mc stream; mechanism
+relocated to estimator-tracking). Sharp test available: cross-anatomy conditioned
+residuals on one ckpt (q2's z under a 4-global stream vs its own mc stream). P-m-2's
+chain health gate is unaffected (defined on the training instrument itself).
+
+**RAW instrument note (Berker pilot-watch question 2026-08-25, "grad norms ~100, clipped
+at 1.0"):** wandb census run on the concern — the B2′ pilot's regime (ep1 grad_norm
+median 90, p90 135, 100% of steps clipped, inv rel-jitter .017) is the FAMILY NORM, not
+a pathology: vm4 ep1 median 71 / v10u 95 (both 100% clipped, inv jitter .036/.038 —
+the pilot is 2× smoother), q2 ep1 median 269. Full-run fact, never previously inspected:
+**vm4 and v10u spent their ENTIRE 100 epochs at 100% clipping** (median raw norm 71–96
+@ep1 → 7–10 mid-run → RISING to 22–27 by ep100), q2 likewise (304→15–17). The family
+trains as normalized-gradient SGD throughout: the clip sets step LENGTH (= lr), the w's
+set only the direction MIX — consistent with the share formalism being the operative
+dose instrument and dose LEVEL Σw·g reading non-monotone in past cells; corollary
+(raw): under permanent clipping the eta_min tail cells act directly on late step length.
+No kill-trigger condition (that clause = >100× running-median spikes). Pilot proceeds
+to its ep1 line unchanged.
+
+**B2′/L2′ ep2–5 settles + the formation gate reading (RAW, 23:57–00:15 08-25/26; owed
+since the chain-ep1 blocks):**
+- **B2′ (e27v6b400) shares ep2–5:** (.726/.267) → (.655/.337) → (.648/.345) →
+  (.660/.334) — settled ~(.66/.33/.007). Σw·g ep5 = 18.7 (down from the ×2.5
+  chain-ep1 overshoot 142.8, the q2-pattern 70→20 settling ✓). **mkl VALUE ≈ .168 at
+  ep2** (wandb y0e74bet; .106 by ep~6) — **P-m-2 quench gate PASS.**
+- **L2′ (e27v6L400) chain-ep1 recalibration + settles:** ep1 shares (.755/.238/.007),
+  g = (3.163/.034/.039) → **Σw·g = 59.2 = ×1.04 of the Σ=57 target — ON TARGET** (the
+  round's cleanest one-shot; B2′ was ×2.5). Shares ep2–5: (.873/.121) → (.856/.139) →
+  (.842/.155) → (.862/.134) — share HOLDS ~.13–.15. **But mkl VALUE (wandb qd0gilvf):
+  ≈ .095 at ep2 → .081 (ep2.5) → .051 (ep4) → .047 (ep5) — at/below the P-m-2 .1
+  line by ep2 and continuing down, FASTER than q2's .09-by-ep3.** Gate adjudication
+  per the §(l) amendment ("kill only when both agree"): the two instruments DISAGREE
+  (value quenches, share holds — q2 itself showed this split late) → **NO KILL under
+  the registered rule; RAISED to Berker as the L2′ value-quench reading.** Watch pair
+  continues on the STEP axis; if the share follows the value down, both-agree is met.
+- CORRECTION of the 08-25 ~19:15 grid sweep note (HANDOVER): that sweep read the
+  gate against the WRONG cells (tl/Ls5b lanes) and quoted SHARES for the B cells;
+  the gate's subjects are B2′/L2′ = the v6 cells and the quantity is the VALUE —
+  fixed here; the tl-lane wandb values quoted there (Ls5b400 ~.11–.14, Ls5btl400
+  ~.13–.17 at ep2) stand as recorded but carry no gate.
+
+**q2 ep25→50 share-drift knot (RAW, pre-registered read; warm lines only, 00:57
+08-26; segment-head artifacts excluded per rule — joint read owed):**
+| entering ep | inv share (g) | mkl share (g) | ω_h | ω_z | lam | probe after ep |
+|---|---|---|---|---|---|---|
+| 25 | .846 (.300) | .152 (.003) | .639 | .330 | 1.391 | .4872 |
+| 51 | .831 (.321) | .167 (.004) | .522 | .236 | 1.487 | .5592 |
+| 52 | .816 (.350) | .182 (.005) | .536 | .251 | 1.460 | .5654 |
+| 53 | .871 (.375) | .128 (.003) | .515 | .220 | 1.530 | .5671 |
+**The shares do NOT drift**: inv .82–.87, mkl .13–.18, h ~.002 at BOTH ends of the
+span (neighbors ep23/24/26 in the same band) — the share composition is stationary
+across ep25→50. What moves: ω_h −18% (.639→.52), ω_z −30% (.330→.22–.25), lam
++7–10% (1.39→1.46–1.53), own/gentle channels down in step; probe +7.4 pts
+(.487→.562), the steep late climb continuing (.5671 @ep53). Restart note: ep51
+probe .5592 dips below the pre-kill ep50 .5615 (the gpu274-discarded steps
+re-trained), ep52+ resumes the climb — recovery clean.
+
+**L2′ TWIN (e27v6L100, 63669110) chain-ep1 recalibration + early value read (RAW,
+2026-08-26 ~17:45; started 15:42 on gpu268 = the grid's 12/12 completion):** ep0
+shares (.008/.980/.013), ep1 shares **(.792/.199/.009)**, g = (2.470/0.021/0.041) →
+**Σw·g = 44.0 = ×0.77 of the Σ=57 target** at the shared L2′ doses w =
+(14.15/411.9/10.20) — undershoot where the main overshot ×1.04; ep1 probe .0520
+(main's pilot .0554 band ✓). omega_h 1.176 / omega_z 1.456 / lam .899 — no
+kill-trigger. **mkl VALUE (wandb nrkcs741, train/moment_kl):** .92 (~step 500) → .44
+(~1.3k) → .159 (~ep1-end 2.5k) → **.088 by ~ep2-end (step ~5k)** — the L2′-sibling
+quench signature PRESENT (at/below the P-m-2 .1 line by ep2, the main read
+≈.095@ep2→.047@ep5), while the ep1 SHARE holds .199. Adjudication per the §(l)
+both-agree amendment, same as the main: instruments disagree → NO KILL; the twin
+joins the main's share tripwire watch (kill only if the share follows the value
+below .1). ep2–5 settle lines owed on print (~48–60 min/ep).
+**Twin ep2–5 settle (RAW, completed ~20:50 08-26):** shares (.856/.140/.004) →
+(.808/.187/.005) → (.882/.116/.002) → (.802/.193/.005) — mkl share OSCILLATES
+.116–.193 about ~.16, holding above the line (runs slightly higher than the main's
+.13–.15). Σw·g 44.0 → 48 → 16 → 30 → **8.8 at ep5** (the family's settled level;
+q1 7.0, B2′ 18.7). Probe .0520 → .1003 → .1681 → .2369 → **.3034 @ep5** (Ls5b's
+matched-epoch ep5 = .4087; −10.5 pts, the all-global formation trailing the mc
+incumbent early — RAW, the registered overlay read is mid-run+late). mkl VALUE
+(nrkcs741) .159@ep1-end → .088@~ep2 → **.041–.048 at ~ep5** — the sibling
+signature through formation (main: .095→.047@ep5). Formation-gate window CLOSES:
+value-quench present, share holds → instruments disagree → NO KILL; per the
+2026-08-26 standing, any future trigger is REPORTED to Berker (alert-only). Watch
+continues via the twin share tripwire + the staleness sweep.
+**Twin ep14 share excursion (RAW, 08-27 ~07:0x, alert-only report):** tripwire fired
+on ep14 mkl share **.086** — first sub-.1 sample; series ep6–13 oscillates .130–.203,
+and the ep14 line rides an inv-g jump (.537→.744 denominator) with mkl g pinned at
+the one-digit .002. VALUE (nrkcs741) .029–.031 at ~ep14 — sustained quench, the
+main's sibling (.026@ep23). Same shape as the main's ep23 event: single-sample
+excursion, share not established as "following the value down". REPORTED, no action
+(Berker decides).
+**Main ep38 second excursion + pattern statement (RAW, 08-27 ~09:0x):** tripwire
+fired again on ep38 share **.083**; the intervening ep24–37 series oscillated
+.101–.146 (median ~.12, vs ~.13 over ep11–22 — the band's centre compressing slowly
+downward), and both sub-.1 samples (ep23 .096, ep38 .083) coincide with inv-g
+denominator spikes at pinned mkl g=.002. Standing characterization: recurring
+ISOLATED dips on denominator spikes, no consecutive or sustained sub-.1 run yet.
+Alert-only reports continue; the card updates on pattern CHANGE (consecutive
+samples, or the band centre itself crossing .1).
+**TWIN PATTERN CHANGE — two CONSECUTIVE sub-.1 samples (RAW, 08-27 ~10:0x):** twin
+ep17 .098 → **ep18 .068** (after ep14 .086 / ep15 .165 / ep16 .124). Under the
+ORIGINAL §(l) both-agree rule this would have met the kill condition (value
+quenched .03 + share following); under the 2026-08-26 alert-only standing it is
+REPORTED, no action. Context: ep18's inv-g spiked to 1.394 (largest since
+formation; typical .4–.7) — the dip is again denominator-heavy — and the twin's
+probe is HEALTHY and closing on its frame-mate: .5871@ep18 vs Ls5btl100's .6003
+(−1.3 pts, from −10.5 at ep5). Berker's call owed on the pair's standing.
+**RULED (Berker 2026-08-27, verbatim: "loss curves for e27v6l100 looks pretty
+healthy. im not sure about relaunching it. we can wait a bit more to view how
+healthily it improves the losses."):** the pair's standing = WAIT-AND-WATCH — both
+cells keep running, no kill, no relaunch; the read stays on loss/probe health.
+Tripwires remain armed as alert-only reporters.
+
+**L2′ MAIN ep23 share excursion + tripwire adjudication (RAW, 2026-08-26 ~18:0x):**
+the share tripwire fired on ep23 **mkl share .096** — the series' first sub-.1 sample
+(ep11–23: .184 .131 .118 .136 .146 .142 .125 .128 .135 .122 **.100 .152 .096** —
+oscillating ±.03 about ~.13, no segment restart in play). Cross-check: mkl VALUE
+(qd0gilvf) is **sustained deep-quenched, median .0266 over the last 500 steps**
+(.095@ep2 → .047@ep5 → .026@ep23) — the value leg of both-agree holds. Ruling under
+the §(l) both-agree amendment: ONE sub-.1 share sample inside the series' own
+oscillation does not establish "the share follows the value down" → **NO KILL on a
+single sample.** **KILL AUTHORITY WITHDRAWN (Berker 2026-08-26 eve, verbatim: "dont
+kill without my permission just report and i will decide"):** all watch tripwires in
+this round are ALERT-ONLY — on any trigger (incl. two-consecutive sub-.1 shares) the
+reading is REPORTED and Berker decides. Tripwires stay armed on both L2′ cells.
+Mechanism note from the same exchange (Berker: "if h_moment loss is too small maybe
+its share being small is understandable?"): substantially right — at value .026 the
+mkl gradient is g ≈ .002–.004 (vs inv .5–.6), so share ≈ 411.9·g/(Σ≈9.4) rides a
+one-significant-digit gradient print and the .10↔.15 wobble is noise-sized; the
+share's design value (q2 held .13–.18 STATIONARY at value .03, so shares do NOT
+automatically fall when a loss is satisfied) requires a SUSTAINED decline to mean
+anything. Probe check at the event: v6L400 ep16→23 .5690→.6161 climbing, −1.1 pts vs
+Ls5b's matched-epoch .6275 under the declared 400-cosine lr confound — no
+degeneration signature.
+
 ## Gates
 
 - **D-079a: USER-APPROVED 2026-08-06 (Berker: "we launch s and then you start

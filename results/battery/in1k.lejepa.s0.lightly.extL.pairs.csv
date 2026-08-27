@@ -1,0 +1,7 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in1k.lejepa.s0.lightly.extL,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.11201941845724726,0.11130998505225922,0.11272333601866077,100000,384,cheap
+in1k.lejepa.s0.lightly.extL,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.9439902907709812,0.9435747525165791,0.9442830647229831,100000,384,cheap
+in1k.lejepa.s0.lightly.extL,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.05193249187929989,0.05169505232271695,0.05213135700070387,100000,384,cheap
+in1k.lejepa.s0.lightly.extL,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.9740337540596616,0.9739284840849318,0.974122021553094,100000,384,cheap
+in1k.lejepa.s0.lightly.extL,in1k.pairs100.v1@audit_v1,student.z.proj.out,alignment,pairs,0.23649373403131255,0.23457802619164766,0.23820287408915558,100000,64,cheap
+in1k.lejepa.s0.lightly.extL,in1k.pairs100.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.8817531329842808,0.8807809760058247,0.882507577591837,100000,64,cheap

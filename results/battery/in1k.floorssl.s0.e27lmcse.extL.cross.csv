@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.out,cka_linear,cross,0.7342190255432245,,,1281167,384x256,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.4115181732955726,,,1281167,384x256,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.6761977755803582,,,1281167,384x256,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.4534,,,1281167,384x256,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.3324693907957309,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.5907137359716308,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.8916718209098436,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap1,knn_label_agreement,cross,0.5944,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap2,cka_linear,cross,0.7505972512398608,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap2,neighbor_jaccard,cross,0.47335646293850625,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap2,procrustes_distance,cross,0.6226309499929946,,,1281167,384x2048,none
+in1k.floorssl.s0.e27lmcse.extL,in1k.train.v1L,student.h.cls~student.z.proj.tap2,knn_label_agreement,cross,0.5112,,,1281167,384x2048,none
