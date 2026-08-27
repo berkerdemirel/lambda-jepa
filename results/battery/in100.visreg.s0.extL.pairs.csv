@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.1273554033834738,0.12565375592503047,0.12890200485884565,10000,384,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.9363222983081007,0.9354245415460472,0.9371512913197385,10000,384,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.0718665791272284,0.07106750886512384,0.07271317852407361,10000,384,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.9640667104361382,0.9636301094611468,0.9644458078903199,10000,384,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.embed,alignment,pairs,0.12870446503106053,0.12647890286361385,0.1305909694571187,10000,512,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.embed,cos_invariance,pairs,0.9356477674844471,0.9345264403431127,0.9366554262150673,10000,512,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.proj.out,alignment,pairs,0.31800057536358683,0.3111963018543139,0.3246056900535189,10000,128,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.840999712318169,0.837027188203111,0.8440616605282666,10000,128,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.2515188242501495,0.2469174934715234,0.256274391219369,10000,2048,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.8742405878745453,0.8715913718602656,0.8761433089819091,10000,2048,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap2,alignment,pairs,0.2734883205063462,0.26806768494639827,0.27864852777720733,10000,2048,cheap
+in100.visreg.s0.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap2,cos_invariance,pairs,0.8632558397467048,0.8601109666708991,0.8655975820233144,10000,2048,cheap

@@ -40,6 +40,11 @@ def covariance_term(z):
 
 
 class VICReg(SSLMethod):
+    # pull-instrument weight map (2026-08-25, the h_inv-alone control arm): shipped terms
+    # by their cfg keys; the additive h-terms carry their own weight keys.
+    PULL_W = {"inv": "w_inv", "var": "w_var", "cov": "w_cov", "moment_kl": "w_floor",
+              "h_moment_kl": "h_lamb", "h_var": "h_lamb", "h_cov": "h_lamb",
+              "h_inv": "h_inv"}
     name = "vicreg"
 
     def build_modules(self):

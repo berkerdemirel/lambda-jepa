@@ -183,7 +183,11 @@ def main(cfg: DictConfig):
                 with torch.no_grad(), autocast(frame.device, dtype=torch.bfloat16):
                     cls_e = modules["backbone"].forward_features(
                         to_device(xb).flatten(0, 1))[:, 0]
-                    z_e = modules["projector"](cls_e) if with_z else None
+                    # canonical role chain (base.build_modules): the projector rides the
+                    # optional embed stage when the method registers one (D-043 conduit,
+                    # visreg/lejepa-lane anatomy). No "embed" key = the historical path.
+                    z_e = (modules["projector"](modules["embed"](cls_e) if "embed" in modules
+                                                else cls_e) if with_z else None)
                 o = {}
                 for nm_, feats in (("h", cls_e),) + ((("z", z_e),) if with_z else ()):
                     vs = feats.reshape(nb, vb, -1).float().cpu().numpy()
@@ -208,7 +212,8 @@ def main(cfg: DictConfig):
                 setattr(method, a, v)
             method.train_mode(modules)
         random.setstate(py_s), np.random.set_state(np_s)
-        w = {k: float(cfg.method[pull_w[k]]) for k in names}
+        w = {k: (float(pull_w[k]) if isinstance(pull_w[k], (int, float))
+                 else float(cfg.method[pull_w[k]])) for k in names}
         tot = sum(w[k] * gs[k] for k in names) or 1.0
         # D-073 rider: OAS-shrunk conditioners stash their per-forward rho — the
         # evidence level is part of the trajectory record (absent = legacy estimator).

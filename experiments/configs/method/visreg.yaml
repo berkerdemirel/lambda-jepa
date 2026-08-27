@@ -1,0 +1,15 @@
+name: visreg
+# House VISReg (PORT_NOTES in sslgap/methods/visreg.py): lejepa-lane anatomy/frame/aug,
+# donor loss. w_reg/w_inv = the donor's lamb=.9 convex mix as explicit weights.
+w_reg: 0.9
+w_inv: 0.1
+num_projections: 256
+V: 4
+proj_dim: 128              # deviation from donor embed_dim//3 (=170 at 512): house z-slice width
+emb_dim: 512
+proj_depth: 3
+drop_path: 0.1
+lr: 1e-3                   # house hygiene (zoo-control convention), not donor 9e-4@bs16x8
+wd: 5e-2
+warmup_ep: 10
+eta_min: 1e-5
