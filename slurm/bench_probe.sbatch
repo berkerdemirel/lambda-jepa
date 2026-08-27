@@ -4,7 +4,7 @@
 #SBATCH --constraint=A100|L40S
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=24
-#SBATCH --mem=128G
+#SBATCH --mem=200G
 #SBATCH --time=24:00:00
 #SBATCH --output=/nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/%x_%j.out
 

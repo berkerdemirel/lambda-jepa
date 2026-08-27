@@ -21,6 +21,10 @@ functional) is re-read at their temperature t=.07 beside the canonical t=.1 on t
 
   python experiments/bench_probe.py <ckpt> <run_id> [epochs=90]
 CSVs (written every epoch, wall-safe): results/probes/<run_id>.bench.csv (+ .bench_knn.csv)
+Head/opt/sched state checkpoints to outputs/<run_id>.bench_head.pt each epoch and resumes from
+it, so a bench larger than one wall (ViT-L: ~41-52h vs the 24h wall) chains across singleton
+segments; the state file survives completion, making spare segments idempotent (resume at
+final epoch = no-op). To re-bench a run_id fresh, delete the state file (and the stale CSV).
 """
 import math
 import os
@@ -67,13 +71,18 @@ def knn_rider(run_id, device, out_csv):
 
 
 def main():
+    if sys.argv[1] == "--knn-only":  # store-side rider alone (backfill for wall-killed benches)
+        out_csv = os.path.join(ROOT, "results/probes", f"{sys.argv[2]}.bench.csv")
+        knn_rider(sys.argv[2], "cuda", out_csv.replace(".bench.csv", ".bench_knn.csv"))
+        return
     ckpt, run_id = sys.argv[1], sys.argv[2]
     epochs = int(sys.argv[3]) if len(sys.argv) > 3 else 90
+    adapter = sys.argv[4] if len(sys.argv) > 4 else "native"
     bs, device = 1024, "cuda"
     torch.backends.cudnn.benchmark = True
     workers = int(os.environ.get("SLURM_CPUS_PER_TASK", 12))
 
-    loaded = adapters.load("native", os.path.expanduser(ckpt), run_id).eval_(device)
+    loaded = adapters.load(adapter, os.path.expanduser(ckpt), run_id).eval_(device)
     assert loaded.frame["dataset"] == "imagenet1k", loaded.frame["dataset"]
     trunk = loaded.branches[loaded.probed_branch].trunk
     dim = trunk.num_features
@@ -104,8 +113,16 @@ def main():
 
     out_csv = os.path.join(ROOT, "results/probes", f"{run_id}.bench.csv")
     os.makedirs(os.path.dirname(out_csv), exist_ok=True)
-    rows, best = [], {"val_top1": 0.0, "val_top5": 0.0, "epoch": -1}
-    for ep in range(epochs):
+    state_pt = os.path.join(ROOT, "outputs", f"{run_id}.bench_head.pt")
+    rows, best, start_ep = [], {"val_top1": 0.0, "val_top5": 0.0, "epoch": -1}, 0
+    if os.path.exists(state_pt):
+        st = torch.load(state_pt, map_location=device, weights_only=False)
+        head.load_state_dict(st["head"])
+        opt.load_state_dict(st["opt"])
+        sched.load_state_dict(st["sched"])
+        rows, best, start_ep = st["rows"], st["best"], st["epoch"]
+        print(f"[bench] resumed {run_id} at epoch {start_ep}", flush=True)
+    for ep in range(start_ep, epochs):
         head.train()
         tl, nb = 0.0, 0
         for x, y in train_dl:
@@ -133,6 +150,9 @@ def main():
             best = {"val_top1": row["val_top1"], "val_top5": row["val_top5"], "epoch": ep + 1}
         rows.append(row)
         pd.DataFrame(rows).to_csv(out_csv, index=False)
+        torch.save({"head": head.state_dict(), "opt": opt.state_dict(),
+                    "sched": sched.state_dict(), "rows": rows, "best": best, "epoch": ep + 1},
+                   state_pt)
         print(f"[bench] {run_id} ep{ep + 1}/{epochs} lr={row['lr']:.4f} "
               f"train_loss={row['train_loss']:.3f} val_top1={row['val_top1']:.4f} "
               f"val_top5={row['val_top5']:.4f} best={best['val_top1']:.4f}", flush=True)

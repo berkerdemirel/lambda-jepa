@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=gap-probe
 #SBATCH --partition=gpu
-#SBATCH --constraint=L40S|A40|A100|RTX3090Ti
+#SBATCH --constraint=L40S|A40|A100
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
