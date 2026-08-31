@@ -1423,6 +1423,22 @@ anything. Probe check at the event: v6L400 ep16→23 .5690→.6161 climbing, −
 Ls5b's matched-epoch .6275 under the declared 400-cosine lr confound — no
 degeneration signature.
 
+**100-ep twin finals + the owed-bench ruling (RAW, 2026-08-31):** all four D-103 twins
+are done (online probe, final ep): `e27v6b100` .7239 (benched 08-28: 74.15/64.28 — the
+B winner) · `e27v6L100` .7290 (the L winner) · `e27lm4sbetl100` .6826 vs B1 incumbent
+.6858 (Δ −0.3) · `e27lm4Ls5btl100` .7127 vs L1 .7130 (Δ −0.03). The P-m-3 online
+referee reads B3≈B1 and L3≈L1 — the eta_min tail does nothing at 100 ep; the bench
+referee = the same read at the ep400 endpoints. Berker compute ruling (2026-08-31,
+verbatim): "if we dont think they are gonna be the winner (close online gap to the
+winner of that arch) then we dont waste compute and we take a note what we tried and
+what the online acc is." Applied: `e27v6L100` landing chain launched (extract 63937543
+→ house probe 63937544 + bench 63937545); NO bench for `e27lm4sbetl100` (−4.1 online vs
+v6b100), `e27lm4Ls5btl100` (−1.6 vs v6L100), `e27lmcs5q2` .6225 (−4.4 vs the S online
+winner `e27v10u` .6662; NOTE `e27lm4s5b` .6774 is ViT-B despite the tag — checkpoint
+`model_name`, not tag, per the standing trap). The q2 ring-vs-OAS estimator A/B read
+rides the online curves + training instruments; this note is the record of what was
+tried.
+
 ## Gates
 
 - **D-079a: USER-APPROVED 2026-08-06 (Berker: "we launch s and then you start

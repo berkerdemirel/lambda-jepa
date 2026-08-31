@@ -1,0 +1,8 @@
+in1k.pub.oklejepas300,dtd,10,1880,1880,0.0025,0.7021
+in1k.pub.oklejepas300,aircraft,10,6667,3333,0.025,0.4758
+in1k.pub.oklejepas300,cars,10,8144,8041,0.0375,0.5032
+in1k.pub.oklejepas300,cifar10,10,50000,10000,0.00625,0.9208
+in1k.pub.oklejepas300,cifar100,10,50000,10000,0.00625,0.7442
+in1k.pub.oklejepas300,flowers,10,1020,6149,0.0125,0.8582
+in1k.pub.oklejepas300,food,10,75750,25250,0.00625,0.7572
+in1k.pub.oklejepas300,pets,10,3680,3669,0.0125,0.7910

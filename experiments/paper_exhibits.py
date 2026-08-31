@@ -378,7 +378,10 @@ def comparison_tables():
             # shipped 4g+6l ViT-B config, same arch/epochs/batch as Ours B-100 —
             # the epoch-matched external our B row is actually paired against
             ("VISReg (repro.)", "ViT-B/16", 100, "in1k.visreg.s0.vrb.extL"),
-            ("Ours", "ViT-B/16", 100, "in1k.floorssl.s0.e27lm4sbe.extL"),
+            # Ours-B = e27v6b100 (Berker 2026-08-31: best B cell on every readout;
+            # B2' all-global V=6, ring estimator — the per-scale configs differ and the
+            # methods section must say so)
+            ("Ours", "ViT-B/16", 100, "in1k.floorssl.s0.e27v6b100.extL"),
             ("Ours", "ViT-B/16", 400, None),
             "MIDRULE",
             # L/H field block + separated Ours block: Berker's hand arrangement
@@ -480,10 +483,22 @@ def _transfer_seg_tables():
         out = [vals.get(d) for d in TRANSFER_ORDER]
         return out if all(v is not None for v in out) else None
 
-    SELF_RUN = [("VISReg (repro.)", "ViT-B/16", 100, "in1k.visreg.s0.vrb"),
+    # OK-AI self-run rows (Berker 2026-08-31: "fill those on the main tables") mirror
+    # the in1k-main-table row arrangement; the remaining self-run CSVs (ok* S-300,
+    # dino/ibot B-300) stay on disk, not shown. Ours-B = e27v6b100 (same ruling).
+    SELF_RUN = [("LeJEPA (OK-AI)", "ViT-S/16", 100, "in1k.pub.oklejepas100"),
+                ("DINO (OK-AI)", "ViT-S/16", 100, "in1k.pub.okdinos100"),
+                ("iBOT (OK-AI)", "ViT-S/16", 100, "in1k.pub.okibots100"),
                 ("Ours", "ViT-S/16", 100, None),
-                ("Ours", "ViT-B/16", 100, "in1k.floorssl.s0.e27lm4sbe"),
+                "MIDRULE",
+                ("LeJEPA (OK-AI)", "ViT-B/16", 100, "in1k.pub.oklejepab100"),
+                ("DINO (OK-AI)", "ViT-B/16", 100, "in1k.pub.okdinob100"),
+                ("iBOT (OK-AI)", "ViT-B/16", 100, "in1k.pub.okibotb100"),
+                ("LeJEPA (OK-AI)", "ViT-B/16", 300, "in1k.pub.oklejepab300"),
+                ("VISReg (repro.)", "ViT-B/16", 100, "in1k.visreg.s0.vrb"),
+                ("Ours", "ViT-B/16", 100, "in1k.floorssl.s0.e27v6b100"),
                 ("Ours", "ViT-B/16", 400, None),
+                "MIDRULE",
                 ("Ours", "ViT-L/16", 100, "in1k.floorssl.s0.e27lm4Ls5b"),
                 ("Ours", "ViT-L/16", 400, None)]
     tl = ["\\begin{adjustbox}{max width=\\textwidth}", "\\begin{tabular}{llrrrrrrrrrr}",
@@ -493,7 +508,11 @@ def _transfer_seg_tables():
         tl.append(f"{label} & {arch} & {ep} & " + " & ".join(f"{v:.1f}" for v in vals)
                   + f" & {avg:.1f} \\\\")
     tl.append("\\midrule")
-    for label, arch, ep, tag in SELF_RUN:
+    for row in SELF_RUN:
+        if row == "MIDRULE":
+            tl.append("\\midrule")
+            continue
+        label, arch, ep, tag = row
         vals = transfer_cells(tag)
         if vals is None:
             tl.append(f"{label} & {arch} & {ep}" + " & ---" * 9 + " \\\\")
