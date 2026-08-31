@@ -1491,6 +1491,21 @@ V=6@224, ring z-q3/h-q11, h_d_slice 384, swa=ema, grad_ckpt). Procedure: pilot
 chains. **Cap sequencing (D-093 16-H100 budget): v6Llr100 launches on the pilot line;
 v6Llr400 queues behind the twin's completion (~09-05 start, endpoint ~09-22) — the
 paper's L read = v6Llr100 + the running v6L400; the lr-400 is the follow-up arm.**
+**Pilot ep1 + chain launch (RAW, 63940396, 2026-08-31 ~14:30):** ep1 shares
+**(.796/.201/.004)** — the L-family signature; g = **(0.549/0.029/0.041)**; probe
+**.0672 vs the v6L pilot's .0554** (+1.2pp at ep1, the hotter steps already visible);
+omega_h .860 / omega_z .975 / lam .939 — healthy, gate passing. Law applied verbatim:
+**w = 57.0·τ_win/g = (45.79 / 1065.3 / 23.63)** — extrapolation **×1.70/×8.25/×14.1**
+from grid w. **DECLARED LOUDLY: the h_lamb ×14.1 and w_floor ×8.25 are the program's
+largest transplants, PAST q2's failed ×9.6** — the lr=4e-3 ep1 state simply carries
+much weaker moment gradients, and the pre-registered system (law verbatim + the
+ep1–5 formation gate with quench kill authority, mkl VALUE < .1 by ep2) is the
+referee; the L2′ precedent (×6.08, landed ×1.04 on target) is the hopeful prior, q2
+the cautionary one. Chains launched IN PARALLEL per the disabled-cap ruling:
+`e27v6Llr400` 5×120h (63942171–78) + `e27v6Llr100` 2×120h (63942180/82), DDP-4.
+Chain-ep1 recalibration + the formation window are the next reads; Berker veto
+window: kills are cheap in the first hours.
+
 **Predictions (committed 2026-08-31, pre-launch):**
 - **P-v6Llr-1 (formation):** lr=4e-3 passes the ep1–5 gate (clipping absorbs the
   scale — the step is longer, not less stable). Declared fallback: lr=2e-3 (sqrt) if
