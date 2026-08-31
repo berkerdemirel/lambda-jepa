@@ -1506,6 +1506,20 @@ the cautionary one. Chains launched IN PARALLEL per the disabled-cap ruling:
 Chain-ep1 recalibration + the formation window are the next reads; Berker veto
 window: kills are cheap in the first hours.
 
+**RE-DOSED 25 min later (D-111, Berker: "i think vit 6b dose ratios are the good
+ones in terms of shares and forces" + Fable concurrence):** the verbatim-law chains
+(63942171–82) killed at ~5 min (NO ckpts written under the tags — resume-trap
+checked clean) and relaunched at the WINNER-share dose: τ = v6b400's settled
+realized shares **(.655/.338/.007)** in place of v10u's τ_win → **w = 57.0·τ/g^ep1
+= (68.01 / 664.3 / 9.73)**, extrapolations ×2.53/×5.14/×5.80 — all inside validated
+territory (≤ L2′'s ×6.08). Wandb value check before the call: pilot ep1-end
+moment-KL VALUE ≈ .45–.48 (family band; v6b .44, v6L .53) and h-moment ≈ 1.8 — both
+terms carry real residuals, so the boosts demand work, not force a satisfied
+constraint. `e27v6Llr400` 5×120h (63942217–21) + `e27v6Llr100` 2×120h (63942222/23).
+**v6s intentionally NOT re-dosed**: its v10u-τ provenance matches how v6b/v6L
+themselves were dosed — re-dosing would add a family confound; its transplants are
+mild (≤×1.74) and its own gate is armed.
+
 **Predictions (committed 2026-08-31, pre-launch):**
 - **P-v6Llr-1 (formation):** lr=4e-3 passes the ep1–5 gate (clipping absorbs the
   scale — the step is longer, not less stable). Declared fallback: lr=2e-3 (sqrt) if
