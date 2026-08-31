@@ -1471,6 +1471,26 @@ w_i = 57.0·τ_win,i/g_i^ep1, τ_win = (.441/.542/.017); doses shared 400/100;
   by ep2 = the quench kill, P-m-2 convention); everything else ALERT-ONLY per the
   2026-08-26 ruling.
 
+**The v6Llr pair (D-109, Berker 2026-08-31 "lets do adjusted lr on L. even if we only
+have ep100 it is good. but we will try ep400 too." — pre-registered BEFORE any number
+exists):** `e27v6Llr100` + `e27v6Llr400`, single delta vs the v6L pair = **method.lr
+4e-3** (linear scaling from OUR B baseline 1e-3·bs512/bs128; under the family's
+permanent clipping, step length = lr, so 4e-3 × 2,502 steps/ep = the B cells'
+per-epoch path exactly). Everything else = the v6L line verbatim (bs512 DDP-4,
+V=6@224, ring z-q3/h-q11, h_d_slice 384, swa=ema, grad_ckpt). Procedure: pilot
+`e27v6Llr_pilot` at grid w (26.9/129.2/1.679, epochs=3) → w = 57.0·τ_win/g^ep1 →
+chains. **Cap sequencing (D-093 16-H100 budget): v6Llr100 launches on the pilot line;
+v6Llr400 queues behind the twin's completion (~09-05 start, endpoint ~09-22) — the
+paper's L read = v6Llr100 + the running v6L400; the lr-400 is the follow-up arm.**
+**Predictions (committed 2026-08-31, pre-launch):**
+- **P-v6Llr-1 (formation):** lr=4e-3 passes the ep1–5 gate (clipping absorbs the
+  scale — the step is longer, not less stable). Declared fallback: lr=2e-3 (sqrt) if
+  the gate trips; a trip is itself a finding (L instability at B-matched step length).
+- **P-v6Llr-2 (the step-starvation bet):** v6Llr100 final online ≥ v6L100 + 0.5
+  (.7290 → ≥.734), equivalently bench(v6Llr100) − bench(v6b100) ≥ +0.8 — recovering
+  the field's B→L band. A null (≤ +0.2) REFUTES step-starvation as the main cause of
+  the small B→L delta.
+
 ## Gates
 
 - **D-079a: USER-APPROVED 2026-08-06 (Berker: "we launch s and then you start
