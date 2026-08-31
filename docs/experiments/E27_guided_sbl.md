@@ -1433,11 +1433,21 @@ verbatim): "if we dont think they are gonna be the winner (close online gap to t
 winner of that arch) then we dont waste compute and we take a note what we tried and
 what the online acc is." Applied: `e27v6L100` landing chain launched (extract 63937543
 → house probe 63937544 + bench 63937545); NO bench for `e27lm4sbetl100` (−4.1 online vs
-v6b100), `e27lm4Ls5btl100` (−1.6 vs v6L100), `e27lmcs5q2` .6225 (−4.4 vs the S online
-winner `e27v10u` .6662; NOTE `e27lm4s5b` .6774 is ViT-B despite the tag — checkpoint
-`model_name`, not tag, per the standing trap). The q2 ring-vs-OAS estimator A/B read
+v6b100), `e27lm4Ls5btl100` (−1.6 vs v6L100), `e27lmcs5q2` .6225 (−1.7 vs the S comparator
+`d256vm4` .6392 — Berker 2026-08-31: the v4 line is the S yardstick, `e27v10u` .6662
+is a significantly-more-compute lane and not the comparator; NOTE `e27lm4s5b` .6774 is
+ViT-B despite the tag — checkpoint `model_name`, not tag, per the standing trap). The q2 ring-vs-OAS estimator A/B read
 rides the online curves + training instruments; this note is the record of what was
 tried.
+
+**The 400-round trim (D-106, Berker 2026-08-31 "lets kill sbetl400, Ls5btl400 and
+Ls5b400"):** killed mid-run with `_last`+ep100 ckpts intact — `sbetl400` @ep188 online
+.6263 · `Ls5btl400` @ep161 .6957 · `Ls5b400` @ep160 .6963. Survivors to ep400:
+`sbe400` (P-m-1 + P-m-2's matched-recipe endpoint comparator at B) · `v6b400` ·
+`v6L400`. P-m-3's 400-tail read is FORFEITED at both arches — its referee is the
+100-ep twins' null (B3−B1 −0.3, L3−L1 −0.03) + mid-400 tracking ±0.4; P-m-1-L
+forfeited (B carries the read). Endpoint comparisons against the killed cells cite
+their last matched epochs, never extrapolations.
 
 ## Gates
 
