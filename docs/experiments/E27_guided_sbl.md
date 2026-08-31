@@ -1459,6 +1459,15 @@ D-103 verbatim: pilot `e27v6s_pilot` at grid w (26.9/129.2/1.679, frame.epochs=3
 warmup_ep=10 is fixed-count so pilot ep1 ≡ chain ep1 LR state) → chain doses
 w_i = 57.0·τ_win,i/g_i^ep1, τ_win = (.441/.542/.017); doses shared 400/100;
 120h singleton segments, exclusions gpu269/273/267.
+**Pilot ep1 + chain launch (RAW, 63940159, 2026-08-31 ~13:05):** ep1 shares
+**(.538/.438/.024)**, g = **(0.809/0.137/0.580)**, probe .0743, omega_h .804 /
+omega_z .952 / lam .919 — family-band formation, no kill pattern. Law applied:
+**w = 57.0·τ_win/g = (31.07 / 225.50 / 1.671)** — extrapolation ×1.16/×1.74/×1.00
+from grid w (modest). S is LOADER-BOUND (~50 min/ep like B, the 6×224² crop
+pipeline dominates, not the ViT) → chains sized 3×120h + 2×120h: `e27v6s400`
+63941606–08, `e27v6s100` 63941609–10 (launched ~13:15). Chain-ep1 recalibration +
+ep2–5 formation-gate read OWED on their first lines.
+
 **Predictions (committed 2026-08-31, pre-launch):**
 - **P-v6s-1:** v6s100 bench_linear_v1 = vm4 + [2.5, 4.0] → [68.8, 70.3] (the
   v6b100−sbe100 analog band applied to vm4's 66.31).
