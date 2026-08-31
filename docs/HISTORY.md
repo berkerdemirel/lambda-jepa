@@ -849,3 +849,34 @@ hung twospace 4h → max_tap_d cap. Faithfulness incidents on record: "e27lmc do
 off the plan while wandb read ep87 (Berker caught it; artifact-check-before-claiming now
 the standing rule), plus the --wrap/sh-source and doubled-path submit failures — all
 repaired same-day, all landings re-verified from disk.
+
+## 2026-08-25 .. 08-31 — the 400 round: launch, trim, and the compute-fairness turn
+
+- D-103 400-round launched 08-25 (six cells + four 100-ep twins + two pilots; dose law
+  w = 57·τ_win/g^ep1). Same-day ENOSPC burned the v6b400 chain mid-launch (group fs hit
+  100%; the purge freed 391G — docs/PURGE_2026-08-25.md); relaunched, ~2 epochs lost.
+- 08-26..30 (recorded from the interim handovers): D-104 dino re-dose resolved (e20fwlo
+  the winner) and D-105 visreg pair into zoo+exhibits; the e31 shape/scale split ran at
+  IN-100; the OK-AI 12-run transfer block self-run; e27v6b100 landed and swept every B
+  readout (bench 74.15 / kNN 64.28 / transfer 80.9); the SWA-twin question closed (0.00
+  at B); four assistant errors recorded verbatim in that handover.
+- 08-31 (one session): all four twins confirmed finished. Curve forensics across the
+  grid: every 400-cell's matched-epoch lag is the cosine phase (phase-matched leads
+  positive everywhere); v6b100 terminal slope +0.111pp/ep = undertrained; the small B→L
+  delta traced to step starvation (L bs512 = 2,502 steps/ep vs B 10,009 at unscaled lr).
+  Berker trimmed the round (D-106: sbetl400/Ls5btl400/Ls5b400 killed at ep188/161/160;
+  P-m-3's 400-tail forfeited to the twins' null). The OK-AI compute ledger was verified
+  from their lite_ssl code (teacher forwards globals only → 8g+18l/sample; our swa=ema
+  twin forwards all views → v6 = 24g = ×2.13, scale-invariant) and the compute-fairness
+  program adopted: compute column + acc-vs-FLOPs exhibit; okdinob300/okibotb300 benches
+  launched (first attempt died on a missing pubvit adapter arg — relaunched). Paper:
+  Ours-B → v6b100 in both tables, OK-AI self-run transfer rows, I-JEPA cite 79.3
+  (verified from their Table 1), data2vec bench row dropped (no published LP number).
+  e31 closed with the slice-dilution finding (a random 128-slice reports ~27% of the
+  full-space shape residual, ×3.7–5.1; full-slice satisfies full-space logdet at matched
+  pull; the v6/ring lanes already close the OK-AI rank gap at h). E32 defined AND agreed
+  same-day (cloud vs image spread: the aug-quiet core, D-110). The v6s pair (D-107,
+  ×2.15 declared) and v6Llr pair (D-109, lr=4e-3 path-match) pre-registered with
+  committed predictions, then piloted. Rulings: no seeds (field-consistent); IN-100
+  probe convention kept; the D-093 16-H100 cap noted as previously disabled (31 peak in
+  the scaling round). ADE20k fetched for the conditional seg run (D-108.5).
