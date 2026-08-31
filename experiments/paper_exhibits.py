@@ -390,11 +390,15 @@ def comparison_tables():
             ("iBOT", "ViT-L/16", 250, "in1k.pub.ibotl250.ext"),
             ("VISReg", "ViT-L/14", 400, "in1k.pub.visregl400.ext"),
             ("MAE", "ViT-L/16", 1600, "in1k.pub.mael1600.ext"),
-            ("data2vec", "ViT-L/16", 1600, "in1k.pub.d2vl1600.ext"),
+            # data2vec ROW DROPPED (D-109): the paper publishes NO linear-probe number
+            # (fine-tune only, ViT-L 86.6); no lift per the ruling — its cited (ddag)
+            # transfer row remains in the transfer table.
             # cite-only (Berker: "let lejepa vit-l enter the table with a footnote"):
             # NO public ckpt exists (HF-wide search) — the LeJEPA paper's own number
             ("LeJEPA$^\\dagger$", "ViT-L/14", 100, ("cite", 0.756, None)),
-            ("I-JEPA", "ViT-H/14", 300, "in1k.pub.ijepah300.ext"),
+            # I-JEPA cite-only (D-109 "use the reported numbers"): their Table 1
+            # linear eval, ViT-H/14 300 ep, verified from the paper 2026-08-31
+            ("I-JEPA$^\\dagger$", "ViT-H/14", 300, ("cite", 0.793, None)),
             "MIDRULE",
             ("Ours", "ViT-L/16", 100, "in1k.floorssl.s0.e27lm4Ls5b.extL"),
             ("Ours", "ViT-L/16", 400, None)]
