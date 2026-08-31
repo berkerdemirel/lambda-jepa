@@ -364,7 +364,12 @@ def comparison_tables():
             # the certified anchor (their code end-to-end, D-094), rescued from the
             # discarded tab:lightly-benchmark (Berker 08-25); values = our yardstick
             ("LeJEPA (Lightly repro.)", "ViT-S/16", 100, ("cite", 0.6411, 0.4706)),
-            ("Ours", "ViT-S/16", 100, "in1k.floorssl.s0.d256vm4.extL"),
+            # Ours rows = v6 cells ONLY (Berker 2026-08-31: "we will fill the table
+            # only using v6 cells"); rids point at the v6 runs and stay "---" until
+            # their complete benches land (the ep-90 guard). S-400 row added for
+            # family symmetry — flagged for veto.
+            ("Ours", "ViT-S/16", 100, "in1k.floorssl.s0.e27v6s100.extL"),
+            ("Ours", "ViT-S/16", 400, "in1k.floorssl.s0.e27v6s400.extL"),
             "MIDRULE",
             ("LeJEPA (OK-AI)", "ViT-B/16", 100, "in1k.pub.oklejepab100.ext"),
             ("DINO (OK-AI)", "ViT-B/16", 100, "in1k.pub.okdinob100.ext"),
@@ -382,7 +387,7 @@ def comparison_tables():
             # B2' all-global V=6, ring estimator — the per-scale configs differ and the
             # methods section must say so)
             ("Ours", "ViT-B/16", 100, "in1k.floorssl.s0.e27v6b100.extL"),
-            ("Ours", "ViT-B/16", 400, None),
+            ("Ours", "ViT-B/16", 400, "in1k.floorssl.s0.e27v6b400.extL"),
             "MIDRULE",
             # L/H field block + separated Ours block: Berker's hand arrangement
             # 08-25 ("keep vit l vit b etc comparing the field") — midrules are these
@@ -400,8 +405,10 @@ def comparison_tables():
             # linear eval, ViT-H/14 300 ep, verified from the paper 2026-08-31
             ("I-JEPA$^\\dagger$", "ViT-H/14", 300, ("cite", 0.793, None)),
             "MIDRULE",
-            ("Ours", "ViT-L/16", 100, "in1k.floorssl.s0.e27lm4Ls5b.extL"),
-            ("Ours", "ViT-L/16", 400, None)]
+            # lm4Ls5b REMOVED per the same ruling — the L rows are v6L (v6Llr may
+            # supersede on Berker's call when its bench lands)
+            ("Ours", "ViT-L/16", 100, "in1k.floorssl.s0.e27v6L100.extL"),
+            ("Ours", "ViT-L/16", 400, "in1k.floorssl.s0.e27v6L400.extL")]
 
     def bench_cells(rid):
         if isinstance(rid, tuple) and rid[0] == "cite":
@@ -493,7 +500,10 @@ def _transfer_seg_tables():
     SELF_RUN = [("LeJEPA (OK-AI)", "ViT-S/16", 100, "in1k.pub.oklejepas100"),
                 ("DINO (OK-AI)", "ViT-S/16", 100, "in1k.pub.okdinos100"),
                 ("iBOT (OK-AI)", "ViT-S/16", 100, "in1k.pub.okibots100"),
-                ("Ours", "ViT-S/16", 100, None),
+                # Ours = v6 cells only (Berker 2026-08-31); tags fill when their
+                # transfer CSVs exist (all-8 guard)
+                ("Ours", "ViT-S/16", 100, "in1k.floorssl.s0.e27v6s100"),
+                ("Ours", "ViT-S/16", 400, "in1k.floorssl.s0.e27v6s400"),
                 "MIDRULE",
                 ("LeJEPA (OK-AI)", "ViT-B/16", 100, "in1k.pub.oklejepab100"),
                 ("DINO (OK-AI)", "ViT-B/16", 100, "in1k.pub.okdinob100"),
@@ -501,10 +511,10 @@ def _transfer_seg_tables():
                 ("LeJEPA (OK-AI)", "ViT-B/16", 300, "in1k.pub.oklejepab300"),
                 ("VISReg (repro.)", "ViT-B/16", 100, "in1k.visreg.s0.vrb"),
                 ("Ours", "ViT-B/16", 100, "in1k.floorssl.s0.e27v6b100"),
-                ("Ours", "ViT-B/16", 400, None),
+                ("Ours", "ViT-B/16", 400, "in1k.floorssl.s0.e27v6b400"),
                 "MIDRULE",
-                ("Ours", "ViT-L/16", 100, "in1k.floorssl.s0.e27lm4Ls5b"),
-                ("Ours", "ViT-L/16", 400, None)]
+                ("Ours", "ViT-L/16", 100, "in1k.floorssl.s0.e27v6L100"),
+                ("Ours", "ViT-L/16", 400, "in1k.floorssl.s0.e27v6L400")]
     tl = ["\\begin{adjustbox}{max width=\\textwidth}", "\\begin{tabular}{llrrrrrrrrrr}",
           "\\toprule", "Method & Backbone & Ep. & DTD & Aircraft & Cars & CIFAR10 & "
           "CIFAR100 & Flowers & Food & Pets & Avg. \\\\", "\\midrule"]
