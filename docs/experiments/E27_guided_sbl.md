@@ -1449,6 +1449,28 @@ Ls5b400"):** killed mid-run with `_last`+ep100 ckpts intact — `sbetl400` @ep18
 forfeited (B carries the read). Endpoint comparisons against the killed cells cite
 their last matched epochs, never extrapolations.
 
+**The v6s pair (D-107, Berker 2026-08-31 "lets do v6s!" — pre-registered BEFORE any
+number exists):** `e27v6s400` + twin `e27v6s100`, the S member of the v6 family.
+Frame `in1k_vits16`, bs128 DDP-2, aug=lejepa V=6@224 (1182 tok/sample; full ledger
+×2.15 an OK-AI-S run per the D-106 accounting — the declared cost), ring z-q3/h-q3
+with `h_d_slice=128` (n_eff/d′ = 4, the S anatomy), expander 256, swa=ema,
+head_layers 2, mlp_wd .05, view_mean both floors, extra_cadence [10]. Procedure =
+D-103 verbatim: pilot `e27v6s_pilot` at grid w (26.9/129.2/1.679, frame.epochs=3 —
+warmup_ep=10 is fixed-count so pilot ep1 ≡ chain ep1 LR state) → chain doses
+w_i = 57.0·τ_win,i/g_i^ep1, τ_win = (.441/.542/.017); doses shared 400/100;
+120h singleton segments, exclusions gpu269/273/267.
+**Predictions (committed 2026-08-31, pre-launch):**
+- **P-v6s-1:** v6s100 bench_linear_v1 = vm4 + [2.5, 4.0] → [68.8, 70.3] (the
+  v6b100−sbe100 analog band applied to vm4's 66.31).
+- **P-v6s-2 (directional, the honest bet):** v6s100 lands BELOW OK-AI DINO-S-100
+  (70.05) — at ×2.15 the winner recipe does not close the S block at 100 ep;
+  beating it is the upside surprise.
+- **P-v6s-3:** the 400-endpoint slope prediction is set when `e27v6b400` lands,
+  before v6s400's endpoint is read.
+- **Watch protocol:** ep1–5 formation gate (the only kill authority; mkl VALUE < .1
+  by ep2 = the quench kill, P-m-2 convention); everything else ALERT-ONLY per the
+  2026-08-26 ruling.
+
 ## Gates
 
 - **D-079a: USER-APPROVED 2026-08-06 (Berker: "we launch s and then you start
