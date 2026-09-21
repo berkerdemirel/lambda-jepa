@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import MultiCropDataset
-from sslgap.methods._common import SpectralConditioner, ema_momentum, house_scheduler, trunk_arch
+from sslgap.methods._common import SACReg, ema_momentum, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.heads import DINOHead, DINOLinearHead
@@ -49,8 +49,8 @@ class DINO(SSLMethod):
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
         t_head = copy.deepcopy(head).requires_grad_(False)
         self.center = torch.zeros(self.cfg.K)
-        if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
-            self.floor = SpectralConditioner()
+        if self.cfg.get("h_reg") == "sacreg":     # E12 cross-method arm (no RNG at construction)
+            self.floor = SACReg()
         mods = {"backbone": trunk, "projector": head,
                 "teacher_backbone": t_trunk, "teacher_projector": t_head}
         if self.cfg.get("h_protoce", 0.0):        # E17 h-pull (D-039): small linear proto-head @h
@@ -135,7 +135,7 @@ class DINO(SSLMethod):
         terms = {"dino": dino_loss}
         # E12 cross-method arm: additive moment floor at the STUDENT's h (global-crop trunk CLS —
         # gradients flow only through the student; the audited teacher h follows by EMA).
-        if self.cfg.get("h_reg") == "moment":
+        if self.cfg.get("h_reg") == "sacreg":
             h_loss = self.floor(s_tok[:, 0])
             terms["h_moment_kl"] = h_loss
             loss = loss + self.cfg.h_lamb * h_loss

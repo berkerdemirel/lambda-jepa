@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch.nn.utils.parametrizations import spectral_norm
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
+from sslgap.methods._common import SACReg, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -52,10 +52,10 @@ class VICReg(SSLMethod):
                                 drop_path_rate=self.cfg.drop_path)
         proj = vicreg_expander(384, self.cfg.expander_hidden, self.cfg.expander_dim,
                                spec_norm=self.cfg.get("spec_norm", False))
-        if self.cfg.get("h_reg") == "moment":     # E12 cross-method arm (no RNG at construction)
-            self.floor = SpectralConditioner()
+        if self.cfg.get("h_reg") == "sacreg":     # E12 cross-method arm (no RNG at construction)
+            self.floor = SACReg()
         if self.cfg.get("anticollapse", "varcov") == "floor":   # E19 floorssl (no RNG either)
-            self.floor_z = SpectralConditioner()
+            self.floor_z = SACReg()
         mods = {"backbone": trunk, "projector": proj}
         # E19c conduit arms (D-043): a BARE affine between cls and the expander — the lejepa emb
         # topology transplanted (no BN: the whole point; no init calibration: stricter than f2's
@@ -140,7 +140,7 @@ class VICReg(SSLMethod):
         gap = tok[:, 1:].mean(1)
         h_feat = {"cls": tok[:, 0], "gap": gap,
                   "emb": z_in}[self.cfg.get("h_tap", "gap")]     # "emb" = D-043 conduit tap
-        if self.cfg.get("h_reg") == "moment":
+        if self.cfg.get("h_reg") == "sacreg":
             h_loss = self.floor(h_feat)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss

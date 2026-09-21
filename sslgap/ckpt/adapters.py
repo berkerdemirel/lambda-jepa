@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 from torchvision.ops import MLP
 
-from sslgap.ckpt.schema import Branch, LoadedCkpt
+from sslgap.ckpt.schema import Branch, LoadedCkpt, load_payload
 from sslgap.methods.ijepa import MaskSampler
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.heads import (ByolHeads, DINOHead, DinoHeadTaps, DonorProjTap, LejepaHeads,
@@ -165,7 +165,7 @@ class IjepaPredTaps(nn.Module):
 
 def _asm_projector(mods, ck):
     """simclr / vicreg / floorssl: single branch, projector taps off trunk CLS (what the trainer
-    fed it); h = student trunk-CLS = the projector input (D-036; was trunk-GAP under F1). FloorSSL
+    fed it); h = student trunk-CLS = the projector input (D-036; was trunk-GAP under F1). LambdaJEPA
     (E21 independent class) shares this layout exactly — backbone + projector nn.Sequential head,
     same probed CLS, z = projector taps — so it assembles here, no floorssl-specific branch."""
     return ({"student": Branch(mods["backbone"], TVMLPTaps(mods["projector"], "proj"), "cls")},
@@ -238,7 +238,7 @@ def _asm_visreg(mods, ck):
             "student", "student.z.embed")
 
 
-_NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "floorssl": _asm_projector,
+_NATIVE_ASM = {"simclr": _asm_projector, "vicreg": _asm_projector, "lambdajepa": _asm_projector,
                "byol": _asm_byol,
                "dino": _asm_dino, "mae": _asm_mae, "ijepa": _asm_ijepa, "lejepa": _asm_lejepa,
                "visreg": _asm_visreg,  # house VISReg = lejepa anatomy in canonical roles (E29)
@@ -256,7 +256,7 @@ def from_native(path, run_id, random_init=False, seed=0):
     assemble branches per method (PROTOCOL §3 h/z + D-003v2 F-rulings). random_init rebuilds the
     same arch freshly seeded; teachers then copy their student counterparts — every trainer
     initializes EMA branches by deepcopy, so the epoch-0 null has teacher == student."""
-    ck = torch.load(path, map_location="cpu", weights_only=False)
+    ck = load_payload(path, map_location="cpu")
     if ck.get("format") != "sslgap/ckpt/v1":
         raise ValueError(f"not a native ckpt: {ck.get('format')!r} ({path})")
     if random_init:

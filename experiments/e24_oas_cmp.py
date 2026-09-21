@@ -21,6 +21,7 @@ from torch.utils.data import DataLoader
 from sslgap.data import seed_everything
 from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
+from sslgap.ckpt.schema import load_payload
 
 ROOT = "/nfs/scistore19/locatgrp/bdemirel/ssl_project"
 OUT = f"{ROOT}/results/diag/e24_oas_cmp.csv"
@@ -46,16 +47,16 @@ def grads(method, modules, params, views, y, dev):
 
 
 def measure(label, ck_path, dev="cuda"):
-    base = torch.load(ck_path, map_location="cpu", weights_only=False)
+    base = load_payload(ck_path, map_location="cpu")
     mcfg = dict(base["cfg"]["method"])
     fr = base["cfg"]["frame"]
     frame = Frame(name=fr["name"], model_name=fr["model_name"], img_size=fr["img_size"],
                   dataset=fr["dataset"], data_root=fr["data_root"], epochs=fr["epochs"],
                   seed=0, grad_clip=1.0, num_workers=0, device=dev)
     seed_everything(0)
-    m_ring = METHODS["floorssl"](OmegaConf.create(mcfg), frame)
+    m_ring = METHODS["lambdajepa"](OmegaConf.create(mcfg), frame)
     modules = m_ring.build_modules().to(dev)
-    m_oas = METHODS["floorssl"](OmegaConf.create(
+    m_oas = METHODS["lambdajepa"](OmegaConf.create(
         {**mcfg, "queue_steps": 0, "floor_shrink": "oas"}), frame)
     m_oas.build_modules()          # builds its own conditioners; steps run on `modules`
     for role, sd in base["modules"].items():

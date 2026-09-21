@@ -17,7 +17,7 @@
 source /nfs/scistore19/locatgrp/bdemirel/ssl_project/slurm/_env.sh
 cd /nfs/scistore19/locatgrp/bdemirel/ssl_project
 python experiments/e27_selftest.py || exit 1
-python experiments/train.py method=floorssl frame=in1k_vits16 frame.epochs=5 bs=128 \
+python experiments/train.py method=lambdajepa frame=in1k_vits16 frame.epochs=5 bs=128 \
   num_classes=1000 share_log_every=1 resume=false \
   method.head_layers=2 method.expander_dim=256 method.mlp_wd=0.05 \
   method.z_floor_batch=view_mean method.h_floor_batch=view_mean method.queue_steps=3 \

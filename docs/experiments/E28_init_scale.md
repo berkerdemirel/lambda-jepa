@@ -17,7 +17,9 @@ repo") — one is OWED if this lane is kept: the LN relocation changes what `h` 
 extraction/landing pipeline (see §Landing implications).
 
 **CLOSED 2026-08-13 (Berker: "it was a good try but e28 failed") — every job stopped, H100
-budget returned to the E27 program.** See §AGREED TAKEAWAY. Final states at cancellation:
+budget returned to the E27 program.** See §AGREED TAKEAWAY. **REOPENED 2026-09-03 for one
+narrow question — does the h-side effective rank collapse at the ORDINARY scale, and at ×0.1?
+See §Reopened (end of card); everything above it is the closed record, verbatim.** Final states at cancellation:
 wd=0 arms ×1 ep12 (h effrank 10.4) · ×5 ep9 (34.3) · ×10 ep12 (20.9); earlier wd=5e-2 arms
 ×10 ep~45 (37.6, probe .085 peak at ep15) · ×5 ep25 (h_ln 45.5, probe **.4898** — ahead of the
 ×1 control's .4638). No lane reached ep100; the negative is read from matched-epoch
@@ -750,3 +752,184 @@ to tr(Σ)/d′ first.
 on the online probe at ep20–25 (.4292/.4898 vs .4260/.4638) before being cancelled — an
 accuracy effect, with h rank at control level. That is a separate question from the one E28
 asked and it was not run to ep100.
+
+---
+
+## REOPENED 2026-09-03 — ×0.1 vs ×1 under the reference recipe: does h's effective rank collapse?
+
+**Berker 2026-09-03 (verbatim): "we will try 0.1 scale and 1 scale (assuming scale=1 is the
+default run) i would like to check the h side effective rank, because my coauthor said scale 1
+case also collapsing the h effective rank. which should not be the case as our zoo plot shows
+effrank/d around 0.17 which is not fully collapsed … keep the e28 tidiness we should not change
+anything in sslgap folder, it should stay independent and self sufficient."**
+
+Same script, same lane, same rules as the closed record: `experiments/e28_scaleinit.py`
+(standalone; imports and subclasses `sslgap`, edits nothing there), the `d256vm4zonly` recipe
+VERBATIM (AdamW lr 1e-3, wd 5e-2, 10-ep warmup, cosine → 1e-5, 100 epochs, seed 0, V=4 lejepa,
+bs 128), h read pre-norm with the final LN at the head of the projector, selector `all`
+(49 tensors incl. patch_embed). The only thing that differs between the two arms is
+`+e28.scale`. The resolved-config guard enforces this at every job start.
+
+### What the record already says about "scale 1 collapses" (read before the new numbers)
+
+The claim has exactly one source in this card, and it is the gauge artifact E28-T3 already
+names. The relevant column is **h_ln** (= LN_final(h_raw), the project's declared h, D-003):
+
+| lane (×1) | ep | h_raw effrank | h_ln effrank | scale share of h_raw var | source |
+|---|---|---|---|---|---|
+| control, wd 5e-2 (landed) | 25 / 50 / 75 / 100 | 41.1 / 62.0 / 66.7 / 56.8 | **44.1 / 52.1 / 56.2 / 54.4** | .083 (ep25) → .155 (ep100) | `_diag.csv`, `e28_gauge_ckpts.csv` |
+| `e28w1`, wd 0 (cancelled ep12) | 8 → 12 | 34.1 → **10.4** | 34.8 → **38.0** | .038 → **.403** | `e28w1_{diag,gauge}.csv` |
+| battery, 50k train, ep100 | 100 | — | **53.9** (CI 52.0–55.5) = **0.140·d** | — | `results/battery/…d256vm4zonly.extL.csv` |
+
+So at ×1 the normalized h never collapses in any lane we have: it rises from 6.9 at init to
+the 44–56 band and stays there. The 10.4 that a reader could call a collapse is h_raw in the
+wd=0 arm, and its cause is visible in the same row: 40% of h_raw's variance had become
+per-sample NORM variation (stable rank 9.1 → 1.8, rms 8.5 → 16.9) while the direction
+structure kept improving. The zoo figure's "EffRank/d" for this lane is the battery's
+0.140 (Berker's "around 0.17" is the eyeballed value; both read "not collapsed").
+
+The per-layer battery profile of the same run — L3 25.6, L6 39.4, L9 55.8, CLS 53.9 — is
+the zoo plot's grey "Ours" curve; the h-treated twin is 31.6 / 85.4 / 160.4 / 202.6.
+
+### Post-closure pilots found in `results/e28/` (undocumented until now; facts only)
+
+Launched 2026-08-13 21:26–21:58, after the closure note, all at ×1 with wd 0 and no grad clip
+(declared via `+e28.allow`), asking the lazy/rich question under gradient descent instead of
+Adam (script comment at the optimizer axis):
+
+| tag | optimizer | lr | got to | h_ln effrank | note |
+|---|---|---|---|---|---|
+| `e28sgd{0.01,0.03,0.1,0.3}` | SGD, momentum .9 | as tagged | **crashed at step 0** | — | `displacement()` received a list (the diagnostics map / optimizer groups name clash); fixed in the file since (`opt_groups`) |
+| `e28gd0.1` | SGD, momentum 0 | 0.1 | ep3, cancelled | 7.0 → 18.8 → 20.1 → 21.7 | probe .064 / .075 / .092 |
+| `e28gd0.3` | SGD, momentum 0 | 0.3 | ep3, cancelled | 7.0 → 18.5 → 21.4 → 23.5 | |
+| `e28gd1.0` | SGD, momentum 0 | 1.0 | ep2, cancelled | 7.0 → 20.4 → 17.2 | probe .111 at ep2 |
+| `e28gd3.0` | SGD, momentum 0 | 3.0 | ep0 only | 7.0 | cancelled before ep1 |
+
+Nothing is concluded from these (≤3 epochs). They are listed so the results folder and the
+card agree.
+
+### The two arms
+
+| tag | `+e28.scale` | everything else | run_id |
+|---|---|---|---|
+| `e28x0.1` | **0.1** | reference recipe verbatim | `in100.floorssl.s0.e28x0.1` |
+| `e28x1` | **1.0** | reference recipe verbatim | `in100.floorssl.s0.e28x1` |
+
+The ×1 arm is a fresh, per-epoch run of the reference lane through this script (the landed
+control has only the ep 0/25/50/75/100 knots). It serves twice: as the per-epoch ×1 curve the
+×0.1 arm is read against, and as a same-seed replicate of the landed control, which gives the
+run-to-run noise band any ×0.1-vs-×1 difference must clear.
+
+Two step-0 reads ride ahead of the chains as their gates (`lowsweep`): the init sweep at
+×0.1/×0.3/×0.5 (both patch_embed variants) with the per-block rank profile at ×0.1, and the
+view-scatter Ω at ×0.1 for every weight-family selector — the same instruments the closed record
+used at ×3–×100.
+
+**Script change made for this reopening (E28-local, nothing under `sslgap/`):** the selftest
+gate used the module constant ×10 regardless of the arm, so it would not have gated a ×0.1
+run. It now gates at the run's own `+e28.scale` (§2 asserts that at scale 1 nothing is scaled
+and the build is the reference lane bit-for-bit); ×0.1 was added to the depth-profile scales;
+`slurm/e28_launch.sh` became an arm selector (`sweep | x10 | lowsweep | x0.1 | x1`) so the
+landed launches stay on record and are not re-run by accident.
+
+### Pre-registered predictions (committed 2026-09-03, before any number exists)
+
+The mechanism. Under AdamW the per-coordinate step is ≈ lr regardless of the gradient's size, so
+a ×0.1 init (weight std .002 instead of .02) is not a smaller network for long: during epoch 1
+alone the warmup lr sums to ≈ 0.054 per coordinate, ≈ 27× the init scale if the steps are
+coherent and ≈ 1× even as a pure random walk. Weight decay is multiplicative and therefore
+scale-blind. So the ×0.1 arm should reach ordinary weight magnitude within the first few
+epochs and then be an ordinary run with a perturbed early history — the mirror image of the
+×10 arm, which needed ~40 epochs of decay to anneal its scale away. At init, attention logits
+are ×0.01 (uniform attention) and every branch is ~1% of its residual, so h at step 0 is
+close to a random linear pooling of patch content: low rank, on the ×0.3–×0.7 plateau the
+closed record measured (Ω_h 4.35–4.74, h effrank 3.0–6.5).
+
+- **P-R1 (step 0).** h_raw effrank at ×0.1 in **3–10**, Ω_h in **3.5–6** (on the sub-×1
+  plateau, not below it); the depth profile builds no rank at any block (≤ 10 everywhere).
+- **P-R2 (the init is erased fast).** `wnorm/backbone` ≥ 3 and `disp/backbone` ≥ 3 by
+  **ep2**, ≥ 10 by ep10, for the ×0.1 arm (the ×1 control reached wnorm 3.04 only at ep25).
+- **P-R3 (no collapse at either scale — the question asked).** h_ln effrank of BOTH arms
+  ends at ep100 in the **45–65 band (0.12–0.17·d)**, i.e. within the landed control's
+  54.4 ± the ×1 replicate's own noise; at every knot ep25/50/75/100 the ep100 value is ≥ the
+  ep25 value − 10. The coauthor's reading ("scale 1 also collapses") is FALSIFIED if this
+  holds. It is SUPPORTED if h_ln effrank/d at ep100 is < 0.05 in either arm, or falls by more
+  than half from its mid-run peak.
+- **P-R4 (×0.1 joins the ×1 curve).** From ep10 on, |h_ln effrank(×0.1) − h_ln effrank(×1)| at
+  matched epochs is inside the ×1 replicate-vs-control gap at the nearest knot, and the ×0.1
+  arm's h_ln effrank at ep100 is within ±15 of the ×1 arm's.
+- **P-R5 (accuracy).** Online probe at ×0.1 lags ×1 through warmup (ep1–10) and is within
+  ±.02 of it by ep25; ep100 within ±.015 of the control's .7048 for both arms.
+- **P-R6 (gauge, both arms).** h_raw effrank may again read far below h_ln late in training
+  with `scale_share` rising (the ×1 control: .083 → .155; the wd=0 arm: .40). The honest
+  columns are `h_ln` effrank and `effrank_perp`; h_raw is reported next to its `scale_share`.
+- **P-R7 (replicate).** The ×1 arm vs the landed control at ep25/50/75/100: |Δ h_ln effrank| ≤
+  8 at every knot and |Δ probe| ≤ .01 at ep100. If this fails, the pair comparison's noise floor
+  is that gap, and every P-R3/R4 statement is read against it.
+
+**Read protocol:** per-epoch h_ln effrank (primary), h_raw effrank + `scale_share` +
+`effrank_perp` (gauge check), stable rank, RankMe, z effrank, `disp/wnorm` of the backbone,
+online probe — for both arms, against the landed control's knots and the battery's 53.9.
+Files: `results/e28/in100.floorssl.s0.e28x{0.1,1}_{diag,disp,gauge,align}.csv`,
+`_spectra.npz`; wandb runs of the same names. Interpretation is Berker's call (AGREED TAKEAWAY
+stays as written until then).
+
+### Launch log (2026-09-03)
+
+| when | what | jobs |
+|---|---|---|
+| 2026-09-03 11:50 | attempt 1 — both gates **FAILED in 20 s on gpu229** (CUDA driver error 803 at the first `.to(cuda)`; a node fault, the node is MIXED not drained), chains cancelled; gpu229 excluded in the launcher | 64286960/61 (gates), 64286962–67 (chains, cancelled) |
+| 2026-09-03 11:51 | attempt 2 — both gates **FAILED in 12 s on gpu278**, same signature, now explicit: `NVML: Driver/library version mismatch` (library 610.57); chains cancelled | 64287056/57 (gates), 64287058–63 (chains, cancelled) |
+| 2026-09-03 12:0x | **fleet probe** (`srun … nvidia-smi -L` on every idle/mixed node of `gpu`+`gpu100` that would hand out a GPU): **21 of 22 BAD, incl. every H100 (gpu265–268, 270, 274–277)**; only gpu285 (L40S) OK; 10 nodes had no free GPU to probe. A driver update is rolling through the fleet; nodes recover on reboot. My running E27 jobs are unaffected (their processes hold the old library). | — |
+| 2026-09-03 12:1x | `slurm/e28_scaleinit.sbatch` gains a driver-health gate: `nvidia-smi -L` fails ⇒ wait 3 min, `scontrol requeue` self (same JobId, so chain dependencies hold; `--open-mode=append` keeps every life's log), bounded at 160 lives ≈ 8 h. Self-requeue verified on a throwaway job (1 restart, exit 0). | 64287674 (test) |
+| 2026-09-03 12:2x | attempt 3 — gate + step-0 read for ×0.1 (selftest at ×0.1, init sweep ×0.1/×0.3/×0.5, depth profile at ×0.1), `gpu`, the 12 probed-bad `gpu` nodes excluded | 64287861 |
+| 2026-09-03 12:2x | attempt 3 — gate for ×1 (selftest at ×1, Ω at ×0.1 per weight family), same exclusion | 64287862 |
+| 2026-09-03 12:2x | **×0.1 arm** `e28x0.1`, 3×8 h H100 chain, `afterok` its gate then `afterany` links; no exclude list (every H100 was bad at submission — the sbatch gate waits for the first rebooted one) | 64287928 → 29 → 30 |
+| 2026-09-03 12:2x | **×1 arm** `e28x1`, same shape | 64287931 → 32 → 33 |
+| 2026-09-03 12:0x–13:xx | gates bounced twice more (gpu284, gpu287 — both bad; the sbatch gate requeued them as designed, 2 lives each). No node in the fleet had rebooted by 13:00 (boot times all 2026-08-20/21), none drained; gpu285's 4 L40S are held by one job until ~01:00. **Wait strategy:** a session-side helper keeps every un-rebooted node (boot time < 11:30 today) on the pending jobs' exclude lists — the gates over the A100/A40/L40S pool minus gpu285, the six chain segments over all 13 H100s — and drops a node the moment it reboots, so the chains start on the first rebooted H100 without burning requeue lives. Slurm accepts a full-partition exclude on a pending job (tested on 64287928). | — |
+
+Checkpoints land as `outputs/in100.floorssl.s0.e28x{0.1,1}_{ep25,ep50,ep75,ep100,best,last}.pt`.
+
+| 2026-09-03 13:05 | both gates ran on gpu285 (its 4 GPUs freed early) — `ALL GREEN`, step-0 reads landed (below); chains released from `afterok`, parked with all 13 H100s excluded | 64287861/62 done |
+| 2026-09-03 15:32 | (observed later) an E34 job of Berker's STARTED on H100s gpu273/277 — the fleet had recovered **without reboots** (library fixed in place; boot times unchanged), which the boot-time helper could not see, so the parked chains stayed excluded | 64312322 |
+| 2026-09-03 19:25 | **all six chain jobs CANCELLED by uid 1104964 (Berker's account — not this session, not Slurm)**, all in the same second; the pending E34 variants vanished from the queue at the same time, consistent with a queue sweep from the parallel E34 session. Not read as a decision to abandon the pair. | 64287928–33 |
+| 2026-09-03 19:3x | re-probe: gpu229 and H100 gpu272 initialize CUDA (OK), other H100s merely busy (E27 + E34) ⇒ **chains resubmitted, no gate needed** (the selftest still heads every segment); no exclude lists | — |
+| 2026-09-03 19:3x | **×0.1 arm** `e28x0.1`, 3×8 h H100 chain | 64370470 → 71 → 72 |
+| 2026-09-03 19:3x | **×1 arm** `e28x1`, same shape | 64370473 → 74 → 75 |
+
+### Gate results (gpu285, L40S, 2026-09-03 ~13:05; both `ALL GREEN`)
+
+| check | ×0.1 (64287861) | ×1 (64287862) |
+|---|---|---|
+| §1 relocation, fp32 / bf16 max｜z_ref − z_new｜ | 0.0 / 0.0 | 0.0 / 0.0 |
+| §2 tensors scaled | **49** (4 families × 12 + patch_embed), complement bit-identical | **0** — build is the reference lane bit-for-bit |
+| §3 h rms at init (raw) | **0.021** (×1: 0.579) | 0.579 |
+| §3 z rms at init | 0.094 (LN pins it) | 0.098 |
+| §3b cond_z at the step-1 ring state | 4.10 | 3.10 |
+| §3c one AdamW step | finite; grad_norm 1607 → clipped | finite; grad_norm 229 → clipped |
+
+### Results (raw; nothing interpreted — AGREED TAKEAWAY is Berker's call)
+
+_(filled as the reads land; last row per (epoch, space) of the append-only CSVs)_
+
+**Step 0 (gates 64287861/62, `results/e28/e28_initsweep.csv`, `e28_initdepth.csv`,
+`e28_viewsweep.csv`; val split, no training):**
+
+| init scale | h_raw effrank (/d) | h_ln effrank | h stable rank | h rms | z effrank | Ω_h (`all`) |
+|---|---|---|---|---|---|---|
+| **×0.1** | **2.5 (.007d)** | 2.5 | 1.4 | 0.0023 | 3.2 | **4.33** |
+| ×0.3 | 3.0 | 3.4 | 1.6 | 0.032 | 6.3 | 4.35–4.74 (closed record, ×0.3–0.7) |
+| ×0.5 | 4.0 | 4.3 | 1.7 | 0.12 | 9.0 | |
+| ×1 (reference) | 6.6 (.017d) | 6.9 | 2.0 | 0.58 | 14.6 | 4.64 |
+
+`blocks_only` (patch_embed unscaled) is within 0.2 of `all` at every scale. Depth profile at
+×0.1: effrank of the raw CLS residual stream after blocks 1…12 = 2 2 2 2 2 2 2 2 2 3 3 2 (rms
+7e-4 → 2.3e-3) — no block builds rank. Ω_h at ×0.1 per selector: all 4.33 · w_and_b 4.36 ·
+everything 4.57 · no_qkv 4.41 · qkv_only 4.31 · mlp_only 4.75, with inv 0.0003–0.006 (z is
+nearly constant across views AND images at this scale).
+
+**Against P-R1:** Ω_h (4.33) and the depth profile (≤ 3 everywhere) are inside the registered
+ranges; the h effrank (2.5) is BELOW the registered 3–10 — the sub-×1 plateau continues down to
+a near-constant CLS (stable rank 1.4), so the miss is in the direction of "even less" rank,
+not of any structure. The ordered side is flat from ×0.1 to ×1 in Ω (4.3–4.6) while rank
+shrinks 6.6 → 2.5.

@@ -1480,6 +1480,20 @@ ep2–5 formation-gate read OWED on their first lines.
   by ep2 = the quench kill, P-m-2 convention); everything else ALERT-ONLY per the
   2026-08-26 ruling.
 
+**v6s100 tail storm and roll-back (RAW, 2026-09-04; D-115):** the landing segment 64286559 (gpu271) printed its first
+clipped gradient burst at step 849,724 (epoch 85) and 291 by 10:55 (pre-clip norms to 6e7); online probe ep84-93 =
+.6512 .6532 .6518 .6518 .6515 .6529 .6532 .6557 .6538 .6560 (no drop, the tail gain resumed), but the per-step loss
+median drifted 34.5 -> 39.5 and burst steps show the forward exploding (inv to 7e5). Cause read from the ep75 vs ep92
+checkpoints: weight decay on the projector's pre-BN layers (norms 44.7 -> 32.0, 104.5 -> 78.4), the second BN's input
+running variance collapsed 11x (1.9e-2 -> 1.7e-3). Berker: roll back to a checkpoint (urgent, health issue) -> segment
+cancelled 10:55, `_last.pt` <- `_ep75.pt` (epoch index 74, step 750,675, best .6351), storm-era last/best kept as
+`*_storm_ep92.pt`; first rerun segment 64290100 (unchanged recipe, gpu266) cancelled 11:09 before its first checkpoint;
+segment 64435570 resubmitted from the same ep75 state with `method.mlp_wd=0` (Berker: "ok remove wd there"), then
+replaced 11:26 by 64439249 with `+wandb_new_run=wd0` (fresh wandb run lx9tnd73 from step 750,675; the old run kept the
+storm and dropped every lower step),
+`train_ddp.py` now re-applies the config's weight decay after the optimizer state load. Landing moves to ~09-05 midday;
+P-v6s-1/2 unchanged; the bench reads the landing checkpoint as before.
+
 **The v6Llr pair (D-109, Berker 2026-08-31 "lets do adjusted lr on L. even if we only
 have ep100 it is good. but we will try ep400 too." — pre-registered BEFORE any number
 exists):** `e27v6Llr100` + `e27v6Llr400`, single delta vs the v6L pair = **method.lr
@@ -1550,3 +1564,268 @@ OAS↔heterogeneous). Scope ViT-S/in1k 5-ep health reads; the 100-ep wave is the
 confirming instrument. Mirrored to DECISIONS.
 
 *(further rows joint, as the wave lands)*
+
+**v6Llr100 landing (RAW, 2026-09-04 18:50; segment 63942223, 1 d 07:45 h, zero INCIDENT lines):** final online probe .6976
+(ep98 .6970, ep99 .6970, ep100 .6976; best .6976). **P-v6Llr-2 read against its pre-registered thresholds: REFUTED** — the bet
+was ≥ .734 (v6L100 .7290 + 0.5); the landing sits 3.1 points BELOW v6L100's final online, a null far past the ≤ +0.2 mark.
+Berker (22:30): "i will conclude v6 large lr experiment as a failure" — the 400-epoch twin `e27v6Llr400` (segment 64290102, ep98/400
+online .5550 at the cut; successor 64290103) was cancelled at 18:35 on his word. No bench chain was run (landing = bench-only on
+request; none requested). Checkpoints stay under `outputs/` (`in1k.floorssl.s0.e27v6Llr100_*`, `_e27v6Llr400_*`) for the purge
+list. Interpretation (D-111 / the L-program fate) waits for the joint read.
+
+**v6b400 tail storm caught at onset — same mechanism, same fix (RAW, 2026-09-04 23:57, Berker: "do it").** Kill-trigger bursts: single
+ones at epochs 230/235/239/245, then 25 in epoch 264 and 8 in the first third of epoch 265 (norms up to 62k, the trigger's running
+mean inflated to 100–320); online probe stalled (.6909 at ep261 → .6874/.6899/.6884); Berker saw the z moment-KL spike on wandb.
+Projector BatchNorm-2 running variance median/min: ep261 best 3.2e-2 / 6.2e-3 (1 of 2048 channels < 1e-2), ep264 last 2.3e-2 / 3.7e-3
+(1 channel), no dead z dimension yet — the state is still clean by the zeroing criterion (the v6s100 storm reached 93 % channels < 1e-2
+after seven storm epochs). Pre-BN weight norms had shrunk 116/192/105 (ep100) → 69/116/82 (ep264): the D-115 driver. Action:
+segment 64286597 and its queued successor 64286598 cancelled; ep264 state kept as `_last_storm_ep264.pt`; the epoch-261 best
+state placed as the resume file; new segment **64588207** submitted with `method.mlp_wd=0 +wandb_new_run=wd0` (restore recipe
+otherwise verbatim; fresh wandb run `in1k.floorssl.s0.e27v6b400.wd0`). Cost: 3 epochs of compute. The new segment pends on
+priority (every allowed H100 node full; the cancelled successor had carried the chain's age priority — lesson: for a mid-chain fix,
+submit the fixed segment BEFORE cancelling the old successor only if the singleton lets it; otherwise accept the queue).
+
+**v6s100 LANDED (RAW, 2026-09-05 10:45; wd0 segment 64439249, epochs 76–100, wandb lx9tnd73).** Final online probe .6734 (best .6735 at
+epochs 98–99); the storm-era run had reached .6560 at epoch 93. The segment logged 236 kill-trigger bursts (1–19 per epoch, 4k–20k,
+all clipped) with the z moment-KL never above 0.16 at any step (Berker's breakage indicator; the storm read p99 1.5 → 43), the typical
+gradient norm flat at 33–35 through epoch 82 then rising to 43 at epoch 99 (the cosine tail), and the projector's BatchNorm-2 running
+variance recovering from 1.9e-2 / 2.0e-3 (ep75) to 8.4e-2 / 4.7e-3 at ep100 with 2 of 2048 channels below 1e-2 and no dead z
+direction. Per-step tables: `results/diag/v6s100_wd0_gradnorm_tail.txt`, `_burst_terms.txt`. Landing checkpoint
+`outputs/in1k.floorssl.s0.e27v6s100_ep100.pt` (clean); the rolling copy removed. Evaluation chain launched on Berker's word
+("kick off the eval for v6s100 on ssltransfer, bench etc (filling the tables)"), the v6b100 landing recipe: extract 64662974
+(`.extL`, h_layers 3/6/9/12), bench 64662975, transfer (VISReg linear-probe block) 64662976, ADE20k seg 64662977 — all on the
+`gpu` partition, pending on priority at 10:55. Numbers land in `results/probes/in1k.floorssl.s0.e27v6s100.extL.bench*.csv`,
+`results/transfer/in1k.floorssl.s0.e27v6s100.visreg_lp.csv`, `results/seg/in1k.floorssl.s0.e27v6s100.seg.csv`; the paper tables
+auto-fill from them (`experiments/paper_exhibits.py`).
+
+**v6s100 transfer block landed (RAW, 2026-09-05 12:55; job 64662976, `results/transfer/in1k.floorssl.s0.e27v6s100.visreg_lp.csv`, the
+VISReg linear-probe protocol, 8 datasets).** Mean 77.60 (v6b100: 80.90): dtd 71.1, aircraft 55.5, cars 62.5, cifar10 95.3, cifar100 81.6, flowers 90.4, food 75.3, pets 89.1. Bench and seg still queued.
+**v6s100 kNN (RAW, 2026-09-05 13:58; store-side rider, job 64663134 on gpu242):** k200 / t0.07 on the extracted student CLS features =
+**59.24** (t0.1: 58.56). References: v6b100 64.28, v6L100 64.44. The linear bench (64662975) is still queued on the gpu partition
+(estimated start 09-06 14:00); the main-table row fills from the complete linear CSV + this kNN CSV.
+
+**v6b400 storm RE-OPENED under wd=0 (RAW, 2026-09-06 05:30; segment 64588207, wandb z1o9jpmv).** Epoch 283: z moment-KL max .350,
+5 steps > 0.3 (first excursions since the fix). Epoch 284 (half done at 05:45): 157 steps > 0.3 in RUNS OF EXACTLY FOUR (= the z ring's
+`queue_steps=3` + the current batch), each opened by an outlier batch whose invariance loss reads 3 → 96 (typical .29) with a
+gradient spike of 70 → 15,000 (clipped); the excursions grow through the epoch (.31 → 1.77) while the h moment-KL stays flat (.21)
+and the typical step is unchanged (grad median 21, z-KL median .093). The projector's BatchNorm-2 running variances are LARGE here
+(median 1.83, min .13, no channel near zero; pre-BN norms 168 / 291 / 139, growing without wd) — NOT the low-variance amplification
+of the v6s100 storm: the B storm is an outlier-batch divergence at z that the z ring propagates for three steps. wd=0 delayed the
+onset by ~20 epochs (ep264 → ep284), it did not remove it. Protected roll-back point: `outputs/in1k.floorssl.s0.e27v6b400_wd0_ep283_preonset.pt`
+(end of epoch 283, best probe .7084; the epoch's last 700 steps carried the 5 mild excursions). Options prepared for Berker: (a) roll
+back to ep283 + an outlier-batch skip guard (skip the update when the rank-max inv or z moment-KL exceeds N× its running mean;
+draft `scratchpad/skip_outlier_guard_patch.py`; ~0.5 % of steps at the observed rate; the grad-norm-triggered guard would miss most
+trigger steps, whose norms are 70–500); (b) let it run (the storm wastes ~1 h per epoch; the roll-back point is fixed). The segment
+is left running pending his word (no cancel without confirmation).
+**v6s100 bench landed (RAW, 2026-09-06 07:15; H100 job 64665288, 11 h 05 min, Lightly linear protocol, 90 epochs):** final 69.73, max
+69.73 (epoch 86), top-5 89.0; kNN k200/t0.07 59.24. Main-table row `Ours ViT-S/16 100 = 69.7 / 59.2` written by the generator into
+main.tex (main_lean.tex's stale 66.3 / 54.5 replaced by hand). Same shape and epochs: house lm4sbe 71.2 / 56.0, lm4s5b 68.6 / 58.3,
+DINO (OK-AI) 70.0 / 64.7, iBOT (OK-AI) 70.9 / 65.7, LeJEPA (OK-AI) 62.5 / 45.5; the B cell v6b100 74.15 / 64.28. The generator also
+filled the L-100 row (72.8 / 64.4) from the resumed v6L100 bench — reverted to '---' pending Berker's open L-100 row call. Seg still queued.
+**v6b400 rolled back again with the outlier-batch skip guard (D-117; 2026-09-06 07:53, Berker: "diagnose then fix and replace").**
+Epoch 285 of the storm read z-KL max 19.3 with 289 steps > 0.3, invariance outliers to 3,588, 60 gradient spikes > 4,000 (probe .7097,
+hiding it). Segment 64588207 cancelled at 07:53; its state kept as `_last_storm2_ep286.pt`; the pre-onset epoch-283 copy placed as the
+resume file; new segment **64684405** (successor 64684406) with `+skip_inv_ratio=10 +skip_zkl_ratio=3 +wandb_new_run=wd0g`
+(`method.mlp_wd=0` kept; everything else verbatim) started at once on gpu266. Guard code: `experiments/train_ddp.py` (config-gated;
+`train/skipped` logged per step; `[train_ddp] SKIPPED step …` lines in the log). Cost: three epochs of compute (283 → 286).
+
+**v6b400 guarded segment, epochs 284–292 (RAW, 2026-09-06 15:30; segment 64684405 on gpu266, wandb mcryqln2 `.wd0g`; per-step table
+`results/diag/v6b400_wd0g_epoch_tail.txt`).** Per log epoch — probe · skipped steps · INCIDENT lines · z moment-KL max / steps > 0.3 (rank-0 rows) ·
+invariance-outlier steps (> 2) · grad-norm spikes > 4,000: ep284 .7083 · 80 · 2 · .423 / 12 · 45 · 1; ep285 .7084 · 54 · 6 · .271 / 0 · 44 · 5;
+ep286 .7068 · 37 · 7 · .225 / 0 · 18 · 4; ep287 .7087 · 8 · 10 · .133 / 0 · 9 · 5; ep288 .7118 · 3 · 8 · .129 / 0 · 5 · 6; ep289 .7124 · 4 · 6 ·
+.171 / 0 · 5 · 4; ep290 .7126 · 8 · 8 · .166 / 0 · 12 · 7; ep291 .7125 · 8 · 9 · .153 / 0 · 6 · 8. The guard's running means settled within the first
+epoch (its 12 steps > 0.3 are the first 200 steps of the segment); the typical step is unchanged (grad-norm median 21.0 → 21.8, z-KL median
+.092–.093, inv median .293 → .282); the INCIDENT spikes (4k–11k pre-clip norms, 4–8 per epoch, with inv and z-KL at their typical values) are
+the v6s100-type backward spikes — clipped, not skipped, and not the storm's trigger. Projector (Frobenius norms |W0| / |W3| pre-BN, |W6| output;
+BN-2 running variance median / min): ep283 preonset 168.3 / 290.7 / 138.8, 1.83 / .132 → ep291 184.7 / 321.1 / 148.9, 2.70 / .168 = +1.2 % per
+epoch on W0 and W3 (the wd-0 growth continues under the guard); no BN channel below 1e-2, no dead z dimension. Clean copy `_wd0_ep291.pt`
+(verified: BN read + no z-KL step > 0.3 in its epoch); `_wd0_ep283_preonset.pt` kept; the ep290 copy removed. Hourly watch continues.
+
+**lm4sbe400 STORM ONSET (RAW, 2026-09-06 21:30; segment 63665085 on gpu270, wandb tpn49ue1; the LeJEPA-family control at B, `mlp_wd=0.05` still
+on).** Kill-trigger bursts per log epoch: 0–3 through ep276 (133 over the segment), then **20 in ep277** and 25 more in the first part of ep278 —
+pre-clip norms 1,045 → 98,813 with the running mean itself inflating 8 → 423; the online probe still rose (.6702 → .6709). Projector read
+(`results/diag` convention): pre-BN norms |W0| / |W3| / |W6| 91.0 / 143.7 / 77.8 at ep200 → **64.2 / 101.0 / 67.4** at ep277 (−30 %, the D-115
+driver: wd on the scale-invariant pre-BN layers at the cosine tail); BN-2 running variance median 3.7e-2 → **4.5e-3 with 2,048 / 2,048 channels
+below 1e-2** (the v6s100 storm state read 93.5 %; here the zeroing criterion is already complete); BN-1 carries 55 zero-variance channels (the
+quiet dead channels known since ep100); no dead z dimension. The per-step z-KL read is not available for this run (the wandb crawl of a 2.77 M-step
+run times out — the D-115/116 limitation). Storm-era state kept: `outputs/in1k.floorssl.s0.e27lm4sbe400_last_storm_ep277.pt`. Roll-back points on
+disk: `_ep200.pt` (ep199 state, 77 epochs back; BN-2 already thinning, 19 channels < 1e-2), `_ep100.pt`. Berker's word needed (the control lane is
+untouched by every ruling so far): (a) leave it running (its comparator role is the matched-recipe endpoint; the state is past the zeroing);
+(b) D-115 fix from ep200 with `mlp_wd=0` (+ the D-117 guard), 77 epochs ≈ 3.2 days; (c) continue from `_last.pt` with `mlp_wd=0` + the guard
+(stops the driver, keeps the thinned state). No action taken; the hourly watcher reports its bursts per epoch.
+**lm4sbe400 KILLED (2026-09-06 21:5x, Berker verbatim: "kill lm4sbe400. we can consider fixing it later. for me b start is the priority right now").**
+Segment 63665085 cancelled in its storm epoch 278 (online probe .6709 at ep277 = its best); successor 64285285 cancelled. Kept on disk under
+`outputs/`: `_last.pt` / `_best.pt` (the storm state), `_last_storm_ep277.pt`, `_ep200.pt`, `_ep100.pt`, `_ep10.pt`. No bench. The fix (D-115 from
+ep200, or wd 0 + the D-117 guard from the storm state) is deferred; the two H100 cards go to the video B cell.
+
+**v6s400 chain RE-SHAPED for speed (2026-09-07 20:38; Berker: "8.6 days is unacceptable. fix it.").** Diagnosis: both IN-1k chains are loader-bound — 12
+workers per rank on a 28-CPU allocation deliver ≈375 images/s (six 224² views per image ≈ 63 ms of CPU each) against ≈8 min of ViT-S GPU time per
+epoch, hence 57 min per epoch (S) and 55 (B) alike. Fix = the same recipe verbatim (`method.mlp_wd=0.05` and every other override unchanged) on
+the same 2 GPUs with `--cpus-per-task=96 --mem=300G num_workers=44` (88 workers). Old segment 63941607 cancelled at 20:38 right after its ep183
+checkpoint (`_last.pt` 20:36), old successors 64285269 / 63941608 cancelled (28-CPU scripts); new singleton segments 64912673 → 64912674 resume
+`_last.pt`; exclusion reduced to gpu274. Expected ≈15 min per epoch (loader ≈1,500 images/s; GPU ≈8–13 min) → the remaining 217 epochs ≈ 2.3 days
+instead of 8.6 — to be measured on the first epoch. The wd decision (D-115 clock, ≈ep200) is untouched by this change.
+**Re-shaped S chain: first two segments died on gpu277 (RAW, 2026-09-07 21:34–21:43).** 64912673 and 64912674 both landed on gpu277 (the node that came
+back from its "Prolog error" drain into MIXED) and failed in 4 min each: `CUDA initialization: Unexpected error from cudaGetDeviceCount() ... Error 802:
+system not yet initialized` → `cuda_available False` → `ProcessGroupNCCL is only supported with GPUs`. The node is broken for CUDA work while SLURM
+schedules onto it. Resubmitted 21:50 as 64924620 → 64924621 with `--exclude=gpu274,gpu277,gpu271` (same 96-CPU / 44-worker shape, recipe verbatim);
+the pending B successors, the v6b400 successor and the video launchers now exclude gpu277 as well. `_last.pt` = ep183 (20:36) untouched. Lost: ≈1.3 h
+of chain time so far.
+
+**Why only segmentation trails — patch-token diagnostic (RAW, 2026-09-07 22:0x; Berker: "it is very interesting that only on segmentation task we fail
+... over regularizing the backbone feats, therefore patch feats? please do a quick analysis"). Instrument `sslgap/metrics/patch.py` + `experiments/patch_diag.py`
+(the seg protocol's own features: last-layer tokens, `forward_intermediates(norm=True)` at 512², ADE20k val, 200 images for the structure reads; a
+training-free nearest-class-mean (NCM) on ADE20k majority patch labels, 300 train / 200 test images, as the dense proxy); tables `results/diag/patch_diag.csv`
+(512), `patch_diag_224.csv` (224), `patch_diag_ablate.csv`.** (1) The deficit is in the frozen patch tokens: NCM top-1 orders the eight S/B-100 checkpoints
+exactly as tab:seg does (S: ours .387 < LeJEPA .420 < DINO .458 < iBOT .471; B: .444 < .478 < .511 < .577). (2) Not a rank/collapse effect: per-image
+effective rank .55 (S) / .43 (B) and pooled rank in the public band; no high-norm artifact tokens; neighbour-vs-random coherence the highest of all (.60 vs
+.46–.54). (3) The missing piece is the image-level component inside the patch tokens: ours have 95–96 % of their variance within images and are orthogonal to
+the CLS (cos .00 / −.01; the public models .11–.44, with 13–32 % of the patch variance image-level). With each image's mean removed the local content is
+competitive (NCM S .358 vs LeJEPA .330 / DINO .383; B .404 vs .400 / .449), so the raw gap to DINO (S .071, B .067) is mostly the global channel
+(centered gap .025 / .045). Same ordering at 224 — not a resolution effect. (4) Attribution (`patch_diag_ablate.csv`): our recipe WITH 2g+8l locals
+(`e27v10u`, h on) keeps the signature (cos_cls −.01, within .96) and lm4sbe (B, 4g+6l, h on) too — local crops do not put the global component back; the
+LeJEPA repro in our codebase (locals, no h) has cos_cls .69; the IN-100 twin pair is the clean test: z-only `d256vm4zonly` cos_cls .59 / within .83 → with
+the h term `d256vm4` cos_cls .13 / within .90 (NCM equal at that scale, .277 / .276). Read (mine, not agreed): the h conditioner on the CLS centers makes the CLS
+the sole, isotropized carrier of image-level content and decouples the patch tokens from it; a patch-only linear seg head then has no scene context, which
+is what DINO / LeJEPA / iBOT patches carry. The obvious confirmation is a seg read whose head also sees the CLS (a protocol variant, not VISReg's) — Berker's
+call. Joint read pending.
+**Re-shaped S segment RUNNING; B re-shape launched (RAW, 2026-09-08 01:35).** 64924620 started 01:02 on gpu270 (CUDA fine; resume line weight_decay [0.05, 0.05,
+1e-07], ep183 → ep184); the first epoch's checkpoint landed 01:32 — ≈27 min including the selftests and worker warm-up, against 57 min before; the
+steady-state number is read at the ep185 stamp. On that ≥2× read and Berker's "in case it works, do the same for vit base (but first queue then cancel)":
+fast guarded B segments 64925357 → 64925358 queued (96 CPUs / 44 workers per rank, 300G, `mlp_wd=0 +skip_inv_ratio=10 +skip_zkl_ratio=3` kept, no
+`+wandb_new_run` so run mcryqln2 continues, exclude gpu274/277/271), the old 28-CPU successor 64684406 cancelled, and the swap helper 64925359
+(`slurm/e27_swap_at_ckpt.sh`) cancels the running segment 64684405 within a minute of its next `_last.pt` write (ep329 ≈ 02:13). The guard's running
+means restart at the resume (the first ~200 steps skip a little more, as after D-117) — the only effect beyond speed.
+**Patch + CLS proxy (RAW, 2026-09-08 02:05; `results/diag/patch_diag_cls.csv`; Berker: "if we include cls to the segmentation task along with patches
+then our miou is good?").** Nearest-class-mean on [patch ⊕ CLS] (both parts globally centered and unit-normed) vs on the patch alone (cosine): ours S .381 →
+.419 (+.038), ours B .437 → .426 (−.011); LeJEPA S .417 → .366, B .473 → .398 (the CLS hurts); DINO S .451 → .520, B .502 → .566 (+.06–.07); iBOT S .470 →
+.481, B .575 → .568. Read: INCONCLUSIVE for the question — a nearest-mean classifier weights the two parts equally and cannot learn how to combine them,
+so it says only that a trained head is needed to test the context hypothesis; the measured facts (our patches carry no image-level component; the h term
+removes it; our local content is competitive) stand, the claim that handing the head the CLS recovers the mIoU does NOT follow from this proxy (it helps
+ours a little at S and not at B). The proper test = the VISReg seg head on [patch, CLS] (2d input) for ours and the comparators, ≈4 h per checkpoint on the
+gpu partition — Berker's call; no run launched.
+**Speeds measured (RAW, 2026-09-08 02:56).** v6s400 fast segment (96 logical CPUs = 48 physical cores on gpu270, 44 workers per rank): checkpoints ep184 01:32:17 →
+ep185 01:59:42 → ep186 02:27:13 → ep187 02:54:52 = **27.5 min per epoch steady** (57 before, ×2.1); 213 epochs remain → ≈4.1 days (≈09-12 05:00). The bound is now
+CPU cores: 63 ms of view pipeline per image × 1.28 M images / 48 cores ≈ 28 min — the nodes have 112 cores (2 × 56, 2 threads), so a 192-CPU ask would halve
+it again if it could be scheduled; GPU-side photometrics would remove it. v6b400: the swap helper cancelled 64684405 at 02:13 (one minute after its ep330
+checkpoint); the fast guarded segment 64925357 started 02:14 on gpu272 (resume line `[0.05, 0, 1e-07]`, guard on), first checkpoint (ep331) at 02:55:43 = 41.5 min
+including selftests and warm-up (55 before), probe .7317, 15 skips / 20 INCIDENT lines in that epoch (the guard's means restarting); steady state at the next stamp.
+
+**v6s400: wd 0 + guard applied in the fast shape (D-120; 2026-09-08 07:19; Berker: "do the wd=0 fix with the guard. make sure we stay in high speed config.").**
+State at the switch (ep196, `_last.pt`): pre-BN norms 66.0 / 153.5 / 107.3 (ep100: 82.1 / 191.9 / 117.7), BN-2 running variance median .096 (ep100 .277, ep182
+.122), min .044, no channel below 1e-2, no dead z dimension, zero bursts in the fast segment (ep184–196 probes .5936 → .6012). Queued: 64926249 → 64926250
+(`method.mlp_wd=0 +skip_inv_ratio=10 +skip_zkl_ratio=3 +wandb_new_run=wd0g`, 96 CPUs / 44 workers per rank, exclude gpu274/277/271, everything else verbatim);
+the wd-.05 successor 64924621 cancelled; swap helper 64926251 cancels the running wd-.05 segment 64924620 within a minute of its next `_last.pt` write (ep197 or
+ep198). Verification from then on = the hourly per-epoch read (skips, z-KL excursions, projector norms and BN-2 variance, clean copies `_wd0_ep<N>.pt`) as for v6b400.
+Switch executed 07:29–07:31: the wd-.05 segment wrote `_last.pt` (log ep197, probe .6060) and was cancelled by the helper; 64926249 started on gpu270 at 07:31, `resume: weight_decay per group from cfg = [0.05, 0, 1e-07]`, resumed at epoch index 197, new wandb run `in1k.floorssl.s0.e27v6s400.wd0g` (1ay07kmz) from step 1,971,773 (= 197 × 10,009; the old run 9ibtanir keeps its history); wandb config verified: `skip_inv_ratio` 10, `skip_zkl_ratio` 3, `mlp_wd` 0, `num_workers` 44. Per-epoch record from here: `results/diag/v6s400_wd0g_epoch_tail.txt` (appended by the hourly watcher).
+First guarded epoch (log ep198 = bin 197, 07:31–07:59, 30 min including the segment start; RAW): probe .6062 (ep197 .6060); guard skips 0 (rank-0 view and log), AMP-skipped steps 4, INCIDENT lines 2 (grad norm 3652 / 4249 vs running mean ≈33 — below the guard's inv/z-KL triggers: inv max 2.16, z moment-KL max .275, no step > .3, median .124); grad-norm median 26.9, p99 293. Projector after one wd-0 epoch: pre-BN norms 80.9 / 188.5 / 123.8 (ep196: 66.0 / 153.5 / 107.3), BN-2 running variance median / min 0.276 / 0.102 (ep196: .096 / .043), no channel below 1e-2.
+**wd-0 segment, epochs 198–208 (bins 197–207; 2026-09-08 13:10 read; RAW, report only).** Probe .6062 → .6156 (best .6174 at ep207; ep197 was .6060), 28.2 min/epoch.
+The guard's skips and the grad-norm tail rise monotonically while the z moment-KL stays flat (the breakage indicator has not moved) and the
+grad-norm median is flat; the projector norms grow 23 % / 16 % / ≈10 % / … / ≈4 % per epoch (65.6/152.9/107.2 at ep196 → 167.2/394.2/191.9 at ep207),
+BN-2 running variance median .096 → 7.1, min .043 → 1.1, no channel below 1e-2. Per epoch (bin = log epoch − 1; rank-0 rows of run 1ay07kmz):
+| bin | skips | z-KL max | inv max | inv > 2 | gn median | gn p99 | gn max | gn > 1000 |
+|---|---|---|---|---|---|---|---|---|
+| 197 | 0 | .275 | 2.16 | 1 | 26.9 | 293 | 4249 | 16 |
+| 199 | 0 | .155 | 2.44 | 10 | 25.8 | 643 | 4061 | 57 |
+| 201 | 5 | .189 | 4.88 | 17 | 25.5 | 998 | 11246 | 100 |
+| 203 | 5 | .163 | 4.36 | 23 | 25.3 | 956 | 8626 | 98 |
+| 205 | 10 | .162 | 5.80 | 32 | 25.4 | 1119 | 10886 | 116 |
+| 207 | 22 | .176 | 6.12 | 33 | 25.4 | 1553 | 18377 | 141 |
+(full table: `results/diag/v6s400_wd0g_epoch_tail.txt`). For reference, v6b400's guarded epochs 327–344 sit at 11–28 skips per epoch with a stable tail.
+
+**v6s400rb STORM ONSET (RAW, 2026-09-12 22:0x; segment 65416997 on gpu272, wandb ioy1ojnu; the roll-back branch: resumed at ep200 with W0/W3 frozen at
+their checkpoint values 104.7 / 244.9 and `mlp_wd` .05 on W6/BN, D-117 guard WITH ring-block eviction `skip_zkl_evict`).** After 100 epochs with zero
+guard trips (bins ep200–299: skips 0, z moment-KL max ≤ .24, no step > 0.3), bin ep300 (log ep301) opens the D-117 signature: first trip at step
+3,007,900; per epoch (bins 300 / 301 / 302 / 303-partial) skips 28 / 217 / 221 / 181, z-KL steps > 0.3 106 / 257 / 290 / 279 (max .61; runs of 1–4
+steps = the q3 ring + the current batch), invariance max 5.5 / 20.2 / 16.0 / 17.0 against a typical .37, grad-norm p99 596 / 814 / 1,426 / 1,301 (max
+to 9,012; two kill-trigger incidents at steps 3,013,899 and 3,016,978), while the typical step is unchanged (z-KL median .110, inv median .37,
+grad-norm median 52); h moment-KL median .315 → .322. Online probe ep299–303: .6558 / .6570 / .6526 / .6547 / .6560. Projector: W0/W3 frozen,
+|W6| 100.9 → 100.8; BN-2 running variance median .085 (ep297) → .067 (ep302), min .035 → .025 (the trend since ep203: .34 / .16 / .085 / .067), one
+dead BN-1 channel inherited from the parent. Eviction is LIVE on this branch (105 evictions in 664 skips; the fz2 launch has it off, 0 in 50,294) —
+the variant HANDOVER §2 records as the cause of the first freeze attempt's 10,009 / 10,009 lock-up. **Clean states:** rolling verified copies
+`_wd0_ep203 … _wd0_ep298` (each BN-2-clean and z-KL-clean at write time; `_wd0_ep298.pt` = epoch index 297, step 2,982,682); the newest pre-onset
+state, epoch index 299 (end of log ep300, step 3,002,700, best online .65696; its epoch: 0 skips, 0 steps > 0.3, 17 > 0.2, 2 grad-norm steps > 4,000),
+copied 22:06 from `_best.pt` to **`outputs/in1k.floorssl.s0.e27v6s400rb_wd0_ep300_preonset.pt`** (byte-identical, verified epoch 299, BN-2 median
+.080 / min .031) because `_best.pt` is overwritten on any later probe improvement. **v6s400fz2 has no z-KL-clean epoch** (74 bins since ep304, every
+one with 470–1,000 z-KL steps > 0.3 and 500–1,000 skips = the parent storm carried in and discarded by the guard; BN-2 median 127 / min 1.2, far from
+the zeroing state); its `_best.pt` (epoch 377, .67982) and `_last.pt` are storm-era by that rule. The parent wd0g chain's last z-KL-clean epochs were
+log ep225 / 232 / 237 (copies on disk `e27v6s400_wd0_ep217/219/224/225/232.pt`; from ep239 excursions rise 21 → 143 at ep277, 593 at ep282, 2,572 at
+ep303). Nothing touched; the run continues under the guard; the decision is Berker's ("it is essential that we have clean checkpoints for both").
+
+**v6s400rb ROLLED BACK + the block hold (2026-09-12 22:2x; Berker verbatim: "i want rb to be rolled back. and what is the treatment you think we should be
+employing?" → recommendation given → "do it i trust you. on fz2 we will keep it as is. that model is training fine i think still (linear probe has improved
+over the course of ~80eps) so these will be two variants where one has a full clean training and the other has some movements and guards.").** Executed:
+segment 65416997 + successor 65416998 + the chained evals cancelled 22:1x (the storm-era state kept as `outputs/in1k.floorssl.s0.e27v6s400rb_last_storm_ep304.pt`,
+epoch index 303); the pre-onset epoch-299 state (`…rb_wd0_ep300_preonset.pt`, step 3,002,700, best online .65696) copied to `…rb_last.pt` (verified epoch=299);
+relaunched 22:2x as **65736100** (started at once on gpu267; spare singleton 65736101; evals ex 65736102 → bench 65736103, tvlp 65736104 on `_ep400.pt`) with rb's
+own submit line minus `+skip_zkl_evict=true` (the eviction variant of the guard, the first freeze attempt's lock-up), plus **`+method.freeze_prebn_bn=true`**
+(new, `experiments/train_ddp.py`: the projector's BN-1/BN-2 held in eval mode with their affines fixed, re-applied after every train-mode switch — the forward
+uses the resume-point running statistics, so the block's gain 1/√(running var) is pinned at the resume values, median ≈3.5, worst channel ≈5.7, and the
+cross-image batch coupling inside the block is gone; the block Linear→BN→ReLU→Linear→BN→ReLU is a fixed map for epochs 300–400, W6 and the trunk train under
+the unchanged losses and doses; the function at the resume point changes only by batch-vs-running normalisation) and `+wandb_new_run=frzW3bn`. Why the hold
+(the measurement): with W0/W3 frozen the block still drifted — BN-2 running variance .34 (ep203) → .16 (ep250) → .085 (ep298) → .067 (ep302), min .034 → .025 —
+i.e. the amplification rose ≈2× over the clean 100 epochs and the D-117 outlier storm opened one epoch after the roll-back point; at that rate the gain would
+double again by ep400. Prediction (pre-registered here): skips in the tens per epoch, z-KL excursions confined to the ring's 4-step runs, no roll-back needed;
+the alternative (pure roll-back) was expected to re-form the storm within epochs. Declared deviation for the S-400 rb row: epochs 300–400 with the projector's
+first two blocks fully held (weights + normalisation) and the D-117 guard. **fz2 kept as is** (Berker): its online probe .6550 at ep305 → .6809 at ep379 on the
+branch; the two branches are two variants of the S-400 tail — rb "a full clean training", fz2 "some movements and guards" (his words) — and which is Ours S-400
+is his call at landing. Landing ≈ Tue 20:00 (100 epochs at 27.5 min) if gpu267 holds the pace.
+
+**v6s400rb under the block hold — first 4 epochs (RAW, 2026-09-13 00:1x; segment 65736100 on gpu267, wandb 11qwdmkx, 26.9 min/epoch).** Guard: skips
+0 / 0 / 0 / 0 (bins ep300–303), z moment-KL steps > 0.3: 0, max .26 / .13 / .13 / .13, median .109 → .103; grad-norm median 41.5 → 39.2, p99 63 → 53 (was
+300–600 before the onset), max 633 / 85 / 74 / 110, no step > 1,000 (was 10–130 per epoch). The pre-registered expectation (skips in the tens, excursions
+confined to the ring's runs) is met with room. **What the hold changed beyond the guard (facts, not read):** online probe .6570 (ep300, pre-onset) → .6604 /
+.6650 / .6662 (ep301–303; +.003 per epoch against +.0005 per epoch over ep250–300); per-step medians inv .37 → .295 / .276 / .272 / .270, h moment-KL .315 →
+.295 / .273 / .256 / .244 (falling ≈ .015 per epoch; flat at .31–.32 over the previous 20 epochs); |W6| 100.7 (ep299) → 92.0 (ep301) → 82.1 (ep303), i.e.
+≈ 5 % per epoch against 0.2 % per epoch under wd .05 before the hold (the unopposed AdamW decay at lr ≈ 1.6e-4 × wd .05 over 10,009 steps is ≈ 8 % per
+epoch, so the gradient now opposes the decay only weakly; at 5 % per epoch |W6| would reach ≈ 0.6 by ep400 if nothing settles); omega_h .211 → .210 and
+omega_z .135 → .117 on the share batch; lam 1.25 → 1.34. The share line at the resume step (ep300, fixed batch) read moment_kl share .809 (g .966 against
+.056 before) and relaxed to .215 (g .049) by ep301 — the batch-vs-running normalisation change showed as a one-epoch z-KL transient on the fixed batch,
+not on the training steps. Clean copies resume under the rule (`_wd0_ep303` written). Watch items for the hourly line: |W6| per epoch, h moment-KL, the
+probe. Nothing touched.
+
+**v6s400fz2 LANDED (RAW, 2026-09-13 07:35; segment 65440875 COMPLETED after 1 d 19 h 20 min on gpu269, wandb 81obfvyw; the spare 65440876 found the run
+complete in 5 min).** Final online probe .6812 at ep400 (best .6826 at ep397; ep305 .6550 at the branch start); `outputs/in1k.floorssl.s0.e27v6s400fz2_ep400.pt`
+(epoch index 399, step 4,003,600) = `_last.pt`; `_best.pt` = ep397. Projector at landing: W0 / W3 frozen at 336.7 / 784.6 (the grown ep304 values), |W6| 317.3;
+BN-1 running-var median 22.5 (one dead channel, inherited), BN-2 median 130 / min 1.03, no dead z dim. **The branch ran in the guarded storm state
+throughout** (bins ep304–399 from the per-step rows): skips per epoch mean 675 (498–988), z moment-KL steps > 0.3 per epoch mean 641 (441–1,280), z-KL max 3.28,
+grad-norm p99 ≈ 3e5 and max to 5.9e6 on the skipped steps against a median of 86 → 113; 64,777 of 960,864 steps skipped = 6.7 %; no z-KL-clean epoch, so no
+verified clean copy exists on the branch (Berker 2026-09-12: kept as is — "some movements and guards"). Landing chain running: extract 65719628 → bench
+65719629 (pends), transfer 65719630 (running) on `_ep400.pt`; the bench-only rule applies (in1k landing). Numbers RAW until the bench lands and the row is jointly
+read against rb's.
+**fz2 extract INCIDENT (2026-09-13 09:5x): `ex-v6s400fz2` 65719628 on gpu241 (RTX 3090 node) finished its GPU pass and then wrote the train-split store to
+BeeGFS at ≈1.5 MB/s (10 of 13 files in 51 min, the 5.2 GB `z.proj.tap1` at 43 % after 16 min; GPU 0 %, the process at its usual ≈100 GB RSS — the same
+footprint as the S-100 and B-400 extracts, which took 51 / 66 min); the projection put the finish ≈10 min past the 4 h wall limit, `scontrol` refused a
+limit raise, and a rerun starts from scratch (the store `put` overwrites). Cancelled at 2 h 18 min together with its bench 65719629, the partial store
+removed, resubmitted as extract **65737727** (`--constraint=L40S`, gpu278) → bench **65737728** (`afterok`). A 256 MB direct write to BeeGFS from the login
+node measured 10.9 MB/s at 10:0x — the file system was slow cluster-wide this morning, not only from gpu241. The transfer read (65719630, 78.55) is
+unaffected (it reads the checkpoint, not the store).**
+**fz2 extract, second rerun with the store on NFS (2026-09-13 11:56).** The L40S rerun 65737727 finished its train pass in 76 min and then wrote the store to
+BeeGFS at ≈2 MB/s again (4.3 GB in 37 min); direct-write tests from the login node at 11:53: BeeGFS 2.8 MB/s, NFS 2.1 GB/s. Cancelled at 1 h 59 min with its
+bench; this run's store directory on BeeGFS replaced by a symlink `features/in1k.floorssl.s0.e27v6s400fz2.extL → features_nfs/<same>` (project NFS, 1.1 TB
+free; ≈23 GB; the extractor and the bench resolve it transparently; to be moved back to BeeGFS after the table per D-005's purge-after-table); resubmitted
+as extract **65738215** (gpu283, L40S) → bench **65738216**. rb's chain (65736102/03/04) is untouched — re-check BeeGFS before it lands Tuesday.
+
+**v6s400fz2 BENCH LANDED (RAW, 2026-09-14 ~05:0x; bench 65738216 COMPLETED in 15 h 29 min on the store written to NFS; bench_linear_v1, 90 epochs on the
+stored CLS features):** max val top-1 **71.13** at bench epoch 85 (last 71.12; the curve flat 71.10–71.13 over epochs 85–90); kNN rider k 200: t .07 **62.30**,
+t .1 61.98. Transfer (VISReg protocol, from 09-13) **78.55** mean. Against the landed cells: S-100 69.73 / 59.24 / 77.60, B-400 75.99 / 68.57 / 81.97. Not
+entered in tab:video's S-400 rows: which branch is "Ours S-400" is Berker's call once rb's bench lands (rb at ep377 online .6962 vs fz2's .6812 at ep400).
+
+**v6s400rb LANDED (RAW, 2026-09-14 19:47; segment 65736100 COMPLETED after 1 d 21 h 32 min on gpu267, wandb 11qwdmkx; the spare 65736101 found the run
+complete in 6 min).** Final online probe .6978 at ep400 (best .6981; .6570 at the ep300 roll-back point); `outputs/in1k.floorssl.s0.e27v6s400rb_ep400.pt`
+(= `_last.pt`). **Zero guard skips and zero z moment-KL steps > 0.3 over the 100 epochs under the block hold** (per-step bins ep300–399); the projector's
+W0 / W3 / BN-1 / BN-2 held throughout, |W6| 100.7 → ≈50. Separate verified copy at ep348 (`…rb_hold_ep348.pt`). Landing chain running on the ep400
+checkpoint: extract 65736102 (gpu241, store → NFS via the pre-created symlink) → bench 65736103; transfer 65736104 running. Against fz2 (online .6812 at
+ep400, bench 71.13, kNN 62.30, transfer 78.55): the online probe reads +1.7; the bench decides. Numbers RAW until the bench lands and the row is jointly read.
+**v6s400rb TRANSFER LANDED (RAW, 2026-09-14 20:5x; job 65736104, 1 h 06 min; VISReg protocol):** mean **79.25** — DTD 71.8, Aircraft 57.9, Cars 67.9, CIFAR-10 95.5,
+CIFAR-100 81.8, Flowers 90.3, Food 78.1, Pets 90.7 — against fz2 78.55 (rb ahead on 7 of 8 sets, Flowers −0.1), S-100 77.60, B-400 81.97. Extract 65736102 in
+its GPU pass on gpu241 (store → NFS), bench 65736103 behind it.
+
+**v6s400rb BENCH LANDED (RAW, 2026-09-15 13:5x; bench 65736103 COMPLETED in 16 h 14 min on the NFS store; bench_linear_v1):** max val top-1 **72.24** at bench
+epoch 87 (last 72.24); kNN k 200: t .07 **62.90**, t .1 62.36; transfer 79.25 (09-14). Against fz2 71.13 / 62.30 / 78.55, S-100 69.73 / 59.24 / 77.60, B-400
+75.99 / 68.57 / 81.97. **Converged unaugmented linear read on the same stored CLS features (job 66005309, `experiments/lbfgs_linear.py`, ridge logistic
+by L-BFGS on standardized features, λ ∈ {1e-5, 1e-4, 1e-3}, `results/diag/lbfgs_linear.csv`; Berker's question "how much we gain from augmentations"):**
+best λ = 1e-5 for every cell — rb 71.73 (train 77.40), fz2 70.61 (75.72), S-100 69.14 (75.39), B-400 75.38 (83.66); bench − L-BFGS = +0.51 / +0.52 / +0.59 /
++0.61, i.e. the Lightly recipe's augmentation + BatchNorm head + LARS schedule over 90 epochs read ≈0.5–0.6 above the optimum of the unaugmented linear
+problem, the same offset in every cell and the same ranking (the K400 20-epoch head, by contrast, read 6–8 under its optimum). Which branch is Ours S-400
+is Berker's call: rb leads fz2 on the bench (+1.11), kNN (+0.60), transfer (+0.70) and the converged read (+1.12), with zero guard skips over its tail.

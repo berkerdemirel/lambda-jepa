@@ -16,5 +16,5 @@ BASE="frame=in100_vits16 bs=128 num_classes=100 method.lr=3e-4 method.warmup_ep=
       method.eta_min=1e-5 method.grad_clip=1.0 method.lamb=0.02
       +method.spec_norm=true +method.embed_calib=true +method.h_lamb=1.0"
 python experiments/equal_pull.py $BASE tag=e12f4 +method.h_reg=sigreg_std
-python experiments/equal_pull.py $BASE tag=e12f5 +method.h_reg=moment_diag
+python experiments/equal_pull.py $BASE tag=e12f5 +method.h_reg=sacreg_diag
 python experiments/equal_pull.py $BASE tag=e12f3 +method.h_reg=spec_floor

@@ -1,0 +1,12 @@
+ep,space,d,rankme,effective_rank,gauss_kl_total,class_cos_same,class_cos_diff,pos_cos,rand_cos
+in100.floorssl.s2.d256vm4.extL,student.h.cls,384,297.24,199.41,0.5352,0.281,0.0104,0.7243,0.0013
+in100.floorssl.s2.d256vm4.extL,student.h.cls.L03,384,57.69,34.13,3.1434,0.9501,0.9422,0.95,0.9249
+in100.floorssl.s2.d256vm4.extL,student.h.cls.L06,384,178.34,84.1,1.6097,0.7197,0.6696,0.8389,0.6548
+in100.floorssl.s2.d256vm4.extL,student.h.cls.L09,384,265.52,153.61,0.7852,0.3764,0.2328,0.7001,0.1993
+in100.floorssl.s2.d256vm4.extL,student.h.gap,384,203.7,79.88,1.723,0.6881,0.6138,0.8529,0.6035
+in100.floorssl.s2.d256vm4.extL,student.h.gap.L03,384,126.96,26.86,2.4978,0.7413,0.6847,0.7898,0.6082
+in100.floorssl.s2.d256vm4.extL,student.h.gap.L06,384,178.21,51.71,1.9848,0.6468,0.5635,0.783,0.5037
+in100.floorssl.s2.d256vm4.extL,student.h.gap.L09,384,212.89,75.66,1.6841,0.6026,0.5015,0.7939,0.4643
+in100.floorssl.s2.d256vm4.extL,student.z.proj.out,256,227.89,212.26,0.3281,0.2584,0.0038,0.8492,0.0069
+in100.floorssl.s2.d256vm4.extL,student.z.proj.tap1,2048,1242.54,84.31,3.834,0.3901,0.1188,0.8169,0.1246
+in100.floorssl.s2.d256vm4.extL,student.z.proj.tap2,2048,930.26,231.72,3.1128,0.3857,0.0922,0.8678,0.0954

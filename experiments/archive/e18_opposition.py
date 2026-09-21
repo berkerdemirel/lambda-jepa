@@ -27,7 +27,7 @@ STATES = [(run, ep) for run in
           ["in100.lejepa.s0.hpull_sigreg_t", "in100.lejepa.s0.hpull_sigreg3",
            "in100.lejepa.s0.e20f", "in100.lejepa.s0.e12f2", "in100.lejepa.s0"]
           for ep in ["ep25", "ep100"]]
-FUNCTIONALS = ["moment", "sigreg", "sigreg_t"]
+FUNCTIONALS = ["sacreg", "sigreg", "sigreg_t"]
 NU = 8.2                       # D-041's declared prior (Varimax-recipe fit on the lane)
 
 

@@ -51,7 +51,7 @@ def main():
                   dataset="imagenet1k", data_root="~/data/imagenet", epochs=100, seed=0,
                   grad_clip=1.0, num_workers=0, device=dev)
     seed_everything(0)
-    method = METHODS["floorssl"](mcfg, frame)
+    method = METHODS["lambdajepa"](mcfg, frame)
     t0 = time.time()
     ds = method.build_train_dataset()
     emit("scan", imagefolder_scan_s=round(time.time() - t0, 1), n=len(ds),

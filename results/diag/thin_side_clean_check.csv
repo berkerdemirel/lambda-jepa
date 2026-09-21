@@ -1,0 +1,71 @@
+method,tap,reader,top1
+VICReg,H,raw ridge 1e-08,0.5752
+VICReg,H,raw ridge 0.01,0.5672
+VICReg,H,whitened ridge 1e-08 (r=210),0.5486
+VICReg,H,whitened ridge 0.01 (r=210),0.5486
+VICReg,H,nearest class mean,0.5288
+VICReg,Z,raw ridge 1e-08,0.5982
+VICReg,Z,raw ridge 0.01,0.5774
+VICReg,Z,whitened ridge 1e-08 (r=582),0.576
+VICReg,Z,whitened ridge 0.01 (r=582),0.576
+VICReg,Z,nearest class mean,0.5238
+SimCLR,H,raw ridge 1e-08,0.5112
+SimCLR,H,raw ridge 0.01,0.5028
+SimCLR,H,whitened ridge 1e-08 (r=155),0.4688
+SimCLR,H,whitened ridge 0.01 (r=155),0.4688
+SimCLR,H,nearest class mean,0.4776
+SimCLR,Z,raw ridge 1e-08,0.5212
+SimCLR,Z,raw ridge 0.01,0.4662
+SimCLR,Z,whitened ridge 1e-08 (r=104),0.4566
+SimCLR,Z,whitened ridge 0.01 (r=104),0.4566
+SimCLR,Z,nearest class mean,0.4514
+BYOL,H,raw ridge 1e-08,0.4844
+BYOL,H,raw ridge 0.01,0.4638
+BYOL,H,whitened ridge 1e-08 (r=137),0.4296
+BYOL,H,whitened ridge 0.01 (r=137),0.4296
+BYOL,H,nearest class mean,0.418
+BYOL,Z,raw ridge 1e-08,0.4518
+BYOL,Z,raw ridge 0.01,0.379
+BYOL,Z,whitened ridge 1e-08 (r=42),0.3472
+BYOL,Z,whitened ridge 0.01 (r=42),0.3472
+BYOL,Z,nearest class mean,0.4142
+DINO,H,raw ridge 1e-08,0.5922
+DINO,H,raw ridge 0.01,0.5906
+DINO,H,whitened ridge 1e-08 (r=262),0.581
+DINO,H,whitened ridge 0.01 (r=262),0.581
+DINO,H,nearest class mean,0.5548
+DINO,Z,raw ridge 1e-08,0.5046
+DINO,Z,raw ridge 0.01,0.4982
+DINO,Z,whitened ridge 1e-08 (r=135),0.4932
+DINO,Z,whitened ridge 0.01 (r=135),0.4932
+DINO,Z,nearest class mean,0.4424
+LeJEPA,H,raw ridge 1e-08,0.5676
+LeJEPA,H,raw ridge 0.01,0.5464
+LeJEPA,H,whitened ridge 1e-08 (r=112),0.4912
+LeJEPA,H,whitened ridge 0.01 (r=112),0.4912
+LeJEPA,H,nearest class mean,0.4858
+LeJEPA,Z,raw ridge 1e-08,0.3292
+LeJEPA,Z,raw ridge 0.01,0.329
+LeJEPA,Z,whitened ridge 1e-08 (r=16),0.3292
+LeJEPA,Z,whitened ridge 0.01 (r=16),0.3292
+LeJEPA,Z,nearest class mean,0.4162
+VISReg,H,raw ridge 1e-08,0.5452
+VISReg,H,raw ridge 0.01,0.5306
+VISReg,H,whitened ridge 1e-08 (r=132),0.4902
+VISReg,H,whitened ridge 0.01 (r=132),0.4902
+VISReg,H,nearest class mean,0.4854
+VISReg,Z,raw ridge 1e-08,0.4504
+VISReg,Z,raw ridge 0.01,0.4434
+VISReg,Z,whitened ridge 1e-08 (r=119),0.4478
+VISReg,Z,whitened ridge 0.01 (r=119),0.4478
+VISReg,Z,nearest class mean,0.4578
+Ours,H,raw ridge 1e-08,0.6308
+Ours,H,raw ridge 0.01,0.6278
+Ours,H,whitened ridge 1e-08 (r=203),0.6042
+Ours,H,whitened ridge 0.01 (r=203),0.6042
+Ours,H,nearest class mean,0.567
+Ours,Z,raw ridge 1e-08,0.5942
+Ours,Z,raw ridge 0.01,0.5872
+Ours,Z,whitened ridge 1e-08 (r=211),0.5856
+Ours,Z,whitened ridge 0.01 (r=211),0.5856
+Ours,Z,nearest class mean,0.5482

@@ -1,0 +1,6 @@
+# K710-20% from the extracted mp4 clips (E34 data path after the Lance-on-BeeGFS finding, 2026-09-03):
+# one ~2 MB file per clip, decoded in the loader workers (data/mp4_loader.py). mp4_base is BeeGFS;
+# LEVJEPA_MP4_ROOT overrides it with the node's RAM disk after stage-in (slurm/stage_mp4_to_ram.sh).
+# @package data
+train: {mp4_base: /mnt/beegfs/locatgrp/shared/datasets/kinetics, draw_csv: /mnt/beegfs/locatgrp/shared/datasets/kinetics/k710_20pct.csv}
+val: {mp4_base: /mnt/beegfs/locatgrp/shared/datasets/kinetics, draw_csv: /mnt/beegfs/locatgrp/shared/datasets/kinetics/k710_20pct.csv}

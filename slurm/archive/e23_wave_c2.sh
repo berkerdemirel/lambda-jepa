@@ -12,7 +12,7 @@
 set -e
 cd /nfs/scistore19/locatgrp/bdemirel/ssl_project
 
-COMMON="method=floorssl frame=toy_vits8 bs=128 seed=0 share_log_every=1 +method.aug=lejepa +method.V=4 method.lr=5e-4 method.expander_dim=256 method.mlp_wd=0.05 method.z_floor_batch=view_mean method.h_floor_batch=view_mean method.floor_shrink=oas method.w_inv=16.2 method.w_floor=46.7"
+COMMON="method=lambdajepa frame=toy_vits8 bs=128 seed=0 share_log_every=1 +method.aug=lejepa +method.V=4 method.lr=5e-4 method.expander_dim=256 method.mlp_wd=0.05 method.z_floor_batch=view_mean method.h_floor_batch=view_mean method.floor_shrink=oas method.w_inv=16.2 method.w_floor=46.7"
 H="method.h_lamb=0.73"
 H0="method.h_lamb=0.0"
 

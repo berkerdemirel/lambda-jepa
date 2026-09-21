@@ -19,19 +19,26 @@ def knn_predict(feature, feature_bank, feature_labels, num_classes=10, knn_k=200
 
 @torch.no_grad()
 def knn_topk_acc(train_feats, train_y, val_feats, val_y, num_classes=10,
-                 knn_k=200, knn_t=0.1, bs=256, device="cpu"):
+                 knn_k=200, knn_t=0.1, bs=256, device="cpu", return_pred=False):
+    """`return_pred` is additive and defaults off, so the ported metric is untouched: it exists
+    because a kNN gap of 1.5 points on 5k queries is 75 images and needs a PAIRED test, which
+    needs the per-query predictions (E36)."""
     train_feats = torch.as_tensor(train_feats).to(device)
     val_feats = torch.as_tensor(val_feats).to(device)
     train_y = torch.as_tensor(train_y).to(device)
     val_y = torch.as_tensor(val_y).to(device)
     bank = F.normalize(train_feats.float(), dim=1).t().contiguous()
     labels = train_y.long()
-    correct, n = 0, 0
+    correct, n, preds = 0, 0, []
     for i in range(0, val_feats.shape[0], bs):
         q = F.normalize(val_feats[i:i + bs].float(), dim=1)
         pred = knn_predict(q, bank, labels, num_classes, knn_k, knn_t)
         correct += (pred[:, 0] == val_y[i:i + bs].long()).sum().item()
         n += pred.shape[0]
+        if return_pred:
+            preds.append(pred[:, 0].cpu())
+    if return_pred:
+        return correct / n, torch.cat(preds).numpy()
     return correct / n
 
 

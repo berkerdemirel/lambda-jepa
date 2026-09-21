@@ -1,0 +1,88 @@
+# Per-term losses around each INCIDENT step (wandb per-step rows; grad_norm before clipping). wd0 = lx9tnd73 (segment 64439249), orig = 53w0igas. Pulled 2026-09-04 16:20.
+lx9tnd73 burst at 766219:
+   step 766216 grad_norm=     35.1 inv=0.3346 loss=37.23 probe=1.741 moment_kl=0.1169 h_moment_kl=0.2796
+   step 766217 grad_norm=     28.7 inv=0.2913 loss=34.72 probe=1.705 moment_kl=0.1117 h_moment_kl=0.2818
+   step 766218 grad_norm=     29.1 inv=0.2605 loss=32.6 probe=1.657 moment_kl=0.1066 h_moment_kl=0.2768
+   step 766219 grad_norm=   4674.9 inv=0.3426 loss=35.68 probe=1.695 moment_kl=0.1089 h_moment_kl=0.2807
+   step 766220 grad_norm=     54.1 inv=0.25 loss=33.05 probe=1.336 moment_kl=0.1101 h_moment_kl=0.2707
+   step 766221 grad_norm=     31.3 inv=0.2966 loss=34.42 probe=2.06 moment_kl=0.1098 h_moment_kl=0.2678
+lx9tnd73 burst at 771587:
+   step 771584 grad_norm=     31.6 inv=0.241 loss=35.45 probe=2.089 moment_kl=0.1219 h_moment_kl=0.2775
+   step 771585 grad_norm=     39.6 inv=0.2502 loss=36.38 probe=1.671 moment_kl=0.1247 h_moment_kl=0.2881
+   step 771586 grad_norm=     39.1 inv=0.3096 loss=34.77 probe=2.326 moment_kl=0.1095 h_moment_kl=0.2774
+   step 771587 grad_norm=   9446.8 inv=1.201 loss=62.71 probe=1.789 moment_kl=0.1105 h_moment_kl=0.2868
+   step 771588 grad_norm=     27.5 inv=0.3083 loss=36.04 probe=1.751 moment_kl=0.1152 h_moment_kl=0.2838
+   step 771589 grad_norm=     28.9 inv=0.3055 loss=35.85 probe=1.911 moment_kl=0.1148 h_moment_kl=0.2869
+lx9tnd73 burst at 784272:
+   step 784269 grad_norm=     33.7 inv=0.2639 loss=30.2 probe=1.841 moment_kl=0.09568 h_moment_kl=0.2522
+   step 784270 grad_norm=     34.3 inv=0.3412 loss=33.09 probe=1.979 moment_kl=0.09782 h_moment_kl=0.2599
+   step 784271 grad_norm=     40.4 inv=0.2746 loss=31.56 probe=2.138 moment_kl=0.1002 h_moment_kl=0.2674
+   step 784272 grad_norm=   4033.7 inv=0.2603 loss=31 probe=1.697 moment_kl=0.09964 h_moment_kl=0.266
+   step 784273 grad_norm=     65.0 inv=0.2648 loss=31.44 probe=1.969 moment_kl=0.101 h_moment_kl=0.2609
+   step 784274 grad_norm=     31.5 inv=0.2813 loss=32.16 probe=1.467 moment_kl=0.1019 h_moment_kl=0.2615
+lx9tnd73 burst at 789752:
+   step 789749 grad_norm=     34.7 inv=0.3015 loss=33.51 probe=1.804 moment_kl=0.1051 h_moment_kl=0.2605
+   step 789750 grad_norm=     31.5 inv=0.3264 loss=33.43 probe=1.5 moment_kl=0.1014 h_moment_kl=0.2569
+   step 789751 grad_norm=     28.3 inv=0.2647 loss=32.49 probe=1.654 moment_kl=0.1057 h_moment_kl=0.2554
+   step 789752 grad_norm=   9464.1 inv=0.302 loss=33.65 probe=1.786 moment_kl=0.1057 h_moment_kl=0.2528
+   step 789753 grad_norm=     38.8 inv=0.2855 loss=34.01 probe=1.619 moment_kl=0.1096 h_moment_kl=0.2518
+   step 789754 grad_norm=     39.0 inv=0.3939 loss=36.13 probe=1.96 moment_kl=0.1041 h_moment_kl=0.2575
+lx9tnd73 burst at 790977:
+   step 790974 grad_norm=     29.0 inv=0.2718 loss=31.95 probe=1.759 moment_kl=0.1023 h_moment_kl=0.2635
+   step 790975 grad_norm=     32.4 inv=0.223 loss=32.41 probe=1.48 moment_kl=0.1111 h_moment_kl=0.2548
+   step 790976 grad_norm=     35.1 inv=0.2966 loss=33.86 probe=1.962 moment_kl=0.1074 h_moment_kl=0.2565
+   step 790977 grad_norm=   4463.8 inv=0.2879 loss=31.92 probe=1.641 moment_kl=0.1 h_moment_kl=0.2519
+   step 790978 grad_norm=     28.7 inv=0.321 loss=32.91 probe=1.937 moment_kl=0.09986 h_moment_kl=0.2482
+   step 790979 grad_norm=     26.6 inv=0.267 loss=30.8 probe=2.127 moment_kl=0.0979 h_moment_kl=0.2564
+lx9tnd73 burst at 792886:
+   step 792883 grad_norm=     31.2 inv=0.2667 loss=34.32 probe=2.206 moment_kl=0.1135 h_moment_kl=0.2648
+   step 792884 grad_norm=     36.4 inv=0.2525 loss=32.8 probe=2.103 moment_kl=0.1087 h_moment_kl=0.2593
+   step 792885 grad_norm=     31.5 inv=0.2464 loss=30.83 probe=1.904 moment_kl=0.1009 h_moment_kl=0.2513
+   step 792886 grad_norm=   4805.6 inv=0.396 loss=34.66 probe=1.903 moment_kl=0.09728 h_moment_kl=0.2484
+   step 792887 grad_norm=     28.6 inv=0.2287 loss=28.03 probe=1.775 moment_kl=0.09098 h_moment_kl=0.2446
+   step 792888 grad_norm=     33.8 inv=0.1984 loss=27.21 probe=1.606 moment_kl=0.09151 h_moment_kl=0.244
+lx9tnd73 burst at 798717:
+   step 798714 grad_norm=     32.2 inv=0.3159 loss=31.57 probe=1.897 moment_kl=0.09463 h_moment_kl=0.2477
+   step 798715 grad_norm=     27.7 inv=0.2589 loss=28.6 probe=1.911 moment_kl=0.08935 h_moment_kl=0.2447
+   step 798716 grad_norm=     31.8 inv=0.2595 loss=30.34 probe=1.938 moment_kl=0.09691 h_moment_kl=0.2531
+   step 798717 grad_norm=   5687.2 inv=0.2779 loss=34.8 probe=2.03 moment_kl=0.114 h_moment_kl=0.2669
+   step 798718 grad_norm=     33.7 inv=0.2517 loss=33.7 probe=1.752 moment_kl=0.1128 h_moment_kl=0.2635
+   step 798719 grad_norm=     33.2 inv=0.285 loss=34.54 probe=1.848 moment_kl=0.112 h_moment_kl=0.2633
+53w0igas burst at 849724:
+   step 849721 grad_norm=     43.8 inv=0.2956 loss=33.84 probe=1.485 moment_kl=0.1073 h_moment_kl=0.2757
+   step 849722 grad_norm=     51.7 inv=0.3378 loss=35.21 probe=1.658 moment_kl=0.1076 h_moment_kl=0.2769
+   step 849723 grad_norm=     39.6 inv=0.2835 loss=35.4 probe=1.816 moment_kl=0.1159 h_moment_kl=0.2751
+   step 849724 grad_norm=   6651.6 inv=0.3159 loss=37.09 probe=1.821 moment_kl=0.119 h_moment_kl=0.2652
+   step 849725 grad_norm=     49.4 inv=0.3046 loss=36.29 probe=2.07 moment_kl=0.1169 h_moment_kl=0.2769
+   step 849726 grad_norm=     49.9 inv=0.2665 loss=35.65 probe=1.674 moment_kl=0.1194 h_moment_kl=0.2686
+53w0igas burst at 852825:
+   step 852822 grad_norm=     63.5 inv=0.309 loss=35.26 probe=2.068 moment_kl=0.1117 h_moment_kl=0.2765
+   step 852823 grad_norm=     49.3 inv=0.2832 loss=32.44 probe=1.944 moment_kl=0.1028 h_moment_kl=0.2716
+   step 852824 grad_norm=     51.6 inv=0.3096 loss=31.61 probe=1.354 moment_kl=0.09554 h_moment_kl=0.2645
+   step 852825 grad_norm=   8103.4 inv=2.109 loss=92.12 probe=1.811 moment_kl=0.1159 h_moment_kl=0.2748
+   step 852826 grad_norm=     51.0 inv=0.2751 loss=35.76 probe=2.057 moment_kl=0.1186 h_moment_kl=0.2721
+   step 852827 grad_norm=     44.5 inv=0.2826 loss=36.57 probe=1.831 moment_kl=0.1212 h_moment_kl=0.279
+53w0igas burst at 853717:
+   step 853714 grad_norm=     41.0 inv=0.2538 loss=32.28 probe=1.275 moment_kl=0.1063 h_moment_kl=0.2539
+   step 853715 grad_norm=     37.5 inv=0.2142 loss=31.53 probe=2.074 moment_kl=0.1084 h_moment_kl=0.2618
+   step 853716 grad_norm=     52.9 inv=0.2957 loss=32.54 probe=1.809 moment_kl=0.1016 h_moment_kl=0.2604
+   step 853717 grad_norm=   7957.3 inv=0.3383 loss=35.33 probe=1.576 moment_kl=0.1081 h_moment_kl=0.2624
+   step 853718 grad_norm=     53.8 inv=0.2849 loss=36.58 probe=1.645 moment_kl=0.121 h_moment_kl=0.2677
+   step 853719 grad_norm=     61.3 inv=0.3411 loss=38.24 probe=1.671 moment_kl=0.1206 h_moment_kl=0.2641
+
+
+# --- z moment-KL per step (Berker's breakage indicator), pulled 2026-09-04 23:45; bins of 10,009 steps (bin epN = log epoch N+1) ---
+# wd0 (lx9tnd73): per bin  median / p99 / max / steps > 0.3 | moment_kl at the burst steps (grad_norm > 4000): median, max (n)
+#   ep75: 0.112 / 0.130 / 0.231 / 0 | no bursts
+#   ep76: 0.110 / 0.127 / 0.139 / 0 | 0.109, 0.109 (1)      ep77: 0.107 / 0.124 / 0.131 / 0 | 0.111, 0.111 (1)
+#   ep78: 0.106 / 0.123 / 0.142 / 0 | 0.100, 0.106 (4)      ep79: 0.105 / 0.121 / 0.131 / 0 | 0.103, 0.117 (7)
+#   ep80: 0.104 / 0.120 / 0.129 / 0 | 0.106, 0.113 (6)      ep81: 0.103 / 0.119 / 0.132 / 0 | 0.103, 0.116 (11)
+#   ep82: 0.102 / 0.117 / 0.135 / 0 | 0.101, 0.135 (19)     ep83: 0.102 / 0.117 / 0.133 / 0 | 0.103, 0.122 (13)
+#   ep84: 0.101 / 0.116 / 0.141 / 0 | 0.102, 0.117 (16)     ep85: 0.100 / 0.116 / 0.144 / 0 | 0.106, 0.140 (15)
+#   ep86: 0.100 / 0.115 / 0.159 / 0 | 0.105, 0.153 (9)      ep87: 0.099 / 0.114 / 0.129 / 0 | 0.099, 0.119 (30)
+#   ep88 (partial): 0.099 / 0.112 / 0.119 / 0 | 0.102, 0.103 (3)
+# orig storm (53w0igas):
+#   ep83: 0.108 / 0.130 / 0.160 / 0 | 0.097 (1)             ep84: 0.108 / 0.193 / 0.325 / 2 | 0.111, 0.119 (3)
+#   ep85: 0.109 / 1.501 / 3.896 / 839 | 0.290, 2.075 (52)   ep86: 0.114 / 7.113 / 12.753 / 1191 | 4.751, 11.844 (147)
+#   ep87: 0.118 / 20.960 / 48.958 / 1186 | 12.448, 48.958 (318)   ep88: 0.123 / 43.195 / 91.946 / 1248 | 28.198, 89.506 (371)
+# Read: in the storm the z-KL explodes with the bursts (collapse); the wd0 bursts carry no z-KL signal at all (max 0.16 over 13 epochs).

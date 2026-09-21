@@ -1,0 +1,13 @@
+run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.41002332505669875,0.40456484763743483,0.4152717554079403,10000,384,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.7949883374715485,0.7917536155288771,0.797769144538438,10000,384,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.3470008584015027,0.3439670973516119,0.35047928848351384,10000,384,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.8264995707990683,0.8243748776416565,0.8279135026081543,10000,384,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.embed,alignment,pairs,0.3661968831259401,0.36013896404522033,0.37218236457540593,10000,512,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.embed,cos_invariance,pairs,0.8169015584370111,0.8137180602036762,0.8196821685924833,10000,512,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.proj.out,alignment,pairs,0.305125659271354,0.2980107359255265,0.31132168659051346,10000,128,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.8474371703642865,0.8439143629889774,0.8504400339436258,10000,128,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap1,alignment,pairs,0.2523187704623708,0.24772981400343352,0.25691088595948747,10000,2048,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap1,cos_invariance,pairs,0.8738406147687521,0.8713365907980607,0.8758502125858509,10000,2048,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap2,alignment,pairs,0.2819978427150242,0.2760430421050785,0.2874907130098277,10000,2048,cheap
+in100.visreg.s0.hpull_visreg.extL,in100.pairs100.v1@audit_v1,student.z.proj.tap2,cos_invariance,pairs,0.8590010786423914,0.8558198997127981,0.8615568842328554,10000,2048,cheap

@@ -15,7 +15,7 @@ scale; probe is the online monitor only.
 
 Arm machinery riding on the port (all off by default; defaults reproduce the port byte-exactly):
 E10 (sigreg_at / proj_depth / embed_calib, D-016/D-021) and E12 (spec_norm on the projector,
-floor=moment → SpectralConditioner, D-026 — see docs/experiments/E12_moment_floor.md).
+floor=sacreg → SACReg, D-026 — see docs/experiments/E12_moment_floor.md).
 """
 import timm
 import torch
@@ -25,7 +25,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torchvision.ops import MLP
 
 from sslgap.data import LejepaMultiCropDataset, LightlyLejepaMultiCropDataset, ViewsDataset
-from sslgap.methods._common import SpectralConditioner
+from sslgap.methods._common import SACReg
 from sslgap.methods.base import SSLMethod
 
 
@@ -108,10 +108,10 @@ def lejepa_projector(proj_dim, emb_dim=512, hidden=2048, depth=3, spec_norm=Fals
     return mlp
 
 
-# SpectralConditioner moved to sslgap/methods/_common.py (E12 cross-method arms, 2026-07-12);
+# SACReg moved to sslgap/methods/_common.py (E12 cross-method arms, 2026-07-12);
 # imported at the top so all existing references keep working.
 
-class DiagSpectralConditioner(nn.Module):
+class DiagSACReg(nn.Module):
     """E12 F-wave arm f5 (D-027): per-dim Gaussian-moment calibration, full-D, no joint term.
     0.5·(mean(mu²) + mean(var − 1 − log var)). The AFFINE-ABSORBABLE calibration cell: the
     encoder can comply exactly via a diagonal rescale + bias of the emb Linear (information-
@@ -156,7 +156,7 @@ class SpectralFloor(nn.Module):
 
 
 # h-side regularizer routing (E12 §Amendment + F-wave): cfg.h_reg -> wandb term key
-H_KEYS = {"sigreg": "h_sigreg", "moment": "h_moment_kl", "sigreg_std": "h_sigreg_std",
+H_KEYS = {"sigreg": "h_sigreg", "sacreg": "h_moment_kl", "sigreg_std": "h_sigreg_std",
           "moment_diag": "h_moment_diag", "spec_floor": "h_spec_floor",
           "sigreg_t": "h_sigreg_t"}
 
@@ -170,7 +170,7 @@ class LeJEPA(SSLMethod):
 
     def build_modules(self):
         # creation order mirrors the official script: backbone-with-emb, then projector.
-        # (spec_norm and SpectralConditioner consume no RNG at construction — init streams unshifted.)
+        # (spec_norm and SACReg consume no RNG at construction — init streams unshifted.)
         # D-092 Lightly-replication anatomy: emb_dim=0 -> timm num_classes=0, encoder(x) = bare
         # trunk CLS (their benchmark has NO embedding stage); projector rides the trunk width.
         # grad_ckpt (bs=512 fit) and n_slices are RNG-free at construction — init streams unshifted.
@@ -185,15 +185,15 @@ class LeJEPA(SSLMethod):
                                 depth=self.cfg.get("proj_depth", 3),
                                 spec_norm=self.cfg.get("spec_norm", False))
         self.sigreg = SIGReg(n_slices=self.cfg.get("n_slices", 256))
-        if self.cfg.get("floor", "sigreg") == "moment" or self.cfg.get("h_reg") == "moment":
-            self.floor = SpectralConditioner()
+        if self.cfg.get("floor", "sigreg") == "sacreg" or self.cfg.get("h_reg") == "sacreg":
+            self.floor = SACReg()
         h_reg = self.cfg.get("h_reg")
         if h_reg == "sigreg_std":
             self.sigreg_std = SIGReg(standardize=True)
         elif h_reg == "sigreg_t":
             self.sigreg_t = SIGReg(nu=self.cfg.sigreg_nu)
         elif h_reg == "moment_diag":
-            self.diag_floor = DiagSpectralConditioner()
+            self.diag_floor = DiagSACReg()
         elif h_reg == "spec_floor":
             self.spec_floor = SpectralFloor()
         return nn.ModuleDict({"encoder": enc, "projector": proj})
@@ -310,8 +310,8 @@ class LeJEPA(SSLMethod):
                   "embed": emb.reshape(N, V, -1).transpose(0, 1),
                   "cls": cls.reshape(N, V, -1).transpose(0, 1) if sig_at == "cls" else None}[sig_at]
         # E12 (D-026): floor ∈ {sigreg (default), moment} picks the regularizer applied to sig_in
-        # — same routing, different term. "moment" = SpectralConditioner (arm A3, the thesis cell).
-        if self.cfg.get("floor", "sigreg") == "moment":
+        # — same routing, different term. "sacreg" = SACReg (arm A3, the thesis cell).
+        if self.cfg.get("floor", "sigreg") == "sacreg":
             reg_key, reg_loss = "moment_kl", self.floor(sig_in)
         else:
             reg_key, reg_loss = "sigreg", self.sigreg.to(device)(sig_in)
@@ -325,7 +325,7 @@ class LeJEPA(SSLMethod):
         if h_reg and self._epoch >= self.cfg.get("h_start_ep", 0):
             emb_in = emb.reshape(N, V, -1).transpose(0, 1)
             h_loss = {"sigreg": lambda: self.sigreg.to(device)(emb_in),
-                      "moment": lambda: self.floor(emb_in),
+                      "sacreg": lambda: self.floor(emb_in),
                       "sigreg_std": lambda: self.sigreg_std.to(device)(emb_in),
                       "sigreg_t": lambda: self.sigreg_t.to(device)(emb_in),
                       "moment_diag": lambda: self.diag_floor(emb_in),

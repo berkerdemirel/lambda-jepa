@@ -1,0 +1,22 @@
+cell: ???                    # run_id prefix under outputs/, e.g. in1k.floorssl.s0.e27v6b100
+epochs: ???                  # audit-cadence checkpoint epochs, e.g. [10,25,50,75,100]
+init_seed: 0                 # MUST equal the run's training seed (asserted vs ckpt cfg) —
+                             # from_native(random_init) then reproduces the TRUE ep0 state
+subset_seed: 0               # val-subset permutation (CKA set; NTK set = its first n_ntk)
+probe_seed: 1009             # NTK projection vectors — FIXED across cells and checkpoints
+h_layers: [3, 6, 9]          # per-layer CKA taps (final layer always included)
+n_cka: 4096
+n_ntk: 256
+n_probes: 8
+bs: 256
+num_workers: 8
+device: cuda
+ckpt_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs
+manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
+init_check_store: null       # optional stored random-init h.cls .npy of the same arch+seed
+                             # (in100 cells: features/in100.floorssl.s0.d256vm4null.extL/
+                             #  in100.val.v1/student.h.cls.npy)
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

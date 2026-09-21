@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, byol_pair
-from sslgap.methods._common import SpectralConditioner, ema_momentum, house_scheduler, trunk_arch
+from sslgap.methods._common import SACReg, ema_momentum, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import ema_update
@@ -42,8 +42,8 @@ class BYOL(SSLMethod):
                 "teacher_backbone": t_trunk, "teacher_projector": t_proj}
         if self.cfg.get("h_align", 0.0):      # E17: linear predictor at h (byol's own mechanism)
             mods["h_predictor"] = byol_h_predictor(384)
-        if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
-            self.floor = SpectralConditioner()
+        if self.cfg.get("h_reg") == "sacreg":     # E20 calibrated zoo floor (no RNG at construction)
+            self.floor = SACReg()
         return nn.ModuleDict(mods)
 
     def arch(self):
@@ -102,7 +102,7 @@ class BYOL(SSLMethod):
             terms["h_align"] = ha
         # E20 (calibrated zoo floor): additive moment floor at declared h (student CLS, pooled
         # views); regress/EMA untouched. Dose = per-method calibrated share (E20 card).
-        if self.cfg.get("h_reg") == "moment":
+        if self.cfg.get("h_reg") == "sacreg":
             h_loss = self.floor(tok[:, 0])
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss

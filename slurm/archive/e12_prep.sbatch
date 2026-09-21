@@ -17,4 +17,4 @@ python experiments/equal_pull.py frame=in100_vits16 bs=128 num_classes=100 tag=e
     +method.sigreg_at=embed +method.spec_norm=true +method.embed_calib=true
 python experiments/equal_pull.py frame=in100_vits16 bs=128 num_classes=100 tag=e12a3 \
     method.lr=3e-4 method.warmup_ep=10 method.eta_min=1e-5 method.grad_clip=1.0 \
-    +method.sigreg_at=embed +method.spec_norm=true +method.embed_calib=true +method.floor=moment
+    +method.sigreg_at=embed +method.spec_norm=true +method.embed_calib=true +method.floor=sacreg

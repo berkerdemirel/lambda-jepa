@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset, simclr_stack
-from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
+from sslgap.methods._common import SACReg, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 
@@ -52,8 +52,8 @@ class SimCLR(SSLMethod):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
                                 drop_path_rate=self.cfg.drop_path)
         proj = simclr_projector(384, self.cfg.proj_hidden, self.cfg.proj_dim)
-        if self.cfg.get("h_reg") == "moment":     # E20 calibrated zoo floor (no RNG at construction)
-            self.floor = SpectralConditioner()
+        if self.cfg.get("h_reg") == "sacreg":     # E20 calibrated zoo floor (no RNG at construction)
+            self.floor = SACReg()
         return nn.ModuleDict({"backbone": trunk, "projector": proj})
 
     def arch(self):
@@ -97,7 +97,7 @@ class SimCLR(SSLMethod):
         # E20 (calibrated zoo floor): additive moment floor at declared h (pooled-view CLS,
         # the floor's own batch-moment convention); NT-Xent untouched. Dose = per-method
         # calibrated share (E20 card).
-        if self.cfg.get("h_reg") == "moment":
+        if self.cfg.get("h_reg") == "sacreg":
             h_loss = self.floor(h[:, 0])
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss

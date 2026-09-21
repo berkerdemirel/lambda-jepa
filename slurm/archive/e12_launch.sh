@@ -13,7 +13,7 @@ COMMON="method=lejepa frame=in100_vits16 bs=128 num_classes=100 num_workers=10
 # A2/A3 — the h-side term is ADDITIVE (h_reg/h_lamb); moved placement admitted a lazy projector.
 A1="$COMMON method.lamb=0.02 +method.proj_depth=0 +method.embed_calib=true"
 A2="$COMMON method.lamb=0.02 +method.spec_norm=true +method.embed_calib=true +method.h_reg=sigreg +method.h_lamb=$LAM_A2"
-A3="$COMMON method.lamb=0.02 +method.spec_norm=true +method.embed_calib=true +method.h_reg=moment +method.h_lamb=$LAM_A3"
+A3="$COMMON method.lamb=0.02 +method.spec_norm=true +method.embed_calib=true +method.h_reg=sacreg +method.h_lamb=$LAM_A3"
 C1="$COMMON method.lamb=0.02 +method.spec_norm=true +method.embed_calib=true"
 
 if [ "$MODE" = smoke ]; then

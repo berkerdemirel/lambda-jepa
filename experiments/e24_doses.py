@@ -38,7 +38,7 @@ def main():
                              "s_inv": round(s_inv, 4), "s_z": round(s_z, 4),
                              "w_inv": round(w_inv, 3), "w_floor": round(w_z, 3),
                              "h_lamb": round(w_h, 4)})
-                ov = (f"method=floorssl frame={fr['frame']} bs=128 tag={tag} "
+                ov = (f"method=lambdajepa frame={fr['frame']} bs=128 tag={tag} "
                       f"share_log_every=1 +method.aug=lejepa +method.V=4 "
                       f"method.head_layers=2 method.expander_dim=256 method.mlp_wd=0.05 "
                       f"{fr['extra']} method.w_inv={w_inv:.3f} "

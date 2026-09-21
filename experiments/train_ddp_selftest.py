@@ -1,5 +1,5 @@
 """Faithfulness gate for the DDP add-on: at world_size=1, experiments/train_ddp._ddp_loss must
-reproduce the canonical FloorSSL.training_step loss byte-for-byte (same RNG state in, same drop_path
+reproduce the canonical LambdaJEPA.training_step loss byte-for-byte (same RNG state in, same drop_path
 masks, same conditioner slice). If this drifts, the DDP trainer is optimizing a different objective
 than the paper's — so it gates every DDP launch. Runs on CPU or one GPU; no dataset (random views).
 
@@ -31,7 +31,7 @@ def _check(name, overrides, views_fn, device):
                   data_root=cfg.frame.get("data_root"), epochs=cfg.frame.epochs, seed=0,
                   grad_clip=1.0, num_workers=0, device=device)
     torch.manual_seed(0)
-    method = METHODS["floorssl"](cfg.method, frame)
+    method = METHODS["lambdajepa"](cfg.method, frame)
     modules = method.build_modules().to(device)
     method.train_mode(modules)                              # drop_path active — tests the hard path
     student = _StudentFwd(modules["backbone"], modules["projector"])
@@ -67,7 +67,7 @@ def _check_ring(name, overrides, views_fn, device, steps=3):
                   data_root=cfg.frame.get("data_root"), epochs=cfg.frame.epochs, seed=0,
                   grad_clip=1.0, num_workers=0, device=device)
     torch.manual_seed(0)
-    method = METHODS["floorssl"](cfg.method, frame)
+    method = METHODS["lambdajepa"](cfg.method, frame)
     modules = method.build_modules().to(device)
     method.train_mode(modules)
     student = _StudentFwd(modules["backbone"], modules["projector"])
@@ -104,7 +104,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"[train_ddp_selftest] device={device}")
     N = 4
-    base = ["method=floorssl", "frame=in1k_vits16", "num_classes=1000",
+    base = ["method=lambdajepa", "frame=in1k_vits16", "num_classes=1000",
             "method.head_layers=2", "method.expander_dim=256",
             "method.z_floor_batch=view_mean", "method.h_floor_batch=view_mean",
             "method.floor_shrink=oas", "method.queue_steps=0", "method.h_d_slice=256"]
@@ -134,7 +134,7 @@ def main():
 
     # the D-103 all-global ring shape (B2'/L2': lejepa V=6 + ring z-q3/h-q7 + swa, no OAS)
     print("· V6 + ring (q=3, h-q=7) + swa=ema, 3 steps:")
-    ok &= _check_ring("v6+ring+swa", ["method=floorssl", "frame=in1k_vits16",
+    ok &= _check_ring("v6+ring+swa", ["method=lambdajepa", "frame=in1k_vits16",
                                       "num_classes=1000", "method.head_layers=2",
                                       "method.expander_dim=256", "method.z_floor_batch=view_mean",
                                       "method.h_floor_batch=view_mean", "method.queue_steps=3",

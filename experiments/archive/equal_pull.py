@@ -52,7 +52,7 @@ def main(cfg: DictConfig):
         from sslgap.methods.lejepa import H_KEYS
         reg_key = H_KEYS[cfg.method.h_reg]
     else:
-        reg_key = "moment_kl" if cfg.method.get("floor", "sigreg") == "moment" else "sigreg"
+        reg_key = "moment_kl" if cfg.method.get("floor", "sigreg") == "sacreg" else "sigreg"
 
     def enc_norm(loss, retain):
         grads = torch.autograd.grad(loss, enc_params, retain_graph=retain, allow_unused=True)

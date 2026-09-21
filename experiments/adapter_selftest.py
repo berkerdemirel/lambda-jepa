@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from sslgap.ckpt import adapters
 from sslgap.extract.extractor import _batch_spaces
 from sslgap.models.vitops import vit_tokens
+from sslgap.ckpt.schema import load_payload
 
 DEV = "cuda"
 
@@ -92,7 +93,7 @@ CHECKS = {"simclr": check_simclr, "vicreg": check_simclr, "byol": check_byol,
 
 def main(paths):
     for p in paths:
-        ck = torch.load(p, map_location="cpu", weights_only=False)
+        ck = load_payload(p, map_location="cpu")
         method = ck["method"]
         loaded = adapters.load("native", p, run_id="selftest").eval_(DEV)
         assert loaded.provenance["h_space"] == EXPECT_H[method], loaded.provenance["h_space"]

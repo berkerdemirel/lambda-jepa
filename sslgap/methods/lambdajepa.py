@@ -1,19 +1,19 @@
-"""FloorSSL — the house method, independent class (Berker 2026-07-19: "an independent class
+"""LambdaJEPA — the house method, independent class (Berker 2026-07-19: "an independent class
 for our method and we dont rely on vicreg's architecture. i want to see both versions, one
 copying vicreg part (expander BN etc) and the other should try the bn free way").
 
-L = w_inv·MSE(z_a, z_b) + w_floor·SpectralConditioner(z pooled) + h_lamb·SpectralConditioner(cls)
+L = w_inv·MSE(z_a, z_b) + w_floor·SACReg(z pooled) + h_lamb·SACReg(cls)
 
 The three-term recipe from the E19/E20 lineage: MSE alignment at z; the TWO-SIDED spectral
 conditioner as the SOLE anti-collapse at z (destination duty, E19-T2 doses); the same
 conditioner at declared h (cls = projector input, D-036) at calibrated share (E19-T1 dose
 law). NAMING (D-059): nothing here is floored — the KL term taxes Σ deviations from I in
-both directions; "floor" survives only in FROZEN identifiers (method key/run-ids `floorssl`,
+both directions; "floor" survives only in FROZEN identifiers (pre-2026-09-21 run-ids `floorssl`,
 cfg keys `w_floor`/`z_floor*`/`h_floor_batch`, logged term keys `moment_kl`/`h_moment_kl`) —
 those are provenance/continuity, not claims. head_norm switch:
   "bn"   — vicreg's expander verbatim (Linear-BN-ReLU ×2 + Linear). With seed-0 construction
            this class is BYTE-IDENTICAL in init to the vicreg-class floorssl_hz arms
-           (same call order: trunk → head Linears/BNs; SpectralConditioner draws no construction
+           (same call order: trunk → head Linears/BNs; SACReg draws no construction
            RNG) — verified by the migration byte-check (E21 card).
   "none" — the BN-free head (Linear-ReLU ×2 + Linear): the D-043/E19-T1 conduit hypothesis
            at full depth — without the BN firewall the z-floor's conditioning can reach back
@@ -32,13 +32,13 @@ import torch.nn.functional as F
 
 from sslgap.data import (LejepaMultiCropDataset, LightlyLejepaMultiCropDataset,
                          ViewsDataset, byol_pair)
-from sslgap.methods._common import HingeFloor, SpectralConditioner, house_scheduler, trunk_arch
+from sslgap.methods._common import HingeFloor, SACReg, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.heads import BottleneckStage, ResBlock
 
 
-def floorssl_head(in_dim=384, hidden=2048, out_dim=2048, norm="bn"):
+def lambdajepa_head(in_dim=384, hidden=2048, out_dim=2048, norm="bn"):
     """norm="bn" reproduces vicreg_expander byte-for-byte (same layer order ⇒ same seed-0
     draws; BN affines init deterministically, so the Linears also byte-match the "none"
     variant's)."""
@@ -53,7 +53,7 @@ def floorssl_head(in_dim=384, hidden=2048, out_dim=2048, norm="bn"):
                          nn.Linear(hidden, out_dim))
 
 
-def floorssl_res_head(in_dim=384, hidden=2048, out_dim=2048, depth=2, norm="none"):
+def lambdajepa_res_head(in_dim=384, hidden=2048, out_dim=2048, depth=2, norm="none"):
     """REJECTED E23 rev1 ladder (card §Launch log 2026-07-29: the skip = an always-open
     linear h→z path, depth cannot modulate leakage; 6/6 collapsed). Kept for checkpoint
     assembly only — build_modules no longer offers it."""
@@ -61,7 +61,7 @@ def floorssl_res_head(in_dim=384, hidden=2048, out_dim=2048, depth=2, norm="none
     return nn.Sequential(first, *[ResBlock(hidden, norm) for _ in range(depth)], last)
 
 
-def floorssl_stage_head(in_dim=384, hidden=2048, out_dim=256, depth=2, m=256):
+def lambdajepa_stage_head(in_dim=384, hidden=2048, out_dim=256, depth=2, m=256):
     """REJECTED E23 rev2 ladder (card §Launch log 2026-07-30: the BARE adapter left the
     2048-d entry unpinned — collapsed on the healthy byol lane too, 9/9). Kept for
     checkpoint assembly only — build_modules no longer offers it."""
@@ -70,10 +70,10 @@ def floorssl_stage_head(in_dim=384, hidden=2048, out_dim=256, depth=2, m=256):
                          nn.Linear(hidden, out_dim))
 
 
-def floorssl_ladder_head(in_dim=384, hidden=2048, out_dim=256, depth=2, width=None):
+def lambdajepa_ladder_head(in_dim=384, hidden=2048, out_dim=256, depth=2, width=None):
     """E23 rev3 ladder (Berker's careful-mode): the LEGACY expander anatomy itself with
     `depth` hidden BN-ReLU layers — depth=2, width=hidden is BYTE-IDENTICAL to
-    floorssl_head(norm="bn"), so the ladder grows out of the certified-healthy cell in
+    lambdajepa_head(norm="bn"), so the ladder grows out of the certified-healthy cell in
     both directions. Every hidden Linear is BN-pinned (the invariant every healthy
     floorssl head shares; both rejected scaffolds broke it). depth=0 = the bare linear
     projector (folklore anchor, declared-risk). `width` = middle-layer width, the fine
@@ -89,8 +89,8 @@ def floorssl_ladder_head(in_dim=384, hidden=2048, out_dim=256, depth=2, width=No
     return nn.Sequential(*layers)
 
 
-class FloorSSL(SSLMethod):
-    name = "floorssl"
+class LambdaJEPA(SSLMethod):
+    name = "lambdajepa"
     # E24 (D-070): term -> cfg-weight map for the realized w·g share logger (train.py);
     # trunk-only g_enc convention (the standing pull instrument's).
     PULL_W = {"inv": "w_inv", "moment_kl": "w_floor", "h_moment_kl": "h_lamb"}
@@ -114,13 +114,13 @@ class FloorSSL(SSLMethod):
         # head_width the fine dial; (2, hidden) ≡ the legacy bn expander byte-identically;
         # null = the legacy expander path.
         k = self.cfg.get("head_layers")
-        head = (floorssl_ladder_head(self._dim, self.cfg.expander_hidden,
+        head = (lambdajepa_ladder_head(self._dim, self.cfg.expander_hidden,
                                      self.cfg.expander_dim,
                                      depth=k, width=self.cfg.get("head_width"))
                 if k is not None
-                else floorssl_head(self._dim, self.cfg.expander_hidden,
+                else lambdajepa_head(self._dim, self.cfg.expander_hidden,
                                    self.cfg.expander_dim, norm=self.cfg.head_norm))
-        # z_floor axis (E21 fix session, D-049): "kl" = the symmetric SpectralConditioner (Sigma=I,
+        # z_floor axis (E21 fix session, D-049): "kl" = the symmetric SACReg (Sigma=I,
         # the method's identity) | "hinge" = the one-sided HingeFloor (Sigma>=I) — Berker
         # 2026-07-19: hinge VETOED as method ("vicreg with slicing"); diagnostic arm only.
         # h-floor stays symmetric KL — the <=6%-share conditioner is the certified-GOOD
@@ -142,7 +142,7 @@ class FloorSSL(SSLMethod):
         # the full d'-frame above it. OAS = the sanctioned B/L fallback if ring rows
         # stale ("we can fallback to oas in case features move too fast").
         d_h = self.cfg.get("h_d_slice") or 128
-        self.cond_h = SpectralConditioner(d_slice=d_h, d_draw=max(128, d_h), shrink=shr)
+        self.cond_h = SACReg(d_slice=d_h, d_draw=max(128, d_h), shrink=shr)
         # z_floor_batch payment axis (D-051; Berker 2026-07-20): "pooled" floors the bs*V
         # batch — per direction it reads across-image + within-image (aug) variance, so aug
         # spread pays the floor and competes with inv over the same quantity (the 2048-d
@@ -157,7 +157,7 @@ class FloorSSL(SSLMethod):
         d_canon = min(128, self.cfg.expander_dim)
         d_z = self.cfg.get("z_d_slice") or d_canon
         self.cond_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
-                        else SpectralConditioner(d_slice=d_z, d_draw=d_canon, shrink=shr))
+                        else SACReg(d_slice=d_z, d_draw=d_canon, shrink=shr))
         mods = nn.ModuleDict({"backbone": trunk, "projector": head})
         # swa (D-095; Berker 2026-08-10 "implement swa, as described in lejepa"): the
         # paper's entire spec is "we apply SWA on the encoder producing mu in Eq. (6)"
@@ -177,11 +177,11 @@ class FloorSSL(SSLMethod):
     def arch(self):
         k = self.cfg.get("head_layers")
         dim = getattr(self, "_dim", 384)
-        proj = ({"class": "sslgap.methods.floorssl.floorssl_ladder_head",
+        proj = ({"class": "sslgap.methods.lambdajepa.lambdajepa_ladder_head",
                  "kwargs": {"in_dim": dim, "hidden": self.cfg.expander_hidden,
                             "out_dim": self.cfg.expander_dim, "depth": k,
                             "width": self.cfg.get("head_width")}} if k is not None
-                else {"class": "sslgap.methods.floorssl.floorssl_head",
+                else {"class": "sslgap.methods.lambdajepa.lambdajepa_head",
                       "kwargs": {"in_dim": dim, "hidden": self.cfg.expander_hidden,
                                  "out_dim": self.cfg.expander_dim,
                                  "norm": self.cfg.head_norm}})

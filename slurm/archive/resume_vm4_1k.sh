@@ -4,7 +4,7 @@
 # run_id. 26 epochs left ~= 16h ~= 3 links; 4 submitted for slack. Queue re-warms on resume (declared).
 set -e
 cd /nfs/scistore19/locatgrp/bdemirel/ssl_project
-ARGS="method=floorssl frame=in1k_vits16 num_classes=1000 bs=128 +method.aug=lejepa +method.V=4 \
+ARGS="method=lambdajepa frame=in1k_vits16 num_classes=1000 bs=128 +method.aug=lejepa +method.V=4 \
 method.w_inv=26.9 method.w_floor=129.2 method.h_lamb=1.679 method.expander_dim=256 \
 method.z_floor_batch=view_mean method.z_d_slice=128 method.h_floor_batch=view_mean method.h_d_slice=128 \
 method.queue_steps=3 num_workers=28 pin_memory=true persistent_workers=true eval_every=2 tag=d256vm4"

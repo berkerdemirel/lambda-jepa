@@ -1,0 +1,33 @@
+% method_details.tex — appendix for the method section (draft 2026-09-16). The label
+% app:slicing is the one Berker's "Spectral anti-collapse for JE-SSL" section references.
+% Not yet \input from iclr2027_conference.tex: add \input{method_details} in the appendix.
+% Facts: sslgap/methods/_common.py (SpectralConditioner: QR slice, eps 1e-4, KL / d'),
+% sslgap/methods/floorssl.py (_ring, training_step, _swa_mu, post_step),
+% experiments/train_ddp.py (_ddp_loss: global-batch centers, shared slice seed), and the run
+% configs (S: h_d_slice 128, queue 3/3; B: h_d_slice 256, queue 3/7; IN-100 pair: no EMA).
+\section{Implementation of the regularizer}
+\label{app:slicing}
+
+\paragraph{Invariance objective.}
+For an image $i$ with $V$ augmented views, the invariance term is the mean squared distance between the projected representations of every pair of views,
+\[
+\mathcal L_{\mathrm{SSL}}
+=
+\frac{1}{n}\sum_{i=1}^{n}\;\frac{2}{V(V-1)}\sum_{a<b}\frac{1}{d_z}\,\|z_{i,a}-z_{i,b}\|_2^2 ,
+\]
+averaged over the $n$ images of the batch and normalized by the projector dimension $d_z$. It contains no negatives and no anti-collapse term of its own. Up to the factor $2V/(V-1)$ it equals the mean squared distance of each view to the per-image mean $\bar z_i$, which is the form used when views have different sizes. All our runs use global views of one size: $V{=}4$ on ImageNet-100 and $V{=}6$ on ImageNet-1k and video. In practice the invariance term also carries a weight, and the three weights are set jointly by the rule of Appendix~\ref{app:exp-details}.
+
+\paragraph{Slicing.}
+For a batch of $n$ view centers in $\mathbb R^{d}$ the centered covariance has rank at most $n-1$, so with $d \ge n$ the log-determinant is not defined at full width. At every step we therefore draw a random orthonormal basis $Q\in\mathbb R^{d\times d'}$ (the QR factorization of a Gaussian matrix; a fresh draw per step, shared across GPUs) and evaluate $\mathcal R_{\mathrm{ctr}}$ on the projected centers $XQ$, with $\mu$ and $C$ the mean and covariance in the slice and $\varepsilon=10^{-4}$. The value is divided by $d'$, so the loss weights are per dimension and do not depend on the slice width. Over training the random slices cover the whole space, and a direction with vanishing variance is penalized whenever it has a component in the current slice. We use $d'=128$ after the projector ($d_z=256$), and at the backbone a fixed third of the width: $d'=128$ for ViT-S ($d=384$) and $d'=256$ for ViT-B ($d=768$). The two regularizers draw independent slices.
+
+\paragraph{Ring buffer.}
+A slice of width $d'$ still needs several times $d'$ centers for a usable covariance, and a batch of $n=128$ images provides only $128$. For each regularized space we therefore keep a first-in-first-out buffer of the view centers of the previous $q$ steps, detached from the computation graph, and evaluate the regularizer on the current centers concatenated with the buffer. This gives $n_{\mathrm{eff}}=(q+1)\,n$ centers, of which only the current $n$ carry gradient; under data parallelism the buffer holds the centers of the full global batch. We keep the ratio $n_{\mathrm{eff}}/d'=4$ everywhere: $q=3$ after the projector for both models and at the backbone of ViT-S ($n_{\mathrm{eff}}=512$, $d'=128$), and $q=7$ at the backbone of ViT-B ($n_{\mathrm{eff}}=1024$, $d'=256$). The buffered centers come from slightly older parameters; with $q\le 7$ this lag is a few hundred images behind the current batch and we observed no effect of it. On video the batches are larger ($768$ for ViT-S, $512$ for ViT-B) and the buffer is not needed for ViT-S and reduced to $q=1$ at the backbone of ViT-B, which keeps the same ratio.
+
+\paragraph{Using an averaged encoder for the invariance target.}
+Some methods, LeJEPA among them, compute the target of the invariance term with an averaged copy of the encoder rather than with the current network. This is compatible with the regularizer; we use it in the ImageNet-1k and video runs, while the ImageNet-100 runs use the plain mean above. Keep an exponential moving average of the backbone and projector parameters, $\theta_{\mathrm{avg}}\leftarrow\tau\,\theta_{\mathrm{avg}}+(1-\tau)\,\theta$ after every step, with $\tau$ increased from $0.996$ to $1$ along a cosine schedule over training and the normalization statistics copied from the current network. Pass the same views through the averaged copy without gradient, take its per-image mean $\tilde z_i$ as the target, and use
+\[
+\mathcal L_{\mathrm{SSL}}
+=
+\frac{2V}{V-1}\cdot\frac{1}{n V d_z}\sum_{i=1}^{n}\sum_{a=1}^{V}\|z_{i,a}-\tilde z_i\|_2^2 .
+\]
+The factor $2V/(V-1)$ keeps the term on the scale of the pairwise form, so the same loss weights apply; at initialization the averaged copy equals the current network and the two forms coincide. The two regularizers always act on the view centers of the current network.

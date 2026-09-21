@@ -18,7 +18,7 @@ cd /nfs/scistore19/locatgrp/bdemirel/ssl_project
 # Trailing args override (hydra last-wins): the large-locals pilot passes
 #   'method.local_scale=[0.7,1.0]' tag=e27slg_pilot
 python experiments/e27_selftest.py || exit 1
-python experiments/train.py method=floorssl frame=in1k_vits16 frame.epochs=2 bs=128 \
+python experiments/train.py method=lambdajepa frame=in1k_vits16 frame.epochs=2 bs=128 \
   num_classes=1000 share_log_every=1 resume=false \
   +method.aug=lejepa_mc method.head_layers=2 method.expander_dim=256 method.mlp_wd=0.05 \
   method.z_floor_batch=view_mean method.h_floor_batch=view_mean method.queue_steps=3 \

@@ -81,6 +81,7 @@ def save_checkpoint(path, *, method, epoch, step, frame, cfg, arch, modules, ext
 
 REQUIRED_ROLES = {  # minimal module set per method for the native format (M1 trainers)
     "simclr": {"backbone", "projector"},
+    "lambdajepa": {"backbone", "projector"},
     "byol": {"backbone", "projector", "predictor", "teacher_backbone", "teacher_projector"},
     "vicreg": {"backbone", "projector"},
     "dino": {"backbone", "projector", "teacher_backbone", "teacher_projector"},
@@ -89,6 +90,34 @@ REQUIRED_ROLES = {  # minimal module set per method for the native format (M1 tr
     "lejepa": {"encoder", "projector"},   # encoder = timm ViT WITH the emb Linear (exact port);
                                           # the extraction adapter splits trunk/embed (D-003v2 F4)
 }
+
+
+# 2026-09-21 rename (D-127): the method `floorssl` is `lambdajepa`, the regularizer class
+# `SpectralConditioner` is `SACReg`, the zoo's backbone hook `h_reg=moment` is `h_reg=sacreg`.
+# Checkpoints written before that day carry the old names in `method`, the arch class paths and
+# the stored cfg; `modernize` maps them on load. Run ids, file names and stored provenance stay.
+LEGACY_METHOD = {"floorssl": "lambdajepa"}
+LEGACY_CLASS = {f"sslgap.methods.floorssl.floorssl_{k}": f"sslgap.methods.lambdajepa.lambdajepa_{k}"
+                for k in ("head", "ladder_head", "res_head", "stage_head")}
+LEGACY_REG = {"moment": "sacreg"}
+
+
+def modernize(payload):
+    payload["method"] = LEGACY_METHOD.get(payload.get("method"), payload.get("method"))
+    for spec in payload.get("arch", {}).values():
+        spec["class"] = LEGACY_CLASS.get(spec["class"], spec["class"])
+    m = (payload.get("cfg") or {}).get("method") or {}
+    if m.get("name") in LEGACY_METHOD:
+        m["name"] = LEGACY_METHOD[m["name"]]
+    for k in ("h_reg", "floor"):
+        if m.get(k) in LEGACY_REG:
+            m[k] = LEGACY_REG[m[k]]
+    return payload
+
+
+def load_payload(path, **kw):
+    """torch.load of a native payload with the legacy names mapped (every reader goes through here)."""
+    return modernize(torch.load(path, weights_only=False, **kw))
 
 
 def validate(payload):

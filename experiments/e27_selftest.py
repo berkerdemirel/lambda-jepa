@@ -12,7 +12,7 @@ from omegaconf import OmegaConf
 
 sys.path.insert(0, "/nfs/scistore19/locatgrp/bdemirel/ssl_project")
 from sslgap.methods.base import Frame                       # noqa: E402
-from sslgap.methods.floorssl import FloorSSL                # noqa: E402
+from sslgap.methods.lambdajepa import LambdaJEPA                # noqa: E402
 from sslgap.models.backbones import build_vit_trunk         # noqa: E402
 
 dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -41,7 +41,7 @@ assert torch.allclose(ap, vm * 20 / 9, rtol=1e-9)
 
 # (4) + (5): method-level
 cfg = OmegaConf.create(dict(
-    name="floorssl", w_inv=21.4, w_floor=49.6, h_lamb=1.89, z_floor="kl",
+    name="lambdajepa", w_inv=21.4, w_floor=49.6, h_lamb=1.89, z_floor="kl",
     z_floor_batch="view_mean", h_floor_batch="view_mean", z_d_slice=None, h_d_slice=None,
     queue_steps=3, h_queue_steps=None, floor_shrink=None, expander_hidden=2048,
     expander_dim=256, head_norm="none", head_layers=2, head_width=None, mlp_wd=0.05,
@@ -51,7 +51,7 @@ cfg = OmegaConf.create(dict(
 frame = Frame(name="selftest", model_name="vit_small_patch16_224", img_size=224,
               dataset="imagenet1k", data_root=None, epochs=100, seed=0, grad_clip=1.0,
               num_workers=0, device=dev)
-m = FloorSSL(cfg, frame)
+m = LambdaJEPA(cfg, frame)
 mods = m.build_modules().to(dev)
 assert m.probe_dim() == 384 and m.cond_h.d_slice == 128 and m.cond_h.d_draw == 128
 
@@ -79,7 +79,7 @@ print(f"[selftest] multicrop step: loss {terms['loss'].item():.4f} "
 # (6) grouped stream (D-087, wave 4): per-group rings fill; term = mean of two KLs;
 # inv identical to the "all" path on the same weights/input (stream change only).
 cfg_g = OmegaConf.merge(cfg, {"cond_stream": "grouped"})
-mg = FloorSSL(cfg_g, frame)
+mg = LambdaJEPA(cfg_g, frame)
 mods_g = mg.build_modules().to(dev)
 mods_g.load_state_dict(mods.state_dict())
 for _ in range(4):
@@ -105,7 +105,7 @@ assert torch.allclose(t_grp["inv"], t_all["inv"], rtol=1e-5), \
 # (7) perview stream (D-087 sweep): 10 per-view KLs under OAS/no-ring; inv untouched.
 cfg_p = OmegaConf.merge(cfg, {"cond_stream": "perview", "floor_shrink": "oas",
                               "queue_steps": 0, "h_queue_steps": None})
-mp = FloorSSL(cfg_p, frame)
+mp = LambdaJEPA(cfg_p, frame)
 mods_p = mp.build_modules().to(dev)
 mods_p.load_state_dict(mods.state_dict())
 torch.manual_seed(123)
@@ -120,7 +120,7 @@ print(f"[selftest] perview step: loss {t_pv['loss'].item():.4f} "
 
 # (8) perview + RING (D-088 e27pv cell): per-view rings fill to q at both taps.
 cfg_pr = OmegaConf.merge(cfg, {"cond_stream": "perview"})   # base queue_steps=3, no shrink
-mpr = FloorSSL(cfg_pr, frame)
+mpr = LambdaJEPA(cfg_pr, frame)
 mods_pr = mpr.build_modules().to(dev)
 mods_pr.load_state_dict(mods.state_dict())
 for _ in range(4):
@@ -137,7 +137,7 @@ print(f"[selftest] perview+ring: loss {t_pr['loss'].item():.4f} rings 10x3 both 
 # takes no grad; swa_k round-trips through extras.
 cfg_s = OmegaConf.merge(cfg, {"aug": "lejepa", "V": 10, "drop_path": 0.0,
                               "swa": "uniform"})
-ms = FloorSSL(cfg_s, frame)
+ms = LambdaJEPA(cfg_s, frame)
 mods_s = ms.build_modules().to(dev)
 assert set(mods_s.keys()) == {"backbone", "projector", "teacher_backbone",
                               "teacher_projector"}
@@ -145,7 +145,7 @@ sd_s, sd_t = mods_s["backbone"].state_dict(), mods_s["teacher_backbone"].state_d
 assert all(torch.equal(sd_s[k], sd_t[k]) for k in sd_s), "twin != student at build"
 
 cfg_s0 = OmegaConf.merge(cfg, {"aug": "lejepa", "V": 10, "drop_path": 0.0})
-ms0 = FloorSSL(cfg_s0, frame)
+ms0 = LambdaJEPA(cfg_s0, frame)
 mods_s0 = ms0.build_modules().to(dev)
 mods_s0.load_state_dict(
     {k: v for k, v in mods_s.state_dict().items() if not k.startswith("teacher_")})
@@ -181,7 +181,7 @@ print(f"[selftest] swa: init-parity inv {t_swa['inv'].item():.4f} == legacy "
 # (9b) swa="ema" (D-098): one update at step 0 of T=100 must give
 # theta_t = tau0*theta_t + (1-tau0)*theta_s with tau0 = swa_tau exactly.
 cfg_e = OmegaConf.merge(cfg_s, {"swa": "ema", "swa_tau": 0.996})
-me = FloorSSL(cfg_e, frame)
+me = LambdaJEPA(cfg_e, frame)
 mods_e = me.build_modules().to(dev)
 pt0 = next(mods_e["teacher_backbone"].parameters()).detach().clone()
 with torch.no_grad():
@@ -198,7 +198,7 @@ print(f"[selftest] swa=ema: tau0 update exact")
 cfg_lm = OmegaConf.merge(cfg, {"aug": "lightly_mc", "Vl": 6, "floor_shrink": "oas",
                                "queue_steps": 0, "h_queue_steps": None,
                                "swa": "uniform"})
-mlm = FloorSSL(cfg_lm, frame)
+mlm = LambdaJEPA(cfg_lm, frame)
 mods_lm = mlm.build_modules().to(dev)
 assert mlm._mc, "lightly_mc must build the dynamic trunk"
 l6 = torch.randn(2, 6, 3, 96, 96, device=dev)
@@ -214,7 +214,7 @@ print(f"[selftest] lightly_mc+swa step: loss {t_lm['loss'].item():.4f} "
 # (10b) 4-global geometry (D-097, the VISReg-matched B mirrors): the mc branch is
 # Vg-agnostic — 4g+6l steps finitely with the right shapes.
 cfg_l4 = OmegaConf.merge(cfg_lm, {"Vg": 4})
-ml4 = FloorSSL(cfg_l4, frame)
+ml4 = LambdaJEPA(cfg_l4, frame)
 mods_l4 = ml4.build_modules().to(dev)
 g4 = torch.randn(2, 4, 3, 224, 224, device=dev)
 t_l4, pf_l4, k_l4 = ml4.training_step(mods_l4, (g4, l6), dev)

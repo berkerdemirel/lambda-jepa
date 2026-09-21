@@ -24,6 +24,30 @@ def gauss_kl_full(X, shrink=1e-3):
     return {"total": loc + spec, "location": loc, "spectrum": spec}
 
 
+def fixed_slice(d, d_slice=128, d_draw=None, seed=0):
+    """The SACReg's random orthonormal slice, drawn ONCE from a seeded stream.
+    A training step redraws every forward (fresh-slice coverage); a MEASUREMENT holds the slice
+    fixed, so values are comparable across whatever is being swept (the e27_meanwash readout
+    convention). Same draw as the module's: randn[d, d_draw] -> QR -> first d_slice columns."""
+    g = torch.Generator().manual_seed(seed)
+    Q, _ = torch.linalg.qr(torch.randn(d, d_draw or d_slice, generator=g))
+    return Q[:, :d_slice].double().numpy()
+
+
+def moment_kl_slice(X, Q, eps=1e-4):
+    """SACReg's OWN value on a given orthonormal slice Q [d, d']: Gaussian moment KL
+    to N(0, I_d') per dimension, with the mean (cone) term and the eps ridge exactly where the
+    training term has them. This reads the conditioner off a stored batch at the training
+    estimator's n and d'; gauss_kl_full is the full-covariance, shrunk cousin the battery uses —
+    different constants, never mixed into one table."""
+    p = np.asarray(X, dtype=np.float64) @ Q
+    d = Q.shape[1]
+    mu = p.mean(0)
+    pc = p - mu
+    cov = pc.T @ pc / (len(p) - 1) + eps * np.eye(d)
+    return float(0.5 * (np.trace(cov) + mu @ mu - d - np.linalg.slogdet(cov)[1]) / d)
+
+
 def radial_gauss(X, seed=0, shrink=1e-3):
     """Normalized radial law vs the isotropic Gaussian (Berker 2026-07-16; D-040). Cross-fit:
     whitening moments (μ, Σ^{-1/2}) from one half, radii r² = ‖W(x−μ)‖² on the held-out half

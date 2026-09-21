@@ -102,13 +102,16 @@ def main(cfg: DictConfig):
     if cfg.get("orbit_v"):       # V-view orbit stores for overlap/invariance along the E02 depth
         name, csv_path, info, source = mans["pairs"]     # axis (HEAD_OVERLAP_LIPSCHITZ.md)
         own = f"own_{loaded.method}"
-        stacks = ["audit_v1"] + ([own] if own in STACKS and own != "own_lejepa" else [])
+        stacks = list(cfg.get("orbit_stacks") or
+                      ["audit_v1"] + ([own] if own in STACKS and own != "own_lejepa" else []))
+        keep = set(cfg.orbit_spaces) if cfg.get("orbit_spaces") else None
         for stack in stacks:
             key = f"{name}@{stack}.o{cfg.orbit_v}"
             ds = OrbitDataset(csv_path, source, img, stack, cfg.orbit_v)
             spaces = extract_views(loaded, ds, store, manifest_key=key, manifest_info=info,
                                    stack=stack, bs=cfg.bs, num_workers=cfg.num_workers,
-                                   device=cfg.device, h_layers=tuple(cfg.h_layers), seed=cfg.seed)
+                                   device=cfg.device, h_layers=tuple(cfg.h_layers), seed=cfg.seed,
+                                   keep=keep)
             print(f"[extract] {cfg.run_id} {key}: {len(spaces)} spaces")
 
     if cfg.get("foveal"):        # E14 (D-031): event = zoo members, ctx = tokenizer runs,

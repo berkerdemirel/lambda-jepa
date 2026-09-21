@@ -18,6 +18,9 @@ do_eval: true
 do_pairs: true
 orbit_v: null                # V>2 orbit views per pairs-manifest image (audit_v1 + own stack),
                              # h_layers ride along -> "@<stack>.o<V>" stores (E02 depth axis)
+orbit_stacks: null           # restrict orbit stores to these stacks (null = audit_v1 + own stack)
+orbit_spaces: null           # restrict orbit stores to these spaces, e.g. [student.h.cls]
+                             # (null = every space; full-train orbits, 2026-09-02)
 foveal: null                 # E14 (D-031): event | ctx | both -> pairs under foveal_v1[_ctx]
 train_per_class: null        # null = the dataset's PROTOCOL standard (in100 m50k 500/class,
                              # in1k FULL train per D-066); 0 = full split; N = N/class.

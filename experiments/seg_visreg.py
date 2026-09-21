@@ -78,7 +78,7 @@ class ADE20K(Dataset):
         return img, torch.from_numpy(np.array(mask)).long() - 1   # 0=bg -> -1 ignored
 
 
-def load_trunk(ckpt, device):
+def load_trunk(ckpt, device, adapter="native"):
     if ckpt.startswith("timm:"):
         trunk = timm.create_model(ckpt[5:], pretrained=True, num_classes=0,
                                   dynamic_img_size=True)
@@ -86,7 +86,7 @@ def load_trunk(ckpt, device):
         from sslgap.ckpt import adapters
         import re
         tag = re.sub(r"_(ep\d+|last|best)\.pt$", "", os.path.basename(ckpt))
-        loaded = adapters.load("native", ckpt, tag)
+        loaded = adapters.load(adapter, ckpt, tag)
         src = loaded.branches[loaded.probed_branch].trunk
         trunk = timm.create_model(loaded.frame["model_name"], num_classes=0,
                                   dynamic_img_size=True)
@@ -98,13 +98,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", required=True)
     ap.add_argument("--tag", required=True)
-    args = ap.parse_args()
+    ap.add_argument("--adapter", default="native")   # pubvit for OK-AI safetensors,
+    args = ap.parse_args()                           # same lift the benches used
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     device = "cuda"
     torch.backends.cudnn.benchmark = True
 
-    trunk = load_trunk(args.ckpt, device)
+    trunk = load_trunk(args.ckpt, device, args.adapter)
     dim = trunk.num_features
     head = nn.Sequential(nn.BatchNorm2d(dim),
                          nn.Conv2d(dim, NUM_CLASSES, kernel_size=1)).to(device)

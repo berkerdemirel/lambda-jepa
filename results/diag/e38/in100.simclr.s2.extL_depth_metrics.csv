@@ -1,0 +1,11 @@
+ep,space,d,rankme,effective_rank,gauss_kl_total,class_cos_same,class_cos_diff,pos_cos,rand_cos
+in100.simclr.s2.extL,student.h.cls,384,149.79,50.61,2.5076,0.6119,0.4533,0.8486,0.4389
+in100.simclr.s2.extL,student.h.cls.L03,384,53.71,25.05,4.1619,0.9257,0.9124,0.9318,0.8909
+in100.simclr.s2.extL,student.h.cls.L06,384,104.2,33.47,3.3549,0.8177,0.7733,0.8967,0.7565
+in100.simclr.s2.extL,student.h.cls.L09,384,145.86,45.89,2.6925,0.6811,0.5781,0.8565,0.5583
+in100.simclr.s2.extL,student.h.gap,384,139.66,31.61,2.9134,0.6387,0.5041,0.8502,0.4888
+in100.simclr.s2.extL,student.h.gap.L03,384,94.61,21.67,3.7172,0.8063,0.7672,0.8355,0.7089
+in100.simclr.s2.extL,student.h.gap.L06,384,133.6,31.68,3.3064,0.7278,0.6598,0.8202,0.6101
+in100.simclr.s2.extL,student.h.gap.L09,384,147.3,37.55,3.0039,0.6717,0.5677,0.8338,0.5296
+in100.simclr.s2.extL,student.z.proj.out,512,102.31,79.14,3.1126,0.2575,-0.0023,0.7904,0.0005
+in100.simclr.s2.extL,student.z.proj.tap1,4096,2667.08,494.74,2.498,0.2439,0.0684,0.7061,0.0675

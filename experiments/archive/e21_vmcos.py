@@ -49,9 +49,9 @@ def main():
     rows = []
     for state, ck in STATES:
         seed_everything(0)
-        method_p = METHODS["floorssl"](OmegaConf.create(mcfg_ref), frame)
+        method_p = METHODS["lambdajepa"](OmegaConf.create(mcfg_ref), frame)
         modules = method_p.build_modules().to(dev)
-        method_v = METHODS["floorssl"](OmegaConf.create(
+        method_v = METHODS["lambdajepa"](OmegaConf.create(
             {**mcfg_ref, "z_floor_batch": "view_mean", "z_d_slice": 32}), frame)
         method_v.build_modules()   # constructs its floors; modules discarded — the step runs
         # on method_p's modules (same weights), and RNG is re-pinned before every step.
