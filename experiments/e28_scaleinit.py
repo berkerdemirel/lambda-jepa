@@ -76,7 +76,7 @@ from sslgap.metrics.spectra import (covariance_eigs, effective_rank, participati
 from sslgap.models.backbones import build_vit_trunk
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # hydra chdir-proof paths
-SCALE = 10.0                       # the intervention: ×10 on the block weight matrices at init
+SCALE = 0.1                       # the intervention: ×10 on the block weight matrices at init
 SCALED = ("attn.qkv.weight", "attn.proj.weight", "mlp.fc1.weight", "mlp.fc2.weight")
 CTRL_RUN = "in100.floorssl.s0.d256vm4zonly"                          # the ×1 lane this twins
 REF_CKPT = os.path.join(ROOT, f"outputs/{CTRL_RUN}_ep100.pt")
