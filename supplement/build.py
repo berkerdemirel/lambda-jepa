@@ -215,9 +215,8 @@ TEXT_SUFFIX = {".py", ".yaml", ".yml", ".sh", ".sbatch", ".slurm", ".md", ".txt"
 # --------------------------------------------------------------------------------------------------
 DOC = {
     "sslgap/methods/_common.py": {
-        None: "Shared pieces: SACReg, its one-sided hinge variant, the warmup + cosine schedule, trunk construction, the EMA momentum schedule.",
-        "SACReg": "KL(N(mu, Sigma) || N(0, I)) / d' of the batch mean and covariance on a fresh random d'-dimensional orthonormal slice per step (the batch covariance is rank-deficient at full width); eps stabilizes the log-determinant, shrink=\"oas\" replaces the slice covariance by its OAS-shrunk estimate; fp32.",
-        "HingeFloor": "One-sided variant (relu(1 - std) per slice direction plus the mean term); diagnostic only, not the paper's regularizer."},
+        None: "Shared pieces: SACReg, the warmup + cosine schedule, trunk construction, the EMA momentum schedule.",
+        "SACReg": "KL(N(mu, Sigma) || N(0, I)) / d' of the batch mean and covariance on a fresh random d'-dimensional orthonormal slice per step (the batch covariance is rank-deficient at full width); eps stabilizes the log-determinant, shrink=\"oas\" replaces the slice covariance by its OAS-shrunk estimate; fp32."},
     "sslgap/methods/base.py": {None: "Frame (what is identical across methods within a comparison) and the SSLMethod recipe interface."},
     "sslgap/methods/lambdajepa.py": {None: "lambda-JEPA: view-to-mean invariance at the projector output, SACReg on the per-image view centers at the backbone (h) and at the projector output (z), with ring buffers and random slices."},
     "sslgap/methods/lejepa.py": {None: "LeJEPA (SIGReg + invariance at the projector output) with the optional backbone term (h_reg=sacreg | sigreg)."},

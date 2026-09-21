@@ -1099,3 +1099,7 @@ pre-rename checkpoints (`in100.floorssl.s0.d256vm4_ep100`, `in100.simclr.s0.e20f
 new arch stamps `sslgap.methods.lambdajepa.lambdajepa_head`); artifacts deleted. One miss caught by the
 smoke: the renamed method config still said `name: floorssl` (the rewrite rules matched the quoted Python
 literal, not the YAML value) — fixed; the first smoke (66429388) failed on that `KeyError`.
+Follow-up the same day (Berker: "yes please do remove"): the dead E12/E21 variants `DiagSACReg`
+(`h_reg=moment_diag`), `SpectralFloor` (`h_reg=spec_floor`) and `HingeFloor` (`z_floor=hinge`) removed
+with their branches, `H_KEYS` entries and the `z_floor` config key; no paper cell ever used them. Selftest
+job 66439361 ALL PASS.

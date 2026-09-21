@@ -111,53 +111,9 @@ def lejepa_projector(proj_dim, emb_dim=512, hidden=2048, depth=3, spec_norm=Fals
 # SACReg moved to sslgap/methods/_common.py (E12 cross-method arms, 2026-07-12);
 # imported at the top so all existing references keep working.
 
-class DiagSACReg(nn.Module):
-    """E12 F-wave arm f5 (D-027): per-dim Gaussian-moment calibration, full-D, no joint term.
-    0.5·(mean(mu²) + mean(var − 1 − log var)). The AFFINE-ABSORBABLE calibration cell: the
-    encoder can comply exactly via a diagonal rescale + bias of the emb Linear (information-
-    free), so any probe tax here measures optimization interference, not representational
-    damage; A3 − f5 isolates the whitening/decorrelation component of the full-KL floor.
-    Structure hidden in correlations is allowed BY DESIGN; per-dim log barrier keeps per-dim
-    anti-collapse. Subspace-free (also the estimator-noise control vs the sliced KL)."""
-
-    def forward(self, x):
-        with torch.autocast(x.device.type, enabled=False):
-            x = x.reshape(-1, x.size(-1)).float()
-            mu = x.mean(0)
-            var = x.var(0).clamp_min(1e-8)
-            return 0.5 * (mu.square().mean() + (var - 1 - var.log()).mean())
-
-
-class SpectralFloor(nn.Module):
-    """E12 F-wave arm f3 (D-027): one-sided anti-degeneracy floor — the refined-thesis
-    candidate after the M2 read ('anisotropy IS semantics'). On a fresh random d'-subspace:
-    barrier ONLY on relative eigenvalue deficiency (λ̃ = λ·d'/tr < tau); anisotropy above the
-    floor is untouched. Scale-inflation gaming is closed by the scalar trace pin; 'junk-dim'
-    compliance is allowed by design (the certificate is spectral non-degeneracy, not content).
-    tau/d'/eps declared fixed on the card."""
-
-    def __init__(self, d_slice=128, tau=0.01, eps=1e-6):
-        super().__init__()
-        self.d_slice, self.tau, self.eps = d_slice, tau, eps
-
-    def forward(self, x):
-        with torch.autocast(x.device.type, enabled=False):
-            x = x.reshape(-1, x.size(-1)).float()
-            Q, _ = torch.linalg.qr(torch.randn(x.size(1), self.d_slice, device=x.device))
-            p = x @ Q
-            mu = p.mean(0)
-            pc = p - mu
-            cov = pc.T @ pc / (p.size(0) - 1) + self.eps * torch.eye(self.d_slice, device=x.device)
-            lam = torch.linalg.eigvalsh(cov)
-            tr = lam.sum().clamp_min(1e-8)
-            lam_n = (lam * self.d_slice / tr).clamp_min(1e-12)
-            rank_t = torch.relu((self.tau / lam_n).log()).mean()
-            return rank_t + (tr / self.d_slice - 1).square() + mu.square().mean()
-
 
 # h-side regularizer routing (E12 §Amendment + F-wave): cfg.h_reg -> wandb term key
 H_KEYS = {"sigreg": "h_sigreg", "sacreg": "h_moment_kl", "sigreg_std": "h_sigreg_std",
-          "moment_diag": "h_moment_diag", "spec_floor": "h_spec_floor",
           "sigreg_t": "h_sigreg_t"}
 
 
@@ -192,10 +148,6 @@ class LeJEPA(SSLMethod):
             self.sigreg_std = SIGReg(standardize=True)
         elif h_reg == "sigreg_t":
             self.sigreg_t = SIGReg(nu=self.cfg.sigreg_nu)
-        elif h_reg == "moment_diag":
-            self.diag_floor = DiagSACReg()
-        elif h_reg == "spec_floor":
-            self.spec_floor = SpectralFloor()
         return nn.ModuleDict({"encoder": enc, "projector": proj})
 
     def arch(self):
@@ -327,9 +279,7 @@ class LeJEPA(SSLMethod):
             h_loss = {"sigreg": lambda: self.sigreg.to(device)(emb_in),
                       "sacreg": lambda: self.floor(emb_in),
                       "sigreg_std": lambda: self.sigreg_std.to(device)(emb_in),
-                      "sigreg_t": lambda: self.sigreg_t.to(device)(emb_in),
-                      "moment_diag": lambda: self.diag_floor(emb_in),
-                      "spec_floor": lambda: self.spec_floor(emb_in)}[h_reg]()
+                      "sigreg_t": lambda: self.sigreg_t.to(device)(emb_in)}[h_reg]()
             loss = loss + self.cfg.h_lamb * h_loss
             terms[H_KEYS[h_reg]] = h_loss
         # H-wave (D-035): tiny ADDITIVE view-invariance pull at the embedding itself (H3: move

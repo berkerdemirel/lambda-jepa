@@ -41,7 +41,7 @@ assert torch.allclose(ap, vm * 20 / 9, rtol=1e-9)
 
 # (4) + (5): method-level
 cfg = OmegaConf.create(dict(
-    name="lambdajepa", w_inv=21.4, w_floor=49.6, h_lamb=1.89, z_floor="kl",
+    name="lambdajepa", w_inv=21.4, w_floor=49.6, h_lamb=1.89,
     z_floor_batch="view_mean", h_floor_batch="view_mean", z_d_slice=None, h_d_slice=None,
     queue_steps=3, h_queue_steps=None, floor_shrink=None, expander_hidden=2048,
     expander_dim=256, head_norm="none", head_layers=2, head_width=None, mlp_wd=0.05,

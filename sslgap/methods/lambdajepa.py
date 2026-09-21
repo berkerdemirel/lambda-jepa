@@ -9,7 +9,7 @@ conditioner as the SOLE anti-collapse at z (destination duty, E19-T2 doses); the
 conditioner at declared h (cls = projector input, D-036) at calibrated share (E19-T1 dose
 law). NAMING (D-059): nothing here is floored — the KL term taxes Σ deviations from I in
 both directions; "floor" survives only in FROZEN identifiers (pre-2026-09-21 run-ids `floorssl`,
-cfg keys `w_floor`/`z_floor*`/`h_floor_batch`, logged term keys `moment_kl`/`h_moment_kl`) —
+cfg keys `w_floor`/`z_floor_batch`/`h_floor_batch`, logged term keys `moment_kl`/`h_moment_kl`) —
 those are provenance/continuity, not claims. head_norm switch:
   "bn"   — vicreg's expander verbatim (Linear-BN-ReLU ×2 + Linear). With seed-0 construction
            this class is BYTE-IDENTICAL in init to the vicreg-class floorssl_hz arms
@@ -32,7 +32,7 @@ import torch.nn.functional as F
 
 from sslgap.data import (LejepaMultiCropDataset, LightlyLejepaMultiCropDataset,
                          ViewsDataset, byol_pair)
-from sslgap.methods._common import HingeFloor, SACReg, house_scheduler, trunk_arch
+from sslgap.methods._common import SACReg, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.heads import BottleneckStage, ResBlock
@@ -120,9 +120,6 @@ class LambdaJEPA(SSLMethod):
                 if k is not None
                 else lambdajepa_head(self._dim, self.cfg.expander_hidden,
                                    self.cfg.expander_dim, norm=self.cfg.head_norm))
-        # z_floor axis (E21 fix session, D-049): "kl" = the symmetric SACReg (Sigma=I,
-        # the method's identity) | "hinge" = the one-sided HingeFloor (Sigma>=I) — Berker
-        # 2026-07-19: hinge VETOED as method ("vicreg with slicing"); diagnostic arm only.
         # h-floor stays symmetric KL — the <=6%-share conditioner is the certified-GOOD
         # regime (E19-T1/E20). The z estimator's slice cannot exceed the space: at
         # expander_dim <= 128 (the D-050 small-z direction) the floor reads the EXACT full
@@ -156,8 +153,7 @@ class LambdaJEPA(SSLMethod):
         # conditioner is the certified-GOOD regime.
         d_canon = min(128, self.cfg.expander_dim)
         d_z = self.cfg.get("z_d_slice") or d_canon
-        self.cond_z = (HingeFloor(d_slice=d_z) if self.cfg.get("z_floor", "kl") == "hinge"
-                        else SACReg(d_slice=d_z, d_draw=d_canon, shrink=shr))
+        self.cond_z = SACReg(d_slice=d_z, d_draw=d_canon, shrink=shr)
         mods = nn.ModuleDict({"backbone": trunk, "projector": head})
         # swa (D-095; Berker 2026-08-10 "implement swa, as described in lejepa"): the
         # paper's entire spec is "we apply SWA on the encoder producing mu in Eq. (6)"
