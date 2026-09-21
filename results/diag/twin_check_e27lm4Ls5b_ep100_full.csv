@@ -1,0 +1,13 @@
+branch,probe,val_acc,best_ep,epochs_run
+student,weight_rel_dist,0.047727420926094055,,
+student,knn_v1_k200,0.59806,,
+student,knn_v1_k20,0.6327,,
+student,linear_l2_v2,0.7167199850082397,51.0,172.0
+student,linear_house_v2,0.699679970741272,8.0,129.0
+student,linear_raw_v2,0.6820999979972839,2.0,123.0
+twin,val_perimage_cos_vs_student,0.9957876801490784,,
+twin,knn_v1_k200,0.59948,,
+twin,knn_v1_k20,0.63606,,
+twin,linear_l2_v2,0.7199199795722961,44.0,165.0
+twin,linear_house_v2,0.7027199864387512,8.0,129.0
+twin,linear_raw_v2,0.6834799647331238,2.0,123.0

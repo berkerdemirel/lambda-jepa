@@ -26,9 +26,14 @@ PORT_NOTES (donor ~/visreg_repro @ the D-102-arc pin, visreg/losses/visreg.py + 
   ViT-B (the "in house way" ruling); proj_dim = 128 (the house z-slice width) instead of
   their embed_dim//3 rule, which gives the nonstandard 170 at our 512-d embedding; house
   lr/warmup/eta_min hygiene instead of their 9e-4 @ bs 16x8.
-- h_reg="moment" hook mirrors the zoo floor at the declared h (the 512-d embedding,
+- h_reg="sacreg" hook mirrors the zoo floor at the declared h (the 512-d embedding,
   lejepa-family D-036 convention; conditioner input pools the views, n = bs*V), weight
   h_lamb — the E20-style treated arm.
+- h_reg="visreg" (E37, Berker 2026-09-17 "launch a run where we do visreg too"): VISReg's OWN
+  regularizer applied at the same declared h (a second VISRegLoss instance on the per-view
+  embedding [V, B, 512], the donor's exact form incl. its fresh random projections and
+  cached quantile target), weight h_lamb, term key h_visreg — the E17 hpull pattern (the
+  method's own term at h, z-loss byte-untouched) that E17 never ran for VISReg.
 """
 import math
 
@@ -37,7 +42,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from sslgap.data import ViewsDataset
-from sslgap.methods._common import SpectralConditioner, house_scheduler, trunk_arch
+from sslgap.methods._common import SACReg, house_scheduler, trunk_arch
 from sslgap.methods.base import SSLMethod
 from sslgap.methods.lejepa import lejepa_projector
 from sslgap.models.backbones import build_vit_trunk
@@ -81,13 +86,16 @@ class VISRegLoss(nn.Module):
 
 class VISReg(SSLMethod):
     name = "visreg"
-    PULL_W = {"visreg": "w_reg", "inv": "w_inv", "h_moment_kl": "h_lamb"}
+    PULL_W = {"visreg": "w_reg", "inv": "w_inv", "h_moment_kl": "h_lamb",
+              "h_visreg": "h_lamb"}
 
     def __init__(self, cfg, frame):
         super().__init__(cfg, frame)
         self.reg = VISRegLoss(num_projections=cfg.get("num_projections", 256))
-        if self.cfg.get("h_reg") == "moment":     # zoo floor hook (no RNG at construction)
-            self.floor = SpectralConditioner()
+        if self.cfg.get("h_reg") == "sacreg":     # zoo floor hook (no RNG at construction)
+            self.floor = SACReg()
+        elif self.cfg.get("h_reg") == "visreg":   # E37: the method's own term at h
+            self.h_reg = VISRegLoss(num_projections=cfg.get("num_projections", 256))
 
     def build_modules(self):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size,
@@ -121,11 +129,16 @@ class VISReg(SSLMethod):
         reg = self.reg(z_vbd)
         loss = self.cfg.w_reg * reg + self.cfg.w_inv * inv
         terms = {"visreg": reg, "inv": inv}
-        if self.cfg.get("h_reg") == "moment":                  # the E20-style treated arm
+        if self.cfg.get("h_reg") == "sacreg":                  # the E20-style treated arm
             emb_v = emb.reshape(N, V, -1).transpose(0, 1)
             h_loss = self.floor(emb_v)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
+        elif self.cfg.get("h_reg") == "visreg":                # E37: own term at h
+            emb_v = emb.reshape(N, V, -1).transpose(0, 1)      # [V, B, 512], donor form
+            h_loss = self.h_reg(emb_v)
+            loss = loss + self.cfg.h_lamb * h_loss
+            terms["h_visreg"] = h_loss
         probe_feats = emb.detach()
         return {"loss": loss, **terms}, probe_feats, V
 

@@ -1,0 +1,33 @@
+cell: in100.floorssl.s0.d256vm4zonly   # the UNTREATED arm of our method (w_cond_h = 0)
+epoch: 100
+run_id: null                 # feature-store id; null -> <cell>.extL
+ckpt: null                   # null -> <ckpt_dir>/<cell>_ep<epoch>.pt
+ckpt_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs
+store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
+
+space: student.h.cls         # h = the projector's input (D-036)
+z_tap: proj.out              # the loss-terminal space of this method
+fit_manifest: in100.train500.v1L                  # basis + probe train (clean, n=50k)
+val_manifest: in100.val.v1L                       # probe eval (clean, n=5k)
+cloud_manifest: in100.pairs1300.v1@audit_v1.o8    # the loss read: train split, 8 views
+pairs_manifest: in100.pairs100.v1@audit_v1.o8     # selftest store (carries the stored z taps)
+
+V: 4                         # the lane's training V (views 0..V-1 of the cloud store)
+cond_n: 512                  # the lane's (queue_steps+1)*bs -> n/d' = 4, as in training
+d_slice: 128                 # the lane's z_d_slice / h_d_slice
+slice_seed: 0                # the conditioner slice is drawn ONCE (readout convention)
+batch_seed: 0                # image subset + conditioner batching (the store is class-grouped)
+probe_seed: 0
+order_seed: 1                # the random deletion order (the control)
+
+n_images: 32768              # images for every loss read (385 of them, so this is the time dial)
+cum_levels: [0, 32, 64, 128, 192, 256, 304, 336, 360, 376]
+
+device: cuda
+selftest: true
+figure: true
+figure_only: false           # re-render from the landed CSVs, no compute
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

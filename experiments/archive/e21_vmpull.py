@@ -45,7 +45,7 @@ def main():
                           data_root=fr["data_root"], epochs=fr["epochs"], seed=0,
                           grad_clip=1.0, num_workers=0, device=dev)
             seed_everything(0)
-            method = METHODS["floorssl"](cfg, frame)
+            method = METHODS["lambdajepa"](cfg, frame)
             modules = method.build_modules().to(dev)
             ep = 0
             if ck:

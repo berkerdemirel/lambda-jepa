@@ -17,7 +17,7 @@ BASE = {"name": "lejepa", "lamb": 0.02, "V": 4, "proj_dim": 16, "emb_dim": 512, 
         "lr": 3e-4, "wd": 5e-2, "warmup_ep": 10, "eta_min": 1e-5, "grad_clip": 1.0}
 ARMS = {  # amended arms (E12 §Amendment): additive h-term, shipped SIGReg@proj retained
     "e12a2smoke2": {"spec_norm": True, "embed_calib": True, "h_reg": "sigreg", "h_lamb": 0.0257},
-    "e12a3smoke2": {"spec_norm": True, "embed_calib": True, "h_reg": "moment", "h_lamb": 0.4775},
+    "e12a3smoke2": {"spec_norm": True, "embed_calib": True, "h_reg": "sacreg", "h_lamb": 0.4775},
 }
 
 

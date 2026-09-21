@@ -41,7 +41,7 @@ def main():
                       dataset=ds, data_root=root, epochs=fr["epochs"], seed=0,
                       grad_clip=1.0, num_workers=0, device=dev)
         seed_everything(0)
-        method = METHODS["floorssl"](mcfg, frame)
+        method = METHODS["lambdajepa"](mcfg, frame)
         modules = method.build_modules().to(dev)
         for role, sd in base["modules"].items():
             if role != "probe":

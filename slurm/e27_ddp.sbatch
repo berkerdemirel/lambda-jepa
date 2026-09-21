@@ -10,10 +10,10 @@
 #SBATCH --time=24:00:00
 #SBATCH --output=/nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/%x_%j.out
 
-# Single-node multi-GPU DDP for the FloorSSL add-on (experiments/train_ddp.py). torchrun spawns
+# Single-node multi-GPU DDP for the LambdaJEPA add-on (experiments/train_ddp.py). torchrun spawns
 # one worker per allocated GPU (ntasks-per-node=1 — torchrun does the spawning, not srun). Resume
 # is on by default, so segment the L run with --dependency=singleton chains like the other lanes.
-#   sbatch slurm/e27_ddp.sbatch method=floorssl frame=in1k_vitl16 num_classes=1000 <lm4s5b> tag=...
+#   sbatch slurm/e27_ddp.sbatch method=lambdajepa frame=in1k_vitl16 num_classes=1000 <lm4s5b> tag=...
 source /nfs/scistore19/locatgrp/bdemirel/ssl_project/slurm/_env.sh
 cd /nfs/scistore19/locatgrp/bdemirel/ssl_project
 NGPU=$(nvidia-smi -L | wc -l)

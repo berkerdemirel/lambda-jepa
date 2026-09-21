@@ -4,7 +4,7 @@ declared tap. The share rule doses by lane-pull MAGNITUDE; dino's overshoot (E20
 direction matters: a lane whose objective already does floor-work (dino's teacher centering)
 is an ALLY, not an adversary, and the same share over-doses it. Prediction on card: dino
 cos ≥ ~0 while the view adversaries (vicreg/simclr/byol) are negative. Batches/machinery =
-the e12h_pull convention (seed-0 first batch, training autocast, ckpt cfg + h_reg=moment).
+the e12h_pull convention (seed-0 first batch, training autocast, ckpt cfg + h_reg=sacreg).
 Appends results/diag/e20_opposition.csv. RAW; no takeaway."""
 import csv
 import os
@@ -39,7 +39,7 @@ def main():
     for m in RUNS:
         pay = torch.load(f"{ROOT}/outputs/in100.{m}.s0_ep25.pt", map_location="cpu",
                          weights_only=False)
-        cfg = OmegaConf.create({**pay["cfg"]["method"], "h_reg": "moment", "h_lamb": 0.02})
+        cfg = OmegaConf.create({**pay["cfg"]["method"], "h_reg": "sacreg", "h_lamb": 0.02})
         fr = pay["cfg"]["frame"]
         frame = Frame(name=fr["name"], model_name=fr["model_name"], img_size=fr["img_size"],
                       dataset=fr["dataset"], data_root=fr["data_root"], epochs=fr["epochs"],

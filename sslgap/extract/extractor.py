@@ -62,10 +62,12 @@ def extract_eval(loaded, dataset, store, manifest_key, manifest_info, bs=256, nu
 
 @torch.inference_mode()
 def extract_views(loaded, orbit_dataset, store, manifest_key, manifest_info, stack, bs=256,
-                  num_workers=8, device="cuda", h_layers=(), seed=0):
+                  num_workers=8, device="cuda", h_layers=(), seed=0, keep=None):
     """V views per image -> "<space>.view<k>": every view file is row-aligned with labels.npy
     (and with the pair store of the same manifest). Unlike extract_pairs, per-layer trunk taps
-    ride along when h_layers is set — the orbit store carries the E02 depth axis."""
+    ride along when h_layers is set — the orbit store carries the E02 depth axis. `keep`: an
+    optional set of space names to store (full-train orbit stores, 2026-09-02: h.cls only —
+    every tap of 126k x 8 views would not fit the disk or the accumulator)."""
     loaded.eval_(device)
     acc, ys = {}, []
     for views, y in _loader(orbit_dataset, bs, num_workers, seed=seed):
@@ -73,13 +75,15 @@ def extract_views(loaded, orbit_dataset, store, manifest_key, manifest_info, sta
             with autocast(device, dtype=torch.bfloat16):
                 b = _batch_spaces(loaded, xv.to(device, non_blocking=True), h_layers=h_layers)
             for name, v in b.items():
+                if keep is not None and name not in keep:
+                    continue
                 acc.setdefault(f"{name}.view{k}", []).append(v)
         ys.append(torch.as_tensor(y))
     for space, chunks in acc.items():
         store.put(loaded.run_id, manifest_key, space, torch.cat(chunks).numpy())
     store.put_labels(loaded.run_id, manifest_key, torch.cat(ys).numpy())
     store.put_meta(loaded.run_id, manifest_key, {
-        "kind": "orbits", "stack": stack, "v": orbit_dataset.v,
+        "kind": "orbits", "stack": stack, "v": orbit_dataset.v, "keep": sorted(keep) if keep else None,
         "view_rule": "view k: ta if k even else tb (positive-pair mixture for asymmetric stacks)",
         "manifest": manifest_info, "n": int(sum(len(y) for y in ys)),
         "spaces": sorted(acc), "h_layers": list(h_layers),

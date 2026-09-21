@@ -43,7 +43,7 @@ def main():
                   dataset="imagenet1k", data_root="~/data/imagenet", epochs=100, seed=0,
                   grad_clip=1.0, num_workers=0, device="cpu")
     seed_everything(0)
-    method = METHODS["floorssl"](mcfg, frame)
+    method = METHODS["lambdajepa"](mcfg, frame)
     ds = method.build_train_dataset()
     emit("env", cpus=os.environ.get("SLURM_CPUS_PER_TASK", "?"),
          node=os.environ.get("SLURMD_NODENAME", "?"))

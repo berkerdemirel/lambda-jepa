@@ -1,0 +1,14 @@
+# K710-20% (E34) as THREE per-version stores (one episode per Kinetics clip; built per set by
+# scripts/build_lance_kinetics.py from the scratch/video/k710_subsample.py draw so each set's store can
+# be built as soon as its download lands). The loader concatenates the sources (MixtureClipDataset);
+# clips_per_video: 1 per source: one random 16-frame temporal crop per clip per epoch (the loader-level
+# default of 200 is the donor's Walking Tours setting for a 10-video store; on 120,100 clips it would make
+# an epoch 24 M clips — caught by the data smoke 2026-09-03). val = one of the
+# sources (the donor's convention; nothing is read from it in training).
+# @package data
+train:
+  - {path: "${oc.env:LEVJEPA_DATA_ROOT,/mnt/beegfs/locatgrp/shared/datasets/kinetics}/k710_20pct_k700_2020.lance", name: k700, clips_per_video: 1}
+  - {path: "${oc.env:LEVJEPA_DATA_ROOT,/mnt/beegfs/locatgrp/shared/datasets/kinetics}/k710_20pct_k600.lance", name: k600, clips_per_video: 1}
+  - {path: "${oc.env:LEVJEPA_DATA_ROOT,/mnt/beegfs/locatgrp/shared/datasets/kinetics}/k710_20pct_k400.lance", name: k400, clips_per_video: 1}
+val:
+  - {path: "${oc.env:LEVJEPA_DATA_ROOT,/mnt/beegfs/locatgrp/shared/datasets/kinetics}/k710_20pct_k700_2020.lance", name: k700, clips_per_video: 1}

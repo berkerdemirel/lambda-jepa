@@ -5,13 +5,12 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 
-class SpectralConditioner(nn.Module):
-    """E12 lineage (D-026/D-027; renamed from SpectralConditioner per D-059 — Berker: "there is
+class SACReg(nn.Module):
+    """E12 lineage (D-026/D-027; renamed from SACReg per D-059 — Berker: "there is
     nothing floored in there. it is two sided spectral conditioner"): the TWO-SIDED
     Gaussian-moment conditioner. KL penalizes deviation from (0, I) in BOTH directions —
     variance above 1 is taxed exactly like variance below it (the E21 2048-d collapse lived
-    on that cap side), plus the mean/cone term. The one-sided object is HingeFloor (S>=I),
-    which IS a floor — and is vetoed as method identity (D-049).
+    on that cap side), plus the mean/cone term.
     KL(N(mu_Q, Sigma_Q) || N(0, I_d')) / d' on a fresh random d'-dim orthonormal subspace Q per
     step (batch covariance is rank-deficient at full D; the subspace keeps the logdet barrier
     meaningful — fresh-slice coverage logic, unseeded like the official SIGReg). A pure function
@@ -65,34 +64,6 @@ class SpectralConditioner(nn.Module):
             cov = S + self.eps * torch.eye(self.d_slice, device=x.device)
             logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum()
             return 0.5 * (cov.diagonal().sum() + mu.square().sum() - self.d_slice - logdet) / self.d_slice
-
-
-class HingeFloor(nn.Module):
-    """E21 one-sided floor (D-049): vicreg's var-hinge generalized to fresh random slices —
-    per slice direction q, relu(1 - std(x @ q)), plus SpectralConditioner's cone term. Population
-    target set: Sigma >= I in the PSD order (every direction's variance >= 1) — a literal
-    floor: one-sided (nothing above it is ever penalized; anisotropy and content scale are
-    FREE), rotation-invariant in distribution (fresh slices — no exploitable gauge, unlike
-    vicreg's per-original-dim hinge). Slice mixing makes rank collapse visible without a cov
-    term: low-rank Sigma spreads direction-variances chi^2-like and the below-1 mass fires
-    the hinge. Diagonal (not eigenvalue) hinge BY CONSTRUCTION: at n/d'=4 the MP eigenvalue
-    spread [.26, 2.18] would give an eigen-hinge a ~10x estimator phantom; the diagonal
-    hinge's is ~.01 (E21 estimator rider). Same slice mechanics and per-forward RNG draw as
-    SpectralConditioner (randn -> QR, d'=128) — per-step RNG streams stay aligned across floor
-    variants. Bounded gradients (no logdet)."""
-
-    def __init__(self, d_slice=128, eps=1e-4):
-        super().__init__()
-        self.d_slice, self.eps = d_slice, eps
-
-    def forward(self, x):
-        with torch.autocast(x.device.type, enabled=False):
-            x = x.reshape(-1, x.size(-1)).float()
-            Q, _ = torch.linalg.qr(torch.randn(x.size(1), self.d_slice, device=x.device))
-            p = x @ Q
-            mu = p.mean(0)
-            std = ((p - mu).square().sum(0) / (p.size(0) - 1) + self.eps).sqrt()
-            return torch.relu(1 - std).mean() + 0.5 * mu.square().sum() / self.d_slice
 
 
 def house_scheduler(optimizer, steps_per_epoch, total_steps, warmup_ep, eta_min):

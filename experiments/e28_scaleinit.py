@@ -36,7 +36,7 @@ decay acts on the ×10 weights, so the pair is what separates learning from deca
 
 SEPARATE BY REQUEST ("do not contaminate the existing codebase"): this file copies the frame
 loop out of experiments/train.py (the realized-share logger is dropped — it is off in this
-lane and consumes no RNG when off) and SUBCLASSES FloorSSL instead of editing it. Nothing
+lane and consumes no RNG when off) and SUBCLASSES LambdaJEPA instead of editing it. Nothing
 under sslgap/ is touched. The diagnostics here are experiment-local by the same request; if
 they are kept they move to sslgap/metrics/ first (D-054).
 
@@ -47,8 +47,11 @@ function of the init scale, both patch_embed variants, + the per-block rank prof
 weight family — why inv is unstable, and which knob buys rank without the attention knife
 edge).
 
-  bash slurm/e28_launch.sh          # init sweep + the 3×8h training chain (each segment
-                                    # re-runs the selftest as its own gate)
+  bash slurm/e28_launch.sh <arm>    # sweep | x10 | lowsweep | x0.1 | x1 (each training
+                                    # segment re-runs the selftest as its own gate)
+
+REOPENED 2026-09-03 (card §Reopened): the ×0.1 / ×1 pair under the reference recipe verbatim,
+to read the h-side effective rank over training against the zoo's 53.9/384 for this lane.
 """
 import csv
 import math
@@ -68,12 +71,13 @@ from torch.utils.data import DataLoader
 
 from sslgap.ckpt.schema import provenance_stamp, save_checkpoint
 from sslgap.data import ViewsDataset, seed_everything, seed_worker
-from sslgap.methods._common import SpectralConditioner
+from sslgap.methods._common import SACReg
 from sslgap.methods.base import Frame
-from sslgap.methods.floorssl import FloorSSL, floorssl_head
+from sslgap.methods.lambdajepa import LambdaJEPA, lambdajepa_head
 from sslgap.metrics.spectra import (covariance_eigs, effective_rank, participation_ratio,
                                     power_law_alpha, rankme)
 from sslgap.models.backbones import build_vit_trunk
+from sslgap.ckpt.schema import load_payload
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # hydra chdir-proof paths
 SCALE = 0.1                       # the intervention: ×10 on the block weight matrices at init
@@ -101,7 +105,7 @@ def e28_projector(in_dim=384, hidden=2048, out_dim=256, norm="bn"):
     timm.layers.LayerNorm(eps=1e-6) as its final norm; build_modules asserts the module it
     moves is exactly that, so this rebuild is faithful rather than merely similar."""
     return nn.Sequential(timm.layers.LayerNorm(in_dim, eps=1e-6),
-                         *floorssl_head(in_dim, hidden, out_dim, norm=norm))
+                         *lambdajepa_head(in_dim, hidden, out_dim, norm=norm))
 
 
 def _affine(n):
@@ -152,7 +156,7 @@ class SpectatorConditioner(nn.Module):
     that the per-step RNG stream stays aligned with the h-treated arms (the D-063 zonly
     convention). Reading h unnormalized at ×10 makes that spectator a crash: on step 1 the
     ring is empty, so the estimator sees n = d' = 128 and its centered slice covariance is
-    structurally singular; SpectralConditioner's ridge is an ABSOLUTE eps=1e-4, which is ~3e-4
+    structurally singular; SACReg's ridge is an ABSOLUTE eps=1e-4, which is ~3e-4
     relative to h's eigenvalues at ×1 (Cholesky survives) but ~1e-8 at ×10 — below fp32
     resolution, so `linalg.cholesky` raises. Measured: h@×1 n=128 → 0.720; h@×10 n=128 → FAIL,
     n=256 → 4405; z (rms .098, the scale LN pins) → finite at every ring size.
@@ -163,7 +167,7 @@ class SpectatorConditioner(nn.Module):
     every gradient and the RNG stream are the reference lane's, and h's geometry is measured
     far better by the per-epoch spectra than by a KL this would have logged.
 
-    NOT a fix to SpectralConditioner: that estimator's absolute ridge is simply not scale-free,
+    NOT a fix to SACReg: that estimator's absolute ridge is simply not scale-free,
     which matters the moment anyone conditions on an unnormalized tap. Reported, not patched."""
 
     def __init__(self, ref):
@@ -177,7 +181,7 @@ class SpectatorConditioner(nn.Module):
             return x.new_zeros(())
 
 
-class E28FloorSSL(FloorSSL):
+class E28LambdaJEPA(LambdaJEPA):
     """floorssl with h read pre-norm and the block weights ×scale at init. The loss, the aug,
     the doses, the optimizer and the step are inherited untouched: `cls` inside training_step
     is now the unnormalized h (it feeds the zero-weighted h-conditioner and the detached probe
@@ -473,7 +477,7 @@ def guard_cfg(cfg, ref_path, allow=()):
     `e28.*` namespace, and any key the run DECLARES it is changing via `+e28.allow=[...]`.
     The declaration is the point — an intended deviation gets named and printed, an
     unintended one still kills the job."""
-    ref = torch.load(ref_path, map_location="cpu", weights_only=False, mmap=True)["cfg"]
+    ref = load_payload(ref_path, map_location="cpu", mmap=True)["cfg"]
     a, b = _flat(ref), _flat(OmegaConf.to_container(cfg, resolve=True))
     diff = {k: (a.get(k, "<absent>"), b.get(k, "<absent>"))
             for k in set(a) | set(b) if a.get(k, "<absent>") != b.get(k, "<absent>")}
@@ -489,10 +493,12 @@ def guard_cfg(cfg, ref_path, allow=()):
                     f"e28.allow may differ): {bad}"
 
 
-def selftest(cfg, frame, select="all", hold=False):
-    """Gates every launch. §1 the relocation is numerically a no-op for z at ordinary init;
-    §2 the ×10 hits exactly the intended weight matrices and nothing else; §3 the scaled model
-    is trainable (finite loss/grads/step) and h is genuinely unnormalized."""
+def selftest(cfg, frame, select="all", hold=False, scale=SCALE):
+    """Gates every launch, at the RUN'S OWN scale (`+e28.scale`; until the 2026-09-03
+    reopening it always tested ×10, i.e. did not gate the arm it preceded). §1 the relocation
+    is numerically a no-op for z at ordinary init; §2 the ×scale hits exactly the intended
+    weight matrices and nothing else (at scale 1 — the reopening's ×1 arm — nothing at all);
+    §3 the scaled model is trainable (finite loss/grads/step) and h is genuinely unnormalized."""
     dev = frame.device
 
     def build(cls, **kw):
@@ -500,9 +506,9 @@ def selftest(cfg, frame, select="all", hold=False):
         m = cls(cfg.method, frame, **kw)
         return m, m.build_modules().to(dev)
 
-    _, ref = build(FloorSSL)
-    _, new = build(E28FloorSSL, scale=1.0)
-    ten_m, ten = build(E28FloorSSL, scale=SCALE, select=select, hold=hold)
+    _, ref = build(LambdaJEPA)
+    _, new = build(E28LambdaJEPA, scale=1.0)
+    ten_m, ten = build(E28LambdaJEPA, scale=scale, select=select, hold=hold)
     for mods in (ref, new, ten):
         for m in mods.values():
             m.eval()
@@ -544,28 +550,30 @@ def selftest(cfg, frame, select="all", hold=False):
     assert not torch.allclose(ln(h_new), h_new, atol=1e-3), "h is not actually unnormalized"
 
     # §2 scaling audit ---------------------------------------------------------------------------
-    print("\n[selftest] §2 ×%g scaling audit (selector %r)" % (SCALE, select))
+    print("\n[selftest] §2 ×%g scaling audit (selector %r)" % (scale, select))
     p1, p10 = npar, dict(ten["backbone"].named_parameters())
     hit = set(ten_m.scaled_names)
-    assert hit == {n for n, _ in p1.items() if SELECTORS[select](n)}, "selector mismatch"
-    if select == "all":                       # the arm: 4 families × 12 blocks + patch_embed
+    want = {n for n, _ in p1.items() if SELECTORS[select](n)} if scale != 1.0 else set()
+    assert hit == want, "selector mismatch"
+    if select == "all" and scale != 1.0:      # the arm: 4 families × 12 blocks + patch_embed
         assert len(hit) == 4 * len(ten["backbone"].blocks) + 1 == 49, len(hit)
     for n in p1:
         if n in hit:
-            assert torch.equal(p10[n], p1[n] * SCALE), f"{n} not exactly ×{SCALE}"
+            assert torch.equal(p10[n], p1[n] * scale), f"{n} not exactly ×{scale}"
         else:
             assert torch.equal(p10[n], p1[n]), f"{n} MUST NOT be scaled"
     for (n, a), (_, b) in zip(new["projector"].named_parameters(),
                               ten["projector"].named_parameters()):
         assert torch.equal(a, b), f"projector.{n} MUST NOT be scaled"
     fams = sorted({n.split(".", 2)[2] if n.startswith("blocks.") else n for n in hit})
-    print(f"       scaled {len(hit)} tensors, families: {fams}")
+    print(f"       scaled {len(hit)} tensors, families: {fams}"
+          + ("  (scale 1: the build is the reference lane bit-for-bit)" if not hit else ""))
     print("       untouched: " + ", ".join(sorted(
         {"block LayerNorm" if ".norm" in n else "bias" if n.endswith("bias") else n.split(".")[0]
          for n in p1 if n not in hit})) + ", projector (incl. the moved final LN)")
 
     # §3 the scaled model is trainable ------------------------------------------------------------
-    print("\n[selftest] §3 ×%g health" % SCALE)
+    print("\n[selftest] §3 ×%g health" % scale)
     with torch.no_grad():
         h10 = ten["backbone"].forward_features(x)[:, 0]
         z10 = ten["projector"](h10)
@@ -582,7 +590,7 @@ def selftest(cfg, frame, select="all", hold=False):
         xb = torch.randn(128, 3, frame.img_size, frame.img_size, device=dev)
         hb = ten["backbone"].forward_features(xb)[:, 0]
         zb = ten["projector"](hb)
-    stock = SpectralConditioner(d_slice=128, d_draw=128).to(dev)
+    stock = SACReg(d_slice=128, d_draw=128).to(dev)
     try:
         with torch.no_grad():
             stock_h = f"{float(stock(hb)):.1f}"
@@ -590,7 +598,7 @@ def selftest(cfg, frame, select="all", hold=False):
         stock_h = f"RAISES {type(e).__name__}"
     with torch.no_grad():
         reg_z, reg_h = float(ten_m.cond_z(zb)), float(ten_m.cond_h(hb))
-    print(f"       stock SpectralConditioner on unnormalized h (rms {hb.std():.1f}): {stock_h}")
+    print(f"       stock SACReg on unnormalized h (rms {hb.std():.1f}): {stock_h}")
     print(f"       cond_z (the objective's term, z rms {zb.std():.4f}): {reg_z:.4f}   "
           f"cond_h (spectator, h_lamb=0): {reg_h:.1f}")
     assert math.isfinite(reg_z) and reg_h == 0.0
@@ -635,7 +643,7 @@ def selftest(cfg, frame, select="all", hold=False):
 
 
 SWEEP_SCALES = (1.0, 1.5, 2.0, 3.0, 5.0, 10.0, 20.0, 50.0, 100.0)
-DEPTH_SCALES = (1.0, 3.0, 10.0, 100.0)
+DEPTH_SCALES = (0.1, 1.0, 3.0, 10.0, 100.0)    # 0.1 added 2026-09-03 (the reopening)
 
 
 def init_sweep(cfg, frame, loader, scales=SWEEP_SCALES):
@@ -655,7 +663,7 @@ def init_sweep(cfg, frame, loader, scales=SWEEP_SCALES):
             if scale == 1.0 and sel != "all":
                 continue                                  # ×1 is the same model either way
             seed_everything(cfg.seed)
-            mods = E28FloorSSL(cfg.method, frame, scale=scale,
+            mods = E28LambdaJEPA(cfg.method, frame, scale=scale,
                                select=sel).build_modules().to(frame.device)
             feats = measure_spaces(mods, loader, frame.device)
             rows = []
@@ -670,7 +678,7 @@ def init_sweep(cfg, frame, loader, scales=SWEEP_SCALES):
 
     for scale in (s for s in DEPTH_SCALES if s in set(scales)):
         seed_everything(cfg.seed)
-        mods = E28FloorSSL(cfg.method, frame, scale=scale).build_modules().to(frame.device)
+        mods = E28LambdaJEPA(cfg.method, frame, scale=scale).build_modules().to(frame.device)
         trunk = mods["backbone"].eval()
         nb = len(trunk.blocks)
         cls = [[] for _ in range(nb)]
@@ -718,7 +726,7 @@ def view_sweep(cfg, frame, loader, scales=(1.0, 2.0, 3.0, 5.0, 10.0, 20.0)):
     from sslgap.metrics.orbit_energy import orbit_energies
 
     seed_everything(cfg.seed)
-    ds = E28FloorSSL(cfg.method, frame, scale=1.0).build_train_dataset()
+    ds = E28LambdaJEPA(cfg.method, frame, scale=1.0).build_train_dataset()
     vx = next(iter(DataLoader(ds, batch_size=256, shuffle=True, num_workers=8,
                               generator=torch.Generator().manual_seed(0))))[0]
     for scale in scales:
@@ -726,7 +734,7 @@ def view_sweep(cfg, frame, loader, scales=(1.0, 2.0, 3.0, 5.0, 10.0, 20.0)):
             if scale == 1.0 and fam != "all":
                 continue
             seed_everything(cfg.seed)
-            mods = E28FloorSSL(cfg.method, frame, scale=scale,
+            mods = E28LambdaJEPA(cfg.method, frame, scale=scale,
                                select=fam).build_modules().to(frame.device)
             for m in mods.values():
                 m.eval()
@@ -764,7 +772,7 @@ def gauge_probe(cfg, frame, loader):
         if not os.path.exists(path):
             continue
         seed_everything(cfg.seed)
-        mods = E28FloorSSL(cfg.method, frame, scale=scale).build_modules()
+        mods = E28LambdaJEPA(cfg.method, frame, scale=scale).build_modules()
         sd = torch.load(path, map_location="cpu", weights_only=False)["modules"]
         if "norm.weight" in sd["backbone"]:                       # a stock ×1 checkpoint
             proj = {f"{int(k.split('.')[0]) + 1}.{k.split('.', 1)[1]}": v
@@ -805,7 +813,7 @@ def dose_probe(cfg, frame):
     the re-dose w_k = s*_k·T*/g_k that would put the ×10 lane on the ×1 lane's profile.
     """
     seed_everything(cfg.seed)
-    ds = E28FloorSSL(cfg.method, frame, scale=1.0).build_train_dataset()
+    ds = E28LambdaJEPA(cfg.method, frame, scale=1.0).build_train_dataset()
     dl = DataLoader(ds, batch_size=cfg.bs, shuffle=True, num_workers=8,
                     generator=torch.Generator().manual_seed(0))
     batches = [b[0] for b, _ in zip(dl, range(5))]          # 4 to warm the rings + 1 to measure
@@ -816,10 +824,10 @@ def dose_probe(cfg, frame):
     rows = []
     for tag, scale, ckpt in cells:
         seed_everything(cfg.seed)
-        method = E28FloorSSL(cfg.method, frame, scale=scale)
+        method = E28LambdaJEPA(cfg.method, frame, scale=scale)
         mods = method.build_modules()
         if ckpt and os.path.exists(os.path.join(ROOT, ckpt)):
-            pay = torch.load(os.path.join(ROOT, ckpt), map_location="cpu", weights_only=False)
+            pay = load_payload(os.path.join(ROOT, ckpt), map_location="cpu")
             sd = pay["modules"]
             if "norm.weight" in sd["backbone"]:                    # the stock ×1 checkpoints
                 proj = {f"{int(k.split('.')[0]) + 1}.{k.split('.', 1)[1]}": v
@@ -875,7 +883,7 @@ def control_diagnostics(cfg, frame, loader):
     the relocation changes nothing else."""
     seed_everything(cfg.seed)
     theta0 = {k: v.detach().clone()
-              for k, v in flat_params(E28FloorSSL(cfg.method, frame,
+              for k, v in flat_params(E28LambdaJEPA(cfg.method, frame,
                                                   scale=1.0).build_modules()).items()}
     groups = param_groups_map(list(theta0), 12)
     theta0 = {k: v.to(frame.device) for k, v in theta0.items()}
@@ -885,7 +893,7 @@ def control_diagnostics(cfg, frame, loader):
             print(f"[e28] control ep{ep}: {path} absent — skipped", flush=True)
             continue
         seed_everything(cfg.seed)
-        mods = E28FloorSSL(cfg.method, frame, scale=1.0).build_modules()
+        mods = E28LambdaJEPA(cfg.method, frame, scale=1.0).build_modules()
         if ep:
             sd = torch.load(path, map_location="cpu", weights_only=False)["modules"]
             proj = {f"{int(k.split('.')[0]) + 1}.{k.split('.', 1)[1]}": v
@@ -915,7 +923,8 @@ def main(cfg: DictConfig):
     os.makedirs(OUT, exist_ok=True)
     select = e28.get("select", "all")
     if mode == "selftest":
-        return selftest(cfg, frame, select, bool(e28.get("hold", False)))
+        return selftest(cfg, frame, select, bool(e28.get("hold", False)),
+                        float(e28.get("scale", SCALE)))
 
     run_id = f"{frame.name}.{cfg.method.name}.s{cfg.seed}" + (f".{cfg.tag}" if cfg.tag else "")
     out_dir = os.path.expanduser(cfg.out_dir)
@@ -923,7 +932,7 @@ def main(cfg: DictConfig):
     last_path = f"{ckpt_base}_last.pt"
 
     seed_everything(cfg.seed)
-    method = E28FloorSSL(cfg.method, frame, scale=float(e28.get("scale", SCALE)),
+    method = E28LambdaJEPA(cfg.method, frame, scale=float(e28.get("scale", SCALE)),
                          select=select, hold=bool(e28.get("hold", False)))
     modules = method.build_modules().to(frame.device)
     probe = nn.Sequential(nn.LayerNorm(method.probe_dim()),
@@ -991,7 +1000,7 @@ def main(cfg: DictConfig):
 
     start_ep, best_acc, wandb_id = 0, 0.0, None
     if cfg.resume and os.path.exists(last_path):
-        pay = torch.load(last_path, map_location=frame.device, weights_only=False)
+        pay = load_payload(last_path, map_location=frame.device)
         saved_arch = {k: v for k, v in pay["arch"].items() if k != "probe"}
         assert saved_arch == method.arch(), (
             f"resume refused: {last_path} was trained with a different architecture. Delete the "

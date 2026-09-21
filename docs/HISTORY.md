@@ -849,3 +849,257 @@ hung twospace 4h → max_tap_d cap. Faithfulness incidents on record: "e27lmc do
 off the plan while wandb read ep87 (Berker caught it; artifact-check-before-claiming now
 the standing rule), plus the --wrap/sh-source and doubled-path submit failures — all
 repaired same-day, all landings re-verified from disk.
+
+## 2026-08-25 .. 08-31 — the 400 round: launch, trim, and the compute-fairness turn
+
+- D-103 400-round launched 08-25 (six cells + four 100-ep twins + two pilots; dose law
+  w = 57·τ_win/g^ep1). Same-day ENOSPC burned the v6b400 chain mid-launch (group fs hit
+  100%; the purge freed 391G — docs/PURGE_2026-08-25.md); relaunched, ~2 epochs lost.
+- 08-26..30 (recorded from the interim handovers): D-104 dino re-dose resolved (e20fwlo
+  the winner) and D-105 visreg pair into zoo+exhibits; the e31 shape/scale split ran at
+  IN-100; the OK-AI 12-run transfer block self-run; e27v6b100 landed and swept every B
+  readout (bench 74.15 / kNN 64.28 / transfer 80.9); the SWA-twin question closed (0.00
+  at B); four assistant errors recorded verbatim in that handover.
+- 08-31 (one session): all four twins confirmed finished. Curve forensics across the
+  grid: every 400-cell's matched-epoch lag is the cosine phase (phase-matched leads
+  positive everywhere); v6b100 terminal slope +0.111pp/ep = undertrained; the small B→L
+  delta traced to step starvation (L bs512 = 2,502 steps/ep vs B 10,009 at unscaled lr).
+  Berker trimmed the round (D-106: sbetl400/Ls5btl400/Ls5b400 killed at ep188/161/160;
+  P-m-3's 400-tail forfeited to the twins' null). The OK-AI compute ledger was verified
+  from their lite_ssl code (teacher forwards globals only → 8g+18l/sample; our swa=ema
+  twin forwards all views → v6 = 24g = ×2.13, scale-invariant) and the compute-fairness
+  program adopted: compute column + acc-vs-FLOPs exhibit; okdinob300/okibotb300 benches
+  launched (first attempt died on a missing pubvit adapter arg — relaunched). Paper:
+  Ours-B → v6b100 in both tables, OK-AI self-run transfer rows, I-JEPA cite 79.3
+  (verified from their Table 1), data2vec bench row dropped (no published LP number).
+  e31 closed with the slice-dilution finding (a random 128-slice reports ~27% of the
+  full-space shape residual, ×3.7–5.1; full-slice satisfies full-space logdet at matched
+  pull; the v6/ring lanes already close the OK-AI rank gap at h). E32 defined AND agreed
+  same-day (cloud vs image spread: the aug-quiet core, D-110). The v6s pair (D-107,
+  ×2.15 declared) and v6Llr pair (D-109, lr=4e-3 path-match) pre-registered with
+  committed predictions, then piloted. Rulings: no seeds (field-consistent); IN-100
+  probe convention kept; the D-093 16-H100 cap noted as previously disabled (31 peak in
+  the scaling round). ADE20k fetched for the conditional seg run (D-108.5).
+
+## 2026-08-31 (afternoon) .. 09-01 — chains formed, E33, the coverage sweep, tables consolidated
+
+- The four new chains (v6s pair on v10u-τ; v6Llr pair on the D-111 winner-share re-dose)
+  launched 08-31 afternoon, reproduced their intended doses exactly at ep0, and all
+  passed the ep2 quench gate (wandb moment-KL VALUE .20–.26 vs the .1 kill line;
+  h-moment real). S settle locked at ~.64/.35 by ep3, pair members overlaying; L-lr pair
+  hovers inv-heavy (.77–.84). Formation watchers closed by Berker ("they kickstarted
+  correctly"). On the step axis the L-lr pair walks B's per-step path slightly ahead
+  (.454 @47.5k steps vs v6b100 .394 @50k) — the epoch-axis probe lag is schedule phase,
+  not sickness. Corrected ETA: v6Llr400 ~09-17 at the measured ~1h/ep (loader-bound).
+- E33 (rich vs lazy) built and landed in one day: linear-CKA + empirical-NTK machinery
+  (sslgap/metrics/cka.py, sslgap/extract/ntk.py, experiments/feature_drift.py); init
+  convention settled by TEST (from_native random-init bit-exact vs the trainer build;
+  cross-checked vs the stored null store). Berker ruled IN-100 primary (in1k pair
+  canceled pre-launch). RAW: both cells far from lazy (final 1−CKA .87/.89, NTK-align
+  .56/.53); the comparative "richer than baseline" does NOT hold (baseline drifts
+  slightly further), but the floored kernel keeps moving late (successive alignment
+  .98–.99 vs .9993+; ‖K‖ 8k→21.6k vs flat ~466). Figure re-cut to vm4-only on Berker's
+  call. AGREED wording pending.
+- Seg ruled IN (09-01) after the port validated on printed rows (DINO-B-400 30.39 vs
+  29.40; VISReg-B-400 31.36 vs 30.16 — port reads ~+1). The coverage sweep ran 15 jobs
+  in the day, zero reruns: seg for the OK-AI six (B trio 31.79/31.93/38.58, S trio
+  25.84/26.54/33.64) + officials; transfer for every remaining official — port ≤0.2 vs
+  printed on six ckpts (four exact) — + the carried vm4-S row (75.0). v6b100 seg =
+  28.11 at 100ep. OK-AI's catalog verified exhausted (6 repos, ep100/300 only, no L).
+- Two wall timeouts, both on the crowded gpu238: the v6L100 house probe (closed by the
+  new ruling: in1k landing = bench-only) and the v6L100 bench at ep75 (resumed from its
+  state file on a clean node → final 72.79/64.44 @ep90, still rising — the L-100 row
+  call opened for Berker). seg_visreg.py gained --adapter for the pubvit lifts.
+- Tables consolidated: OK-AI rows grouped with midrules in all three tables (Berker's
+  ruling) and the ep300 cells completed on his catch (S 66.4/73.8/75.2, B 72.4/75.2/
+  78.6); the seg table rebuilt to auto-fill. The D-106.3 compute column was built,
+  landed, then REMOVED same-day (D-112: no-sota framing + the OK-AI data confound —
+  their cards state 1.43–1.45M images ≈ all IN-1k splits); OK-AI rows retained
+  eyes-open as the only epoch-matched S+B family. Their "DINO" identified as a
+  modernized hybrid (DiNO+KoLeo, DINOv2 ViT-v2 backbone/optimizer, no registers) —
+  methods-text sentence owed. Four stray dead-session watcher notifications verified
+  and neutralized across the two days.
+
+## 2026-09-03 (evening) → 09-04 — the video speed-up, a stray session, the toy purge, and the v6s100 tail-storm incident (Fable)
+
+- **The video cell was measured, not tuned (Berker: "dont microoptimize ... workarounds that would materially
+  improve").** The first E34 cell (64312322, 2 × 4 H100, clip files on BeeGFS) ran 53 s per optimizer step. Measured
+  (scratch/video/e34_*.py, outputs/e34*): BeeGFS gives each CLIENT NODE ~35 whole-file (5 MB) or ~60–80 span (1.2 MB)
+  reads/s at ~100 ms per request, scaling with nodes (three nodes at once: ~80 each); one clip costs a core 0.30 s of
+  read latency, 0.02 s of JPEG decode, 0.017 s for six crops and 0.38 s of photometric ops; an H100 needs 0.28 s per
+  96-clip micro-batch; nvjpeg 0.04 s. NFS is no faster per node (cold 1.2 MB windows 84 vs 52–69 files/s at 64
+  readers), so the data stays on BeeGFS. The H100 nodes carry an 879 GB NVMe root (/tmp, 678 GB free) and a 28 TB
+  /mnt/GPU100localdata that locatgrp cannot write; local staging was NOT pursued (Berker: no IT request now).
+- **Second launch (D-record on the E34 card):** exact batched GPU photometrics (`video/levjepa/data/gpu_views.py`,
+  every op 0.000/255 against torchvision; declared deviation: no uint8 rounding between ops), the span read in the
+  clip-file loader, an `augmentation.photometrics_on_gpu` switch, checkpoints pinned under the BeeGFS run dir
+  (stable-pretraining had redirected the first cell's to ~/.cache). First cell cancelled after epoch 6; run
+  `vid.floorssl.s0.k710s2` as job 64377149 (2 × 4 on the freed gpu273/277, 20:02): epochs of 8–12 min instead of 34
+  (≈ 3×), landing ≈ 09-05 midday. The 8 × 1 shape (job 64377150, eight BeeGFS clients, resume-capable) is chained
+  `afterany` behind it: the gpu100 QOS caps a user at 31 GPUs and the fleet's 16 + 8 leave no room for 8 more while
+  the 2 × 4 runs; a switch = cancel the 2 × 4 at an epoch boundary when the pool has eight free nodes (a watcher
+  alerts) and needs Berker's word each time.
+- **Video H stream (RAW):** shares moved to ~.82–.88 inv / .12–.17 Z / .00x H; kl_z .13 falling; the H stream's
+  whitened trace fell .21 → .04 while kl_h rose 1.57 → 1.89 (per-step medians, epochs 21–59). Step-matched against
+  ImageNet v6s100 (kl_h 1.43 at 3k updates, flat/oscillating 0–5k, .85 by 20k, .46 at 50k, .52 at 100–150k, .28 at
+  800k+) the absolute values are close early; the direction differs. The realized H share matches by the dose law
+  (.003–.007 on both). A re-dosed cell (w_h ×2–×7 by the share law) was proposed as the comparison arm on the 8 × 1
+  lane; Berker raised it and has not decided. Peek on the epoch-89 EMA weights: frozen attentive probe on a 64k-image
+  ImageNet subset, 5 epochs (job 64433768; two evaluator first-run bugs: `scripts/attentive_probe.py` needs
+  PYTHONPATH=video/levjepa, and its validation forward under DDP lacks no_grad → run single-process).
+- **A second Claude session relaunched E28 (19:28) after Berker had ruled E28 done; he killed it. All e28 jobs
+  cancelled.** The E28 card's last rows (19:3x) are that session's. gpu274 ran a benchmark 3–9× slow on 09-03 and is
+  excluded from the fleet successors and the video shapes (Berker's word).
+- **Toy checkpoints purged** (Berker: "you can dump toy checkpoints"): 525 files, 155 GB, `docs/PURGE_2026-09-03.md`;
+  group filesystem 308 → 463 GB free. Purge candidates for the rest are in the 09-04 report (memory).
+- **INCIDENT — e27v6s100's tail storm (D-115).** 02:09 on 09-04 the landing segment (gpu271) printed its first clipped
+  gradient burst at step 849,724 (epoch 85, lr 6e-5); 291 by 10:55 with pre-clip norms to 6e7. The online probe never
+  dropped (ep85–93: .6532 → .6560, new bests at 91 and 93), but the per-step samples (wandb) show burst steps where the
+  FORWARD explodes (inv to 7e5, loss to 2e7) and the typical loss drifting 34.5 → 39.5. Berker called it a health
+  issue and asked for a checkpoint roll-back. Cause, read from `_ep75.pt` vs the storm state: the projector's two
+  pre-BatchNorm weights shrank in norm 44.7 → 32.0 and 104.5 → 78.4 under `mlp_wd` .05 while the second BN's input
+  running variance collapsed 11× (1.9e-2 → 1.7e-3); a layer feeding a BatchNorm is scale-invariant, so weight decay
+  shrinks it unopposed and its effective lr rises as the nominal lr vanishes, and BatchNorm re-amplifies the collapsed
+  signal on 64-per-GPU batches. v6b100, v6L100 and v6Llr100 never burst. Actions: `_last.pt` ← `_ep75.pt` (epoch
+  index 74, full state), storm files kept as `*_storm_ep92.pt`, the chain resumed as segment 64435570 (gpu266,
+  11:12) with `method.mlp_wd=0` — a no-op on the function at the resume point; `train_ddp.py` now re-applies the
+  config's per-group weight decay after `opt.load_state_dict` (the checkpoint's hyperparameters otherwise win
+  silently) and prints the groups (`[0.05, 0, 1e-07]` confirmed). Rejected: SyncBN (driver untouched), BN eps
+  floor (changes every unit's gain at resume). Landing moves to ≈ 09-05 midday.
+- **Lessons.** (1) The INCIDENT trigger's running mean is inflated by the spikes it counts; read typical steps from the
+  per-step record. (2) An online probe can rise through an objective drift; the loss medians are the health read.
+  (3) Weight decay on scale-invariant (pre-BN) layers is an effective-lr schedule that RISES at the end of a cosine —
+  a training-hygiene item for the head. (4) `optimizer.load_state_dict` restores param-group hyperparameters:
+  config overrides at resume must be re-applied (now done). (5) Node correlation is not a mechanism: both gpu271
+  runs burst, but the run-side read held and the node hypothesis did not. (6) Short loader smokes timed fewer
+  clips than the prefetch depth and were not throughput numbers. (7) Watchers every 10 min during a storm are
+  noise; Berker cancelled the fleet watcher.
+
+**2026-09-04 late evening (append).** v6Llr100 landed at .6976 (P-v6Llr-2 refuted; Berker concluded the large-lr experiment a
+failure; v6Llr400 cancelled at ep98). v6s100 wd0 read per step (tables `results/diag/v6s100_wd0_*.txt`): typical step flat then a slow
+rise (median 33 → 38 by epoch 88), rare spikes thickening (~15–26 above 4,000 per epoch), z moment-KL never above 0.16 at any
+burst — Berker's breakage indicator (a z moment-KL spike) is clean; the storm in the original read p99 1.5 → 43 with ~1,200 steps
+above 0.3 per epoch. Checkpoint copies: one verified clean copy kept per run (Berker: no wasted space; monitors hourly). **v6b400's
+own tail storm opened at epoch 264** (25 bursts, probe stalled) with the same pre-BN weight-decay driver; on Berker's word the D-115
+fix was applied at once: roll back to the epoch-261 best, `mlp_wd=0`, fresh wandb run — segment 64588207, pending on priority.
+Video: the 48-worker takeover of S cost an hour of relaunches for ~18 % faster epochs (BeeGFS-bound); S and B together starve each
+other on BeeGFS (S epochs 681 → 1,790 s) — B cancelled and requeued behind S (one video cell at a time). Offline K710 probe on S's
+epochs 0–30 queued (64570046 / 64578059) for the epoch-matched comparison with the killed second launch.
+
+**2026-09-05 morning (append).** v6s100 landed clean at 10:45 (final online .6734; 236 clipped bursts over the wd0 segment, z moment-KL
+never above 0.16, BatchNorm variances recovered) — the D-115 roll-back held to the end; its landing eval chain (extract/bench/transfer/
+seg, the v6b100 recipe) launched on Berker's word. v6b400's fixed segment (D-116) started 09:06 on gpu266 after a gpu271 prolog failure
+left it held (lesson: `scontrol release` after any launch failure); first epoch clean (0 bursts). Berker's monitor rules: one quiet
+hourly watcher, no verbose start/node chatter. Video S: epoch ~95, 475–555 s per epoch, online K710 probe 16.8–19.3 %; the offline
+probe copy runs on a 3090 node (no measurable slowdown of S).
+
+## 2026-09-06 — v6b400's second storm and the guard (D-117); the video ViT-S lands and reads 47.2 on the IN-1k attentive probe
+
+- **v6b400 under wd=0 stormed again at epoch 284** (twenty epochs after the D-115 roll-back): the per-step rows showed a different
+  mechanism from v6s100's — outlier batches (invariance loss 3 → 96 → 3,588) spiking the gradient, the z ring carrying the outlier z for
+  three more steps (z moment-KL excursions in runs of exactly four), the h stream flat, the projector's BatchNorm variances large; the
+  projector's pre-BN norms had grown 4.3 %/epoch without weight decay. Berker: "diagnose then fix and replace" → rolled back to the
+  pre-onset epoch-283 copy (protected the night before) and resumed with the outlier-batch skip guard (config-gated in train_ddp.py);
+  skips fell 80 → 3 per epoch within five epochs, no z-KL excursion since, probe .7126 at ep290. Read: the knob has no good setting
+  (wd 0.05 = thinning/collapse, wd 0 = growth/outliers, 1e-4 ≈ 0) — the Linear → BatchNorm projector block is the wall; block-level
+  options recorded for new cells. Rolling clean copies now require a z-KL-clean epoch as well.
+- **v6s100 landed clean** (final online .6734) and swept its landing chain: bench 69.7 / kNN 59.2, transfer 77.6 (v6b100: 74.2 / 64.3 /
+  80.9), seg queued; the tables in main.tex regenerated (S-100 rows; the generator's L-100 fill reverted pending Berker's call).
+- **Video ViT-S landed** (240 epochs; final online K710 probe 24.8 %) and its IN-1k attentive probe (student weights, 4 × 1 H100, batch 64)
+  read **47.23** at epoch 20 against LeVJEPA ViT-S 39.4 / V-JEPA 2 38.7 (pixel reads) — RAW, with the batch note; P3 proper needs the
+  z-only twin; the EMA read runs. The probe port had dropped V-JEPA's output projection (found via a DDP hang; fixed, PORT_NOTES).
+- Lessons (Berker): never touch a healthy run without his word (the 48-worker takeover cost an hour for 18 %); one video cell at a time
+  on BeeGFS; quiet hourly watchers; release SLURM-held jobs after launch failures; keep one verified clean checkpoint copy, not many.
+- **Afternoon session (15:00 →, Fable): the hourly watcher re-armed** — one quiet Monitor (v6b400 per-epoch probe / skip / z-KL / projector read
+  with the verified clean copy, v6s400 and lm4sbe400 probe lines, the EMA probe and seg endings, the video B cell), report-only; the copy rule
+  keeps one verified copy and superseded copies are removed by hand (the sandbox refuses a watcher that deletes). v6b400 guarded epochs
+  284–292: skips 80 → 3–8 per epoch, no z-KL step > 0.3 since epoch 285, probe .7125, projector norms still +1.2 % per epoch under wd 0
+  (E27 card; `results/diag/v6b400_wd0g_epoch_tail.txt`).
+- **The video eval audited against V-JEPA's evaluator** (E34 card §fairness audit; PORT_NOTES): classifier, schedules, augmentations and
+  input match; the probe's optimization does not — 16× the head updates (batch 64 vs 1,024) and no gradient clipping (the donor clips at 1.0),
+  plus a differently initialized head; V-JEPA reads its EMA target, LeVJEPA's convention is unstated. Berker's ruling: the probe batch is not a
+  confound → D-118 withdrawn the same hour; the remaining recipe differences are on the pretraining side (4× the optimizer steps at batch
+  768, ≈2.1× the encoder FLOPs per epoch from six global views, our own 20 % draw, clipping) — his choices, listed on the card. LeVJEPA's grid
+  reports IN-1k only; SSv2 / K400 evaluators are not built (data raw on BeeGFS). The EMA read runs (ep2 30.77 vs the student's 31.21).
+- **Tables in the paper:** the generator holds the L-100 cell at --- by rule (Berker's open call), carries the seg S rows and a new video table
+  (tab:video: cited pixel reads + Ours student / EMA rows, protocol notes in the caption, RAW); main.tex regenerated; main_lean.tex mirrored by
+  hand — its Ours B-100 and L-100 rows still carried the lm4 cells (71.2 / 56.0, 71.8 / 60.8) and are now the v6 values / ---.
+- **ADE20k seg for the OK-AI ep100 checkpoints queued** (Berker: "we need ep100 okai runs so that it will stay comparable (both base and small
+  vits). not urgent but you can queue on gpu partition"): jobs 64695614–19 (dino / ibot teacher, lejepa student; S and B; `--adapter pubvit`,
+  tags `in1k.pub.ok<m><a>100.seg`) on the gpu partition behind seg-v6s100; the seg table carries their rows (--- until landing).
+- **lm4sbe400 stormed and was killed (21:30 → 21:5x, Berker's word).** The LeJEPA-family control at B (wd .05 on the projector) showed the
+  D-115 signature at ep277: 20 bursts in the epoch (norms to 99k), pre-BN norms −30 % since ep200, BN-2 running variance median 4.5e-3 with every
+  channel below 1e-2. Berker: "kill lm4sbe400. we can consider fixing it later. for me b start is the priority right now" — segment and successor
+  cancelled, storm state and roll-back points kept. Also today: the EMA IN-1k read of the video S cell landed at 46.76 (student 47.23), the SSv2
+  and K400 evaluation stores were built, the video probes were ported (D-119), and the B cell was relaunched on 8 × 1 H100 with node-local staging
+  and a 515-epoch chain (LeVJEPA's Table 3 budget), checkpoints 239 / last / best.
+- **09-07 morning:** ADE20k seg landed for v6s100 (22.17) and the six OK-AI ep100 checkpoints (S: LeJEPA 24.22, DINO 25.12, iBOT 30.10; B: 30.60 / 31.12 / 37.87) — tab:seg filled; the video B cell trains on 8 × 1 with staging at 4.5 min per epoch (epoch 150 at 11:30); the S SSv2 / K400 probes run; v6b400's guard skips 60–90 steps per epoch with z-KL excursions at 2–4 skipped steps per epoch, Berker's continue decision pending.
+
+- **09-07 evening, the seg question (Berker: why only segmentation?):** patch-token diagnostic built (`sslgap/metrics/patch.py`, `experiments/patch_diag.py`; RAW on the E27 card): the frozen patch tokens of our cells rank exactly as tab:seg under a training-free patch classifier; ranks, locality and norms are healthy; what is missing is the image-level component in the patches (95 % within-image variance, patches orthogonal to the CLS; the public models carry 13–32 % image-level variance and a CLS component); the IN-100 twin pair attributes the decoupling to the h conditioner (cos(patch, CLS) .59 without it, .13 with it), not to the absent local crops. Also: v6s400 re-shaped to 96 CPUs after Berker's '8.6 days is unacceptable' (first pair died on the broken node gpu277, resubmitted); lm4sbe400 killed; B cell past epoch 240; the S SSv2 read 37.31.
+- **09-08 07:31, v6s400 wd-0 + guard (D-120; USER-DIRECTED):** Berker: "do the wd=0 fix with the guard. make sure we stay in high speed config." The D-115 fix (projector `mlp_wd=0`) with the D-117 skip guard was applied to v6s400 from its running state at ep197 (pre-storm: zero bursts, BN-2 running variance median .096 / min .044, pre-BN norms 66 / 154 / 107 down from 82 / 192 / 118 at ep100) in the fast shape (96 CPUs / 44 workers per rank, 27.5 min/epoch): new singleton segments queued behind the running one, the wd-.05 successor cancelled, the swap helper cancelled the running segment right after its ep197 checkpoint (07:29); 64926249 resumed at epoch index 197 with `weight_decay per group = [0.05, 0, 1e-07]` on a fresh wandb run `.wd0g` (1ay07kmz, from step 1,971,773; config verified: skip ratios 10 / 3, mlp_wd 0). Declared deviation: this cell's projector has wd 0 from ep197 (v6s100 from ep76, v6b400 from ep262). The hourly watcher now reads both guarded chains identically and appends per-epoch lines to `results/diag/<run>_wd0g_epoch_tail.txt`.
+- **09-08 14:38, video B cell landed:** 515 epochs (LeVJEPA's Table 3 budget FLOP-matched to our recipe), job 64747615 COMPLETED after 1 d 14 h 36 min on 8 × 1 H100 with node-local staging (4.4 min/epoch); final online K710 probe 73.24; the three B-row evals (IN-1k attentive, SSv2 attentive, K400 linear-mean; EMA; 8 × 1) queued on the landing per Berker's word (D-119 amendment); insurance segments never ran. Numbers RAW until jointly read.
+- **09-08 15:03, eval shape re-derived (Berker: the shape constraint, not the card count, was the blocker):** the B-row probes asked for one card on each of eight distinct nodes while the free cards sat on five usable nodes; the one-card-per-node shape only served the BeeGFS read cap, void since node-local staging. Launchers made layout-free (8 ranks on any 1–8 nodes, memory per GPU), evals resubmitted (65002280 / 81 / 82); the IN-1k probe started within a minute.
+- **09-08 15:20 → 15:52, the launch shape: two more walls, then a re-derivation (Opus).** The layout-free ask cost six dead submissions in
+  twenty minutes and taught a constraint that is not video-specific. (i) `--gpus-per-task=1` and `--ntasks-per-gpu=1` mask one card per task;
+  NCCL 2.28 then dies between ranks that share a node (`transport/shm.cc:590 Cuda failure 101 'invalid device ordinal'`), and with
+  `--gpu-bind=none` this SLURM hands every task of an H100 node the SAME card (`Duplicate GPU detected`). (ii) The unmasked flexible ask
+  `--gpus=8 --ntasks=8 --nodes=1-8` places tasks by CPU and cards by card, and the two need not agree: the real eval got 4 / 1 / 3 tasks on
+  2 / 1 / 4 cards and `LOCAL_RANK` indexed a card that was not there. It had aligned by luck in the 2-CPU smoke, which is exactly how it passed
+  review. **The rule: for multi-GPU work here, ask for a UNIFORM shape — `--nodes=N --ntasks-per-node=k --gres=gpu:k`.** Tasks then equal cards on
+  every node by construction, a job-level per-node gres leaves all of a node's cards visible to its tasks, `LOCAL_RANK = SLURM_LOCALID` indexes a
+  real device, and NCCL keeps its intra-node transports. It is what every training cell in this project already runs; the flexible node count was
+  invented that afternoon to dodge a scheduling problem and it brought both walls with it. The three B-row evals went out at 15:52 on
+  `--nodes=4 --ntasks-per-node=2 --gres=gpu:2` (65024351 IN-1k / 65024352 SSv2 / 65024353 K400), queued on capacity: only 7 cards were free on the
+  nine nodes our asks may use, so no 8-rank layout places immediately. Also settled that afternoon: **gpu277's eight idle H100s are not capacity** —
+  eight ranks on it all died with CUDA `Error 802: system not yet initialized` (smoke 65024570), so SLURM reporting the node IDLE with no drain
+  reason is why the partition keeps looking emptier than it is. It stays excluded, with gpu274 (slow reads) and gpu271 (prolog failures).
+
+## 2026-09-19 — E38: seed repeats of the IN-100 controlled pairs (Fable)
+
+Berker opened the session with a repeat order: the IN-100 experiment where our regularizer is added
+to existing methods (and the untreated twins) at three seeds each — ours, DINO at its later winner
+coefficient, VICReg, VISReg, SimCLR, LeJEPA, BYOL — "with confidence bars at least for the controlled
+experiment"; then: "we are just repeating the existing experiments. you dont need to adjust
+anything", and: the appendix treatment figure (7 families × 11 quantities vs station, I-JEPA and MAE
+excluded) is what gets recreated with the seeded evals, 28 jobs. He also declared HANDOVER.md stale.
+
+Done: card `docs/experiments/E38_in100_seeds.md` (P1–P5 pre-registered), row D-126 PROPOSED. The 14
+cells are `paper_exhibits.FAMILIES` (Ours = d256vm4 vs d256vm4zonly; "d256proj" does not exist). Every
+recipe was recovered from the seed-0 checkpoint's stored cfg (a CPU job unpickled the 14 archived
+`_ep100.pt` payloads; `scratch/e38/overrides.py` diffed them against today's composed defaults), not
+retyped — which surfaced a discrepancy: the July lanes VICReg, SimCLR and BYOL (control AND treated)
+trained at **bs = 256** while the paper's appendix says 128 for all controlled runs; pairs are matched,
+the sentence needs per-lane batch sizes (Berker's edit). Recipes byte-matched per lane, only `seed=`
+changes (seeds 1, 2; seed 0 = the paper cells). Infrastructure: `slurm/e38_seeds.sbatch` (H100, driver
+gate, gpu277 + gpu274 excluded), `slurm/e38_launch.sh` (smoke / chains / land), readers
+`experiments/e38_seeds.py` (table: mean ± 95 % t-CI, paired delta; bar figure) and
+`experiments/e38_zoo_seeds.py` (the appendix figure with a seed band — reproduces the paper's figure
+exactly at n = 1). Landing per run = extract `.extL` → probes + depth metrics (own CSV per run under
+`results/diag/e38/`) + thickness rows (append serialized by a singleton job name).
+
+Launch: 14 one-epoch smokes at seed 99 — 12 passed in 5–10 min; the two LeJEPA smokes sat on gpu274
+with the GPU at 0 % and every loader worker pegged (the E34 "gpu274 slow" anomaly), were cancelled and
+resubmitted with gpu274 excluded. Lesson: a completed job cannot be an `afterok` target ("Job
+dependency problem") — the verified cells launched ungated. 28 chains of 3 × 8 h H100 links are out
+(ids on the card), landing chains queued behind each. Numbers land RAW; nothing read.
+
+## 2026-09-21 — code names migrated to the paper's (D-127)
+
+The method `floorssl` is `lambdajepa` (class `LambdaJEPA`, `sslgap/methods/lambdajepa.py`,
+`method/lambdajepa.yaml`), the regularizer `SpectralConditioner` is `SACReg`, the zoo hook
+`h_reg=moment` is `h_reg=sacreg`; the video fork's loss key `sslgap` is `lambdajepa`. Historical run
+ids, checkpoints, stores, result CSVs and cards keep their strings; pre-rename checkpoints load through
+`sslgap/ckpt/schema.py:modernize` (method, arch class paths, stored cfg). Lesson: a vocabulary break the
+glossary records but the code does not execute (D-083's `spectral`) is no break — the names in the
+paper, the code and the glossary must be the same string. The anonymized code supplement
+(`supplement/build.py`) had applied the same mapping at package time since 2026-09-21 morning. Verification: compile of every module; `METHODS` registry; Hydra composition; CPU load of three
+pre-rename checkpoints (`in100.floorssl.s0.d256vm4_ep100`, `in100.simclr.s0.e20f_ep100`,
+`in100.lejepa.s0.e20f_ep100`) through `load_payload` with module rebuild + state load; selftest job
+66429387 (ALL PASS); 1-epoch IN-100 smoke `method=lambdajepa` job 66430003 (COMPLETED, ep1 probe .0358,
+new arch stamps `sslgap.methods.lambdajepa.lambdajepa_head`); artifacts deleted. One miss caught by the
+smoke: the renamed method config still said `name: floorssl` (the rewrite rules matched the quoted Python
+literal, not the YAML value) — fixed; the first smoke (66429388) failed on that `KeyError`.
+Follow-up the same day (Berker: "yes please do remove"): the dead E12/E21 variants `DiagSACReg`
+(`h_reg=moment_diag`), `SpectralFloor` (`h_reg=spec_floor`) and `HingeFloor` (`z_floor=hinge`) removed
+with their branches, `H_KEYS` entries and the `z_floor` config key; no paper cell ever used them. Selftest
+job 66439361 ALL PASS.

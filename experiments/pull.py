@@ -56,6 +56,7 @@ from sslgap.data import seed_everything
 from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
 from sslgap.paths import DIAG
+from sslgap.ckpt.schema import load_payload
 
 OUT = DIAG / "pull.csv"
 BS = 128          # house convention; shares are ratios, so this is fixed, not tuned
@@ -67,7 +68,7 @@ def _to_dev(x, dev):
 
 
 def measure(label, ck_path, state, nb, want_cos, overrides=None, dev="cuda"):
-    base = torch.load(ck_path, map_location="cpu", weights_only=False)
+    base = load_payload(ck_path, map_location="cpu")
     mcfg = dict(base["cfg"]["method"])
     for k, v in (overrides or {}).items():
         try:
@@ -168,7 +169,7 @@ def main():
     # guard's own policy ("write to a new path — never append mismatched rows"), each
     # method gets its own stable-schema file; floorssl keeps the legacy path/history.
     meth = rows[0].get("method")
-    out = OUT if meth == "floorssl" else OUT.with_name(f"{OUT.stem}_{meth}{OUT.suffix}")
+    out = OUT if meth == "lambdajepa" else OUT.with_name(f"{OUT.stem}_{meth}{OUT.suffix}")
     fields = list(rows[0])
     # Appending a WIDER schema to an existing CSV silently shifts every column of the new
     # rows (caught 2026-08-07 the first time `--set` added `cond_stream`). Refuse instead:

@@ -17,8 +17,8 @@ are the record and stay verbatim** (D-059's own convention) — this file is the
 
 | retired | current | why |
 |---|---|---|
-| `floorssl` (the method) | **`spectral`** | nothing is floored: the loss is invariance at z plus a *two-sided* spectral conditioner at z and at h. The one-sided object is `HingeFloor`, and it is not the method. |
-| `MomentFloor` (class) | **`SpectralConditioner`** | done under D-059 — the KL term taxes Σ deviations from I in **both** directions plus the cone. |
+| `floorssl` (the method) | **`lambdajepa`** (paper: λ-JEPA) | D-127 (2026-09-21) executed the break with the paper's name: class `LambdaJEPA`, module `sslgap/methods/lambdajepa.py`, config `method/lambdajepa.yaml`, CLI `method=lambdajepa`. (`spectral`, the name this table carried since D-083, never reached the code.) |
+| `MomentFloor` → `SpectralConditioner` (class) | **`SACReg`** (paper: SACReg, spectral anti-collapse regularizer) | D-127: the class in `sslgap/methods/_common.py`; the zoo's backbone hook is `h_reg=sacreg` (was `moment`). Pre-rename checkpoints load through `sslgap/ckpt/schema.py:modernize`. |
 | `w_floor` · `h_lamb` | **`w_cond_z`** · **`w_cond_h`** | the loss then reads as its own formula: `w_inv·inv + w_cond_z·cond_z + w_cond_h·cond_h`. |
 | `z_floor_batch` · `h_floor_batch` | **`cond_z_batch`** · **`cond_h_batch`** | same object, honest name. Values unchanged (`pooled` \| `view_mean`). |
 | `moment_kl` · `h_moment_kl` (logged terms) | **`cond_z`** · **`cond_h`** | the wandb curve names should match the loss. |
@@ -32,7 +32,7 @@ historical run ids").** Run-ids minted before D-083 carry `floorssl`
 (`toy.floorssl.s0.*`, `in1k.floorssl.s0.e27smc`, …), as do their checkpoints, feature stores,
 result CSVs, and wandb runs; the augmentation-cloud store key is `o8`. These are identifiers
 like a commit SHA — renaming them retroactively would make every card cite a path that never
-existed. **The method is `spectral`; run-ids older than D-083 spell it `floorssl`.**
+existed. **The method is `lambdajepa` (D-127); run-ids older than 2026-09-21 spell it `floorssl`.**
 
 ---
 
@@ -56,17 +56,19 @@ Embed one image's V augmentations → a **cloud** of V points; its **center** is
 - **B** — between-center energy: mean squared distance between two images' centers, **debiased**
   by `W/V` for the sampling noise of the estimated center (exact; verified V-invariant to three
   digits over V ∈ {2, 8, 32}, which is why `o8` stores suffice).
-- **Ω = W/B** — **thickness**: cloud size relative to image spacing. One number per space per
+- **Θ = W/B** — **thickness**: cloud size relative to image spacing (the paper's symbol; Berker
+  2026-09-02, D-113. Cards and DECISIONS rows before that date write **Ω** for the same ratio;
+  the per-direction form is `a'A a / a'B a` along a direction `a`).  One number per space per
   checkpoint, label-free. The program's primary cross-space and cross-model quantity.
 - **a, b, Λ** — transmission from a base station into a tap: `a` = how the within-cloud energy
-  is scaled, `b` = how center separation is scaled, `Λ = √(Ω_h/Ω_z)`. Per D-068's usage rule,
-  cross-space and cross-model reads ride on **Ω and Λ** (dimension-free); `a` and `b` are
+  is scaled, `b` = how center separation is scaled, `Λ = √(Θ_h/Θ_z)`. Per D-068's usage rule,
+  cross-space and cross-model reads ride on **Θ and Λ** (dimension-free); `a` and `b` are
   within-cell decompositions only.
 - **touch** — two clouds touch when their radii sum exceeds their center distance.
   **ω(i,j)** = signed fractional overlap depth. **T** = touching fraction; **M** = median ω.
-- **touch law** — `M = 1 − c/√Ω` with **c** the family's **shape constant** (measured c ≈ .82
+- **touch law** — `M = 1 − c/√Θ` with **c** the family's **shape constant** (measured c ≈ .82
   across 51 toy + 7 IN-100 + 3 IN-1k runs and the 6-model public zoo). Gives the
-  **touching threshold** Ω\* = c², so a run's Ω has a calibrated position, not an arbitrary scale.
+  **touching threshold** Θ\* = c², so a run's Θ has a calibrated position, not an arbitrary scale.
 - **α-dial graph profile** — clouds linked when `α·(r_i + r_j) > d_ij`, α swept; the component
   census per α is the space's connectivity fingerprint.
 
@@ -86,6 +88,18 @@ Embed one image's V augmentations → a **cloud** of V points; its **center** is
   through the current rows; the ring re-warms over *q* steps after a resume.
 - **OAS** — Oracle Approximating Shrinkage of the slice scatter toward its own scalar mean,
   the ring-free estimator alternative (D-073).
+
+## 4b · Feature-learning words (E33)
+
+- **lazy / rich regime** — literature-standard (Chizat–Bach 2019, Jacot 2018): training is
+  *lazy* when the network function moves only within the tangent space of its init (weights
+  barely move, tangent kernel ~constant); *rich* when features and the kernel keep evolving.
+  Diagnosed here by CKA drift + empirical-NTK alignment vs the run's true init (E33).
+- **linear CKA** — Kornblith et al. 2019 centered-kernel-alignment similarity of two feature
+  matrices with the linear kernel; computed from D×D cross-moments (`sslgap/metrics/cka.py`).
+- **empirical-NTK alignment** — ⟨K_t,K_0⟩_F/(‖K_t‖_F‖K_0‖_F) between empirical NTK Grams on a
+  fixed image subset; K estimated over trunk params at h.cls via unit-norm random output
+  projections fixed across checkpoints (`sslgap/extract/ntk.py`). 1 ⇔ frozen kernel (lazy).
 
 ## 5 · Frame words
 

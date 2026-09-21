@@ -10,14 +10,15 @@ import numpy as np
 
 from sslgap.extract import FeatureStore
 from sslgap.metrics.orbit_energy import orbit_energies
+from sslgap.paths import DIAG, FEATURES
 
 run = sys.argv[1]
-st = FeatureStore("/nfs/scistore19/locatgrp/bdemirel/ssl_project/features")
+st = FeatureStore(str(FEATURES))
 man = "in100.pairs100.v1@audit_v1.o8"
 V = int(st.meta(run, man)["v"])
 labels = st.labels(run, man)
 bases = sorted({s.rsplit(".view", 1)[0] for s in st.spaces(run, man)})
-path = "/nfs/scistore19/locatgrp/bdemirel/ssl_project/results/diag/e23_retro_spaces.csv"
+path = str(DIAG / "e23_retro_spaces.csv")
 existing = {(r["run"], r["space"], r["framing"]) for r in csv.DictReader(open(path))}
 cols = ["run", "V_used", "space", "framing", "V", "N", "D", "W", "B_hat", "B", "omega",
         "omega_hat", "r_rms", "B_within_cls", "B_between_cls", "BW_cls"]

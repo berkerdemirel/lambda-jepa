@@ -1,0 +1,122 @@
+# v6b400 GUARDED segment (D-117; job 64684405, wandb mcryqln2 = run in1k.floorssl.s0.e27v6b400.wd0g, resumed at epoch 283 / step 2,832,547 with method.mlp_wd=0 +skip_inv_ratio=10 +skip_zkl_ratio=3).
+# Per-step wandb rows (rank 0; the skip guard triggers on the rank-max, so a SKIPPED step may show rank-0 values under the bar), bins of 10,009 steps = epochs
+# (bin epN = steps N*10009 .. (N+1)*10009-1; the log's 'ep(N+1)' probe line closes bin N). grad_norm before clipping; nan_grad = the scaler's overflow steps (also ~4/epoch on every clean segment).
+# Skip guard: inv > 10x running mean (~2.8) or z moment-KL > 3x running mean (~0.28); INCIDENT = grad_norm > 100x running mean (not a skip trigger). Pulled 2026-09-06 15:20 by scratchpad/v6b400_epoch_read.py.
+bin ep283 (log ep284): n=10008 skipped=80 nan_grad=5 | zKL max=0.423 >0.3:12 >0.2:181 median=0.093 | inv max=13.61 >2:45 >1:53 median=0.293 | gn median=21.0 p99=392 max=4382 >1000:31 >4000:1
+bin ep284 (log ep285): n=10009 skipped=54 nan_grad=4 | zKL max=0.271 >0.3:0 >0.2:58 median=0.093 | inv max=7.13 >2:44 >1:59 median=0.290 | gn median=21.0 p99=403 max=9036 >1000:43 >4000:5
+bin ep285 (log ep286): n=10009 skipped=37 nan_grad=5 | zKL max=0.225 >0.3:0 >0.2:22 median=0.093 | inv max=7.79 >2:18 >1:34 median=0.289 | gn median=21.2 p99=328 max=5896 >1000:27 >4000:4
+bin ep286 (log ep287): n=10009 skipped=8 nan_grad=4 | zKL max=0.133 >0.3:0 >0.2:0 median=0.092 | inv max=3.76 >2:9 >1:22 median=0.287 | gn median=21.2 p99=360 max=7450 >1000:44 >4000:5
+bin ep287 (log ep288): n=10009 skipped=3 nan_grad=4 | zKL max=0.129 >0.3:0 >0.2:0 median=0.092 | inv max=2.96 >2:5 >1:13 median=0.287 | gn median=21.3 p99=272 max=10893 >1000:34 >4000:6
+bin ep288 (log ep289): n=10009 skipped=4 nan_grad=3 | zKL max=0.171 >0.3:0 >0.2:0 median=0.093 | inv max=3.06 >2:5 >1:14 median=0.286 | gn median=21.5 p99=229 max=9023 >1000:32 >4000:4
+bin ep289 (log ep290): n=10009 skipped=8 nan_grad=5 | zKL max=0.166 >0.3:0 >0.2:0 median=0.092 | inv max=5.08 >2:12 >1:25 median=0.284 | gn median=21.6 p99=271 max=10981 >1000:39 >4000:7
+bin ep290 (log ep291): n=10009 skipped=8 nan_grad=4 | zKL max=0.153 >0.3:0 >0.2:0 median=0.092 | inv max=3.77 >2:6 >1:17 median=0.282 | gn median=21.8 p99=296 max=10187 >1000:47 >4000:8
+bin ep291 (log ep292): n=10009 skipped=5 nan_grad=3 | zKL max=0.148 >0.3:0 >0.2:0 median=0.092 | inv max=4.75 >2:9 >1:22 median=0.281 | gn median=21.9 p99=347 max=7069 >1000:45 >4000:4
+bin ep292 (log ep293): n=10009 skipped=6 nan_grad=3 | zKL max=0.145 >0.3:0 >0.2:0 median=0.092 | inv max=4.10 >2:6 >1:18 median=0.279 | gn median=22.1 p99=294 max=10520 >1000:45 >4000:7
+bin ep293 (log ep294): n=10009 skipped=23 nan_grad=4 | zKL max=0.153 >0.3:0 >0.2:0 median=0.092 | inv max=5.07 >2:13 >1:27 median=0.277 | gn median=22.2 p99=528 max=7746 >1000:69 >4000:10
+bin ep294 (log ep295): n=10009 skipped=8 nan_grad=3 | zKL max=0.154 >0.3:0 >0.2:0 median=0.092 | inv max=4.30 >2:4 >1:15 median=0.277 | gn median=22.4 p99=357 max=5819 >1000:40 >4000:5
+bin ep295 (log ep296): n=10009 skipped=5 nan_grad=4 | zKL max=0.151 >0.3:0 >0.2:0 median=0.092 | inv max=4.32 >2:6 >1:15 median=0.276 | gn median=22.6 p99=260 max=11513 >1000:47 >4000:11
+bin ep296 (log ep297): n=10009 skipped=12 nan_grad=3 | zKL max=0.147 >0.3:0 >0.2:0 median=0.092 | inv max=3.98 >2:8 >1:24 median=0.274 | gn median=22.6 p99=299 max=12469 >1000:50 >4000:13
+bin ep297 (log ep298): n=10009 skipped=18 nan_grad=4 | zKL max=0.202 >0.3:0 >0.2:1 median=0.092 | inv max=5.47 >2:16 >1:25 median=0.274 | gn median=22.9 p99=351 max=13554 >1000:47 >4000:9
+bin ep298 (log ep299): n=10009 skipped=6 nan_grad=3 | zKL max=0.144 >0.3:0 >0.2:0 median=0.092 | inv max=4.04 >2:10 >1:26 median=0.272 | gn median=23.0 p99=368 max=7717 >1000:50 >4000:7
+bin ep299 (log ep300): n=10009 skipped=9 nan_grad=5 | zKL max=0.170 >0.3:0 >0.2:0 median=0.092 | inv max=5.73 >2:8 >1:18 median=0.272 | gn median=23.2 p99=246 max=5229 >1000:35 >4000:4
+bin ep300 (log ep301): n=10009 skipped=16 nan_grad=3 | zKL max=0.144 >0.3:0 >0.2:0 median=0.092 | inv max=4.53 >2:11 >1:21 median=0.271 | gn median=23.3 p99=360 max=9929 >1000:59 >4000:14
+bin ep301 (log ep302): n=10009 skipped=14 nan_grad=3 | zKL max=0.204 >0.3:0 >0.2:1 median=0.092 | inv max=3.37 >2:5 >1:11 median=0.268 | gn median=23.5 p99=334 max=9947 >1000:57 >4000:9
+bin ep302 (log ep303): n=10009 skipped=16 nan_grad=4 | zKL max=0.152 >0.3:0 >0.2:0 median=0.092 | inv max=5.36 >2:13 >1:19 median=0.267 | gn median=23.7 p99=265 max=10281 >1000:49 >4000:6
+bin ep303 (log ep304): n=10009 skipped=9 nan_grad=3 | zKL max=0.158 >0.3:0 >0.2:0 median=0.091 | inv max=5.37 >2:8 >1:31 median=0.268 | gn median=24.0 p99=404 max=19205 >1000:44 >4000:4
+bin ep304 (log ep305): n=10009 skipped=14 nan_grad=5 | zKL max=0.167 >0.3:0 >0.2:0 median=0.092 | inv max=5.64 >2:7 >1:16 median=0.264 | gn median=24.0 p99=400 max=10648 >1000:57 >4000:12
+bin ep305 (log ep306): n=10009 skipped=43 nan_grad=4 | zKL max=0.261 >0.3:0 >0.2:74 median=0.092 | inv max=5.74 >2:30 >1:51 median=0.263 | gn median=24.2 p99=331 max=18965 >1000:47 >4000:13
+bin ep306 (log ep307): n=10009 skipped=55 nan_grad=5 | zKL max=0.314 >0.3:1 >0.2:36 median=0.091 | inv max=5.55 >2:31 >1:45 median=0.263 | gn median=24.5 p99=411 max=17338 >1000:52 >4000:9
+bin ep307 (log ep308): n=10009 skipped=78 nan_grad=4 | zKL max=0.264 >0.3:0 >0.2:135 median=0.092 | inv max=6.23 >2:43 >1:52 median=0.261 | gn median=24.5 p99=435 max=15918 >1000:63 >4000:13
+bin ep308 (log ep309): n=10009 skipped=64 nan_grad=2 | zKL max=0.340 >0.3:4 >0.2:127 median=0.091 | inv max=7.36 >2:40 >1:48 median=0.259 | gn median=24.7 p99=508 max=11347 >1000:62 >4000:17
+bin ep309 (log ep310): n=10009 skipped=87 nan_grad=5 | zKL max=0.455 >0.3:4 >0.2:88 median=0.091 | inv max=7.29 >2:40 >1:51 median=0.257 | gn median=24.9 p99=497 max=22290 >1000:72 >4000:21
+bin ep310 (log ep311): n=10009 skipped=61 nan_grad=3 | zKL max=0.440 >0.3:4 >0.2:115 median=0.091 | inv max=8.91 >2:32 >1:46 median=0.258 | gn median=25.1 p99=361 max=27592 >1000:56 >4000:18
+bin ep311 (log ep312): n=10009 skipped=76 nan_grad=4 | zKL max=0.341 >0.3:2 >0.2:41 median=0.091 | inv max=5.88 >2:39 >1:53 median=0.256 | gn median=25.2 p99=580 max=15480 >1000:72 >4000:19
+bin ep312 (log ep313): n=10009 skipped=70 nan_grad=4 | zKL max=0.379 >0.3:3 >0.2:113 median=0.091 | inv max=4.70 >2:25 >1:31 median=0.254 | gn median=25.4 p99=415 max=29820 >1000:48 >4000:11
+bin ep313 (log ep314): n=10009 skipped=80 nan_grad=3 | zKL max=0.242 >0.3:0 >0.2:68 median=0.091 | inv max=5.90 >2:40 >1:51 median=0.252 | gn median=25.6 p99=488 max=23501 >1000:65 >4000:24
+bin ep314 (log ep315): n=10009 skipped=65 nan_grad=3 | zKL max=0.272 >0.3:0 >0.2:157 median=0.091 | inv max=5.62 >2:43 >1:55 median=0.252 | gn median=26.0 p99=548 max=12112 >1000:71 >4000:15
+bin ep315 (log ep316): n=10009 skipped=64 nan_grad=4 | zKL max=0.445 >0.3:2 >0.2:133 median=0.091 | inv max=5.85 >2:44 >1:53 median=0.250 | gn median=26.1 p99=502 max=15556 >1000:68 >4000:18
+bin ep316 (log ep317): n=10009 skipped=81 nan_grad=5 | zKL max=0.263 >0.3:0 >0.2:116 median=0.091 | inv max=6.08 >2:40 >1:50 median=0.249 | gn median=26.2 p99=366 max=9209 >1000:51 >4000:14
+bin ep317 (log ep318): n=10009 skipped=49 nan_grad=3 | zKL max=0.387 >0.3:1 >0.2:10 median=0.091 | inv max=7.44 >2:30 >1:47 median=0.247 | gn median=26.4 p99=542 max=22882 >1000:62 >4000:20
+bin ep318 (log ep319): n=10009 skipped=27 nan_grad=5 | zKL max=0.211 >0.3:0 >0.2:1 median=0.090 | inv max=5.57 >2:13 >1:25 median=0.246 | gn median=26.7 p99=377 max=47317 >1000:66 >4000:20
+bin ep319 (log ep320): n=10009 skipped=29 nan_grad=3 | zKL max=0.429 >0.3:2 >0.2:77 median=0.090 | inv max=5.14 >2:20 >1:40 median=0.244 | gn median=27.0 p99=436 max=26115 >1000:61 >4000:21
+bin ep320 (log ep321): n=10009 skipped=83 nan_grad=5 | zKL max=0.239 >0.3:0 >0.2:77 median=0.090 | inv max=8.08 >2:50 >1:56 median=0.243 | gn median=27.2 p99=526 max=17888 >1000:73 >4000:20
+bin ep321 (log ep322): n=10009 skipped=63 nan_grad=3 | zKL max=0.253 >0.3:0 >0.2:36 median=0.090 | inv max=7.30 >2:34 >1:48 median=0.242 | gn median=27.5 p99=546 max=25122 >1000:66 >4000:16
+bin ep322 (log ep323): n=10009 skipped=67 nan_grad=5 | zKL max=0.286 >0.3:0 >0.2:216 median=0.090 | inv max=6.10 >2:40 >1:53 median=0.242 | gn median=27.7 p99=388 max=21664 >1000:61 >4000:20
+bin ep323 (log ep324): n=10009 skipped=74 nan_grad=4 | zKL max=0.353 >0.3:1 >0.2:94 median=0.090 | inv max=10.08 >2:41 >1:48 median=0.239 | gn median=27.9 p99=468 max=20659 >1000:60 >4000:14
+bin ep324 (log ep325): n=10009 skipped=66 nan_grad=2 | zKL max=0.359 >0.3:1 >0.2:104 median=0.090 | inv max=5.31 >2:33 >1:39 median=0.240 | gn median=28.1 p99=424 max=11219 >1000:69 >4000:16
+bin ep325 (log ep326): n=10009 skipped=80 nan_grad=4 | zKL max=0.328 >0.3:2 >0.2:140 median=0.090 | inv max=7.50 >2:41 >1:50 median=0.238 | gn median=28.6 p99=518 max=13392 >1000:61 >4000:10
+bin ep326 (log ep327): n=10009 skipped=74 nan_grad=5 | zKL max=0.348 >0.3:6 >0.2:43 median=0.090 | inv max=11.88 >2:41 >1:50 median=0.236 | gn median=28.7 p99=636 max=16560 >1000:81 >4000:15
+bin ep327 (log ep328): n=10009 skipped=27 nan_grad=4 | zKL max=0.162 >0.3:0 >0.2:0 median=0.090 | inv max=6.07 >2:19 >1:25 median=0.233 | gn median=28.7 p99=369 max=17812 >1000:62 >4000:19
+bin ep328 (log ep329): n=10009 skipped=24 nan_grad=4 | zKL max=0.196 >0.3:0 >0.2:0 median=0.089 | inv max=5.19 >2:12 >1:21 median=0.232 | gn median=29.0 p99=426 max=15548 >1000:69 >4000:25
+bin ep329 (log ep330): n=10009 skipped=28 nan_grad=3 | zKL max=0.197 >0.3:0 >0.2:0 median=0.090 | inv max=7.71 >2:13 >1:23 median=0.232 | gn median=29.5 p99=484 max=28742 >1000:71 >4000:27
+bin ep330 (log ep331): n=10009 skipped=13 nan_grad=3 | zKL max=0.224 >0.3:0 >0.2:8 median=0.089 | inv max=8.25 >2:7 >1:20 median=0.230 | gn median=29.7 p99=376 max=25426 >1000:58 >4000:23
+bin ep331 (log ep332): n=10009 skipped=17 nan_grad=5 | zKL max=0.167 >0.3:0 >0.2:0 median=0.089 | inv max=6.87 >2:9 >1:17 median=0.228 | gn median=29.8 p99=324 max=31926 >1000:53 >4000:16
+bin ep332 (log ep333): n=10009 skipped=17 nan_grad=3 | zKL max=0.193 >0.3:0 >0.2:0 median=0.089 | inv max=7.98 >2:16 >1:23 median=0.228 | gn median=30.1 p99=409 max=13567 >1000:63 >4000:19
+bin ep333 (log ep334): n=10009 skipped=15 nan_grad=4 | zKL max=0.171 >0.3:0 >0.2:0 median=0.089 | inv max=4.39 >2:10 >1:14 median=0.226 | gn median=30.5 p99=324 max=24504 >1000:51 >4000:12
+bin ep334 (log ep335): n=10009 skipped=18 nan_grad=4 | zKL max=0.168 >0.3:0 >0.2:0 median=0.089 | inv max=6.05 >2:9 >1:19 median=0.225 | gn median=30.8 p99=333 max=60758 >1000:72 >4000:26
+bin ep335 (log ep336): n=10009 skipped=11 nan_grad=3 | zKL max=0.167 >0.3:0 >0.2:0 median=0.089 | inv max=6.24 >2:7 >1:14 median=0.224 | gn median=30.9 p99=302 max=13759 >1000:57 >4000:15
+bin ep336 (log ep337): n=10009 skipped=19 nan_grad=4 | zKL max=0.163 >0.3:0 >0.2:0 median=0.089 | inv max=6.19 >2:13 >1:28 median=0.223 | gn median=31.3 p99=406 max=39397 >1000:72 >4000:30
+
+# Projector reads: see the hourly watcher lines (E27 card / HANDOVER); ep283 preonset 168.3/290.7/138.8 (BN-2 median 1.83 min .13) -> ep306 204.9/359.7/163.1 (BN-2 median 3.80 min .26): +0.9 %/epoch on W0/W3 over 23 epochs. Regenerated 2026-09-07 05:32.
+bin ep337 (log ep338): n=10009 skipped=28 nan_grad=4 | zKL max=0.172 >0.3:0 >0.2:0 median=0.089 | inv max=6.52 >2:14 >1:22 median=0.220 | gn median=31.4 p99=414 max=28346 >1000:65 >4000:24
+bin ep338 (log ep339): n=10009 skipped=21 nan_grad=4 | zKL max=0.184 >0.3:0 >0.2:0 median=0.089 | inv max=5.27 >2:9 >1:15 median=0.219 | gn median=31.7 p99=407 max=28856 >1000:65 >4000:26
+bin ep339 (log ep340): n=10009 skipped=13 nan_grad=3 | zKL max=0.230 >0.3:0 >0.2:8 median=0.089 | inv max=10.51 >2:7 >1:13 median=0.217 | gn median=32.1 p99=277 max=29403 >1000:52 >4000:20
+bin ep340 (log ep341): n=10009 skipped=18 nan_grad=4 | zKL max=0.169 >0.3:0 >0.2:0 median=0.089 | inv max=6.71 >2:10 >1:21 median=0.216 | gn median=32.5 p99=330 max=35769 >1000:61 >4000:25
+bin ep341 (log ep342): n=10009 skipped=20 nan_grad=4 | zKL max=0.181 >0.3:0 >0.2:0 median=0.089 | inv max=7.01 >2:8 >1:15 median=0.214 | gn median=32.7 p99=354 max=15544 >1000:64 >4000:22
+bin ep342 (log ep343): n=10009 skipped=16 nan_grad=4 | zKL max=0.168 >0.3:0 >0.2:0 median=0.089 | inv max=5.49 >2:5 >1:15 median=0.213 | gn median=33.0 p99=435 max=33575 >1000:58 >4000:21
+bin ep343 (log ep344): n=10009 skipped=17 nan_grad=4 | zKL max=0.174 >0.3:0 >0.2:0 median=0.088 | inv max=6.55 >2:6 >1:13 median=0.211 | gn median=33.4 p99=356 max=21099 >1000:63 >4000:23
+bin ep344 (log ep345): n=10009 skipped=20 nan_grad=3 | zKL max=0.167 >0.3:0 >0.2:0 median=0.088 | inv max=5.02 >2:13 >1:20 median=0.210 | gn median=33.4 p99=289 max=25898 >1000:59 >4000:30
+bin ep345 (log ep346): n=10009 skipped=18 nan_grad=5 | zKL max=0.204 >0.3:0 >0.2:2 median=0.088 | inv max=7.34 >2:7 >1:18 median=0.208 | gn median=33.8 p99=282 max=14029 >1000:46 >4000:24
+bin ep346 (log ep347): n=10009 skipped=29 nan_grad=4 | zKL max=0.191 >0.3:0 >0.2:0 median=0.088 | inv max=8.10 >2:16 >1:26 median=0.207 | gn median=34.1 p99=407 max=19939 >1000:71 >4000:34
+bin ep347 (log ep348): n=10009 skipped=19 nan_grad=4 | zKL max=0.171 >0.3:0 >0.2:0 median=0.088 | inv max=6.18 >2:10 >1:15 median=0.205 | gn median=34.4 p99=323 max=21465 >1000:59 >4000:21
+bin ep348 (log ep349): n=10009 skipped=16 nan_grad=4 | zKL max=0.236 >0.3:0 >0.2:4 median=0.088 | inv max=9.21 >2:10 >1:18 median=0.204 | gn median=34.8 p99=261 max=52227 >1000:55 >4000:28
+bin ep349 (log ep350): n=10009 skipped=23 nan_grad=3 | zKL max=0.181 >0.3:0 >0.2:0 median=0.088 | inv max=6.23 >2:10 >1:15 median=0.203 | gn median=35.3 p99=410 max=23906 >1000:70 >4000:32
+bin ep350 (log ep351): n=10009 skipped=24 nan_grad=4 | zKL max=0.199 >0.3:0 >0.2:0 median=0.088 | inv max=7.15 >2:14 >1:21 median=0.202 | gn median=35.6 p99=432 max=26472 >1000:70 >4000:32
+bin ep351 (log ep352): n=10009 skipped=21 nan_grad=4 | zKL max=0.200 >0.3:0 >0.2:0 median=0.088 | inv max=3.42 >2:7 >1:15 median=0.201 | gn median=35.8 p99=287 max=34206 >1000:54 >4000:27
+bin ep352 (log ep353): n=10009 skipped=19 nan_grad=3 | zKL max=0.224 >0.3:0 >0.2:4 median=0.088 | inv max=10.19 >2:9 >1:19 median=0.199 | gn median=36.0 p99=347 max=38932 >1000:61 >4000:30
+bin ep353 (log ep354): n=10009 skipped=21 nan_grad=4 | zKL max=0.189 >0.3:0 >0.2:0 median=0.087 | inv max=7.51 >2:15 >1:20 median=0.198 | gn median=36.5 p99=389 max=49163 >1000:64 >4000:28
+bin ep354 (log ep355): n=10009 skipped=18 nan_grad=3 | zKL max=0.201 >0.3:0 >0.2:1 median=0.087 | inv max=6.71 >2:9 >1:17 median=0.196 | gn median=36.8 p99=394 max=29969 >1000:59 >4000:23
+bin ep355 (log ep356): n=10009 skipped=18 nan_grad=5 | zKL max=0.158 >0.3:0 >0.2:0 median=0.087 | inv max=5.24 >2:9 >1:13 median=0.195 | gn median=37.1 p99=316 max=26127 >1000:60 >4000:26
+bin ep356 (log ep357): n=10009 skipped=19 nan_grad=4 | zKL max=0.180 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1692 | inv max=5.75 >2:8 >1:18 median=0.193 | gn median=37.4 p99=332 max=44585 >1000:55 >4000:30
+bin ep357 (log ep358): n=10009 skipped=20 nan_grad=3 | zKL max=0.279 >0.3:0 >0.2:4 median=0.087 | hKL median=0.1686 | inv max=3.90 >2:8 >1:14 median=0.191 | gn median=37.7 p99=386 max=15626 >1000:65 >4000:26
+bin ep358 (log ep359): n=10009 skipped=15 nan_grad=4 | zKL max=0.265 >0.3:0 >0.2:4 median=0.087 | hKL median=0.1680 | inv max=10.14 >2:7 >1:13 median=0.190 | gn median=38.1 p99=279 max=28904 >1000:49 >4000:22
+bin ep359 (log ep360): n=10009 skipped=19 nan_grad=3 | zKL max=0.171 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1674 | inv max=6.63 >2:13 >1:18 median=0.189 | gn median=38.4 p99=318 max=23077 >1000:60 >4000:32
+bin ep360 (log ep361): n=10009 skipped=13 nan_grad=4 | zKL max=0.156 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1670 | inv max=6.39 >2:8 >1:13 median=0.187 | gn median=38.9 p99=276 max=21628 >1000:57 >4000:18
+bin ep361 (log ep362): n=10009 skipped=17 nan_grad=4 | zKL max=0.216 >0.3:0 >0.2:4 median=0.087 | hKL median=0.1666 | inv max=5.18 >2:10 >1:12 median=0.186 | gn median=39.2 p99=299 max=42598 >1000:56 >4000:23
+bin ep362 (log ep363): n=10009 skipped=22 nan_grad=4 | zKL max=0.199 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1661 | inv max=4.94 >2:12 >1:20 median=0.184 | gn median=39.5 p99=481 max=28583 >1000:65 >4000:30
+bin ep363 (log ep364): n=10009 skipped=13 nan_grad=3 | zKL max=0.173 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1655 | inv max=4.96 >2:5 >1:8 median=0.183 | gn median=39.7 p99=288 max=22653 >1000:50 >4000:21
+bin ep364 (log ep365): n=10009 skipped=21 nan_grad=4 | zKL max=0.268 >0.3:0 >0.2:8 median=0.087 | hKL median=0.1650 | inv max=10.36 >2:6 >1:9 median=0.181 | gn median=40.2 p99=281 max=50383 >1000:55 >4000:23
+bin ep365 (log ep366): n=10009 skipped=17 nan_grad=3 | zKL max=0.191 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1643 | inv max=6.71 >2:5 >1:9 median=0.180 | gn median=40.6 p99=376 max=39991 >1000:60 >4000:29
+bin ep366 (log ep367): n=10009 skipped=14 nan_grad=4 | zKL max=0.248 >0.3:0 >0.2:4 median=0.087 | hKL median=0.1640 | inv max=7.42 >2:7 >1:11 median=0.179 | gn median=40.9 p99=341 max=20207 >1000:55 >4000:19
+bin ep367 (log ep368): n=10009 skipped=20 nan_grad=2 | zKL max=0.165 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1634 | inv max=6.29 >2:10 >1:17 median=0.178 | gn median=41.2 p99=278 max=20477 >1000:63 >4000:24
+bin ep368 (log ep369): n=10009 skipped=16 nan_grad=5 | zKL max=0.198 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1630 | inv max=7.94 >2:5 >1:16 median=0.176 | gn median=41.6 p99=288 max=15731 >1000:54 >4000:23
+bin ep369 (log ep370): n=10009 skipped=22 nan_grad=4 | zKL max=0.296 >0.3:0 >0.2:4 median=0.087 | hKL median=0.1625 | inv max=6.64 >2:7 >1:11 median=0.175 | gn median=41.9 p99=294 max=42979 >1000:53 >4000:24
+bin ep370 (log ep371): n=10009 skipped=20 nan_grad=3 | zKL max=0.186 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1621 | inv max=6.16 >2:8 >1:16 median=0.174 | gn median=42.3 p99=438 max=68307 >1000:74 >4000:38
+bin ep371 (log ep372): n=10009 skipped=14 nan_grad=4 | zKL max=0.202 >0.3:0 >0.2:3 median=0.087 | hKL median=0.1616 | inv max=7.77 >2:4 >1:7 median=0.172 | gn median=42.7 p99=332 max=59315 >1000:47 >4000:20
+bin ep372 (log ep373): n=10009 skipped=18 nan_grad=3 | zKL max=0.189 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1612 | inv max=3.69 >2:5 >1:11 median=0.172 | gn median=43.2 p99=481 max=36716 >1000:64 >4000:27
+bin ep373 (log ep374): n=10009 skipped=16 nan_grad=3 | zKL max=0.322 >0.3:3 >0.2:5 median=0.087 | hKL median=0.1609 | inv max=6.62 >2:7 >1:15 median=0.171 | gn median=43.4 p99=442 max=50811 >1000:56 >4000:26
+bin ep374 (log ep375): n=10009 skipped=15 nan_grad=4 | zKL max=0.198 >0.3:0 >0.2:0 median=0.087 | hKL median=0.1606 | inv max=4.21 >2:4 >1:18 median=0.170 | gn median=43.8 p99=405 max=24804 >1000:65 >4000:28
+bin ep375 (log ep376): n=10009 skipped=26 nan_grad=3 | zKL max=0.313 >0.3:4 >0.2:26 median=0.086 | hKL median=0.1602 | inv max=13.30 >2:14 >1:86 median=0.169 | gn median=44.1 p99=552 max=64854 >1000:75 >4000:36
+bin ep376 (log ep377): n=10009 skipped=36 nan_grad=5 | zKL max=0.314 >0.3:3 >0.2:56 median=0.086 | hKL median=0.1600 | inv max=13.63 >2:13 >1:122 median=0.167 | gn median=44.6 p99=611 max=26194 >1000:73 >4000:31
+bin ep377 (log ep378): n=10009 skipped=76 nan_grad=4 | zKL max=0.357 >0.3:8 >0.2:83 median=0.086 | hKL median=0.1598 | inv max=6.83 >2:25 >1:141 median=0.167 | gn median=45.1 p99=621 max=103453 >1000:81 >4000:21
+bin ep378 (log ep379): n=10009 skipped=224 nan_grad=3 | zKL max=0.306 >0.3:2 >0.2:55 median=0.086 | hKL median=0.1594 | inv max=5.40 >2:56 >1:124 median=0.165 | gn median=45.2 p99=631 max=71507 >1000:79 >4000:31
+bin ep379 (log ep380): n=10009 skipped=263 nan_grad=5 | zKL max=0.549 >0.3:11 >0.2:43 median=0.086 | hKL median=0.1590 | inv max=11.14 >2:103 >1:135 median=0.163 | gn median=45.6 p99=547 max=62654 >1000:70 >4000:29
+bin ep380 (log ep381): n=10009 skipped=252 nan_grad=3 | zKL max=0.311 >0.3:2 >0.2:39 median=0.086 | hKL median=0.1585 | inv max=7.54 >2:104 >1:134 median=0.162 | gn median=45.6 p99=476 max=50015 >1000:61 >4000:29
+bin ep381 (log ep382): n=10009 skipped=250 nan_grad=2 | zKL max=0.570 >0.3:9 >0.2:49 median=0.086 | hKL median=0.1580 | inv max=8.37 >2:106 >1:132 median=0.160 | gn median=45.9 p99=520 max=40606 >1000:72 >4000:28
+bin ep382 (log ep383): n=10009 skipped=268 nan_grad=5 | zKL max=0.367 >0.3:7 >0.2:66 median=0.086 | hKL median=0.1576 | inv max=8.37 >2:115 >1:133 median=0.159 | gn median=46.1 p99=666 max=55844 >1000:78 >4000:29
+bin ep383 (log ep384): n=10009 skipped=266 nan_grad=5 | zKL max=0.327 >0.3:2 >0.2:38 median=0.086 | hKL median=0.1573 | inv max=8.26 >2:124 >1:143 median=0.158 | gn median=46.4 p99=460 max=68952 >1000:69 >4000:30
+bin ep384 (log ep385): n=10009 skipped=270 nan_grad=3 | zKL max=0.360 >0.3:2 >0.2:67 median=0.086 | hKL median=0.1569 | inv max=8.21 >2:116 >1:134 median=0.157 | gn median=46.9 p99=577 max=57000 >1000:65 >4000:29
+bin ep385 (log ep386): n=10009 skipped=258 nan_grad=3 | zKL max=0.463 >0.3:6 >0.2:23 median=0.086 | hKL median=0.1566 | inv max=14.87 >2:110 >1:134 median=0.156 | gn median=47.3 p99=538 max=25260 >1000:68 >4000:23
+bin ep386 (log ep387): n=10009 skipped=259 nan_grad=4 | zKL max=0.309 >0.3:1 >0.2:29 median=0.086 | hKL median=0.1562 | inv max=12.03 >2:123 >1:138 median=0.155 | gn median=47.5 p99=573 max=25689 >1000:65 >4000:27
+bin ep387 (log ep388): n=10009 skipped=258 nan_grad=4 | zKL max=0.384 >0.3:4 >0.2:46 median=0.086 | hKL median=0.1562 | inv max=15.86 >2:112 >1:129 median=0.154 | gn median=47.7 p99=499 max=24262 >1000:55 >4000:19
+bin ep388 (log ep389): n=10009 skipped=281 nan_grad=4 | zKL max=0.451 >0.3:5 >0.2:41 median=0.086 | hKL median=0.1556 | inv max=7.43 >2:119 >1:143 median=0.153 | gn median=48.0 p99=802 max=173252 >1000:88 >4000:43
+bin ep389 (log ep390): n=10009 skipped=264 nan_grad=3 | zKL max=0.289 >0.3:0 >0.2:44 median=0.086 | hKL median=0.1554 | inv max=7.67 >2:114 >1:133 median=0.153 | gn median=48.6 p99=682 max=38202 >1000:76 >4000:36
+bin ep390 (log ep391): n=10009 skipped=270 nan_grad=3 | zKL max=0.354 >0.3:4 >0.2:38 median=0.085 | hKL median=0.1551 | inv max=8.77 >2:118 >1:135 median=0.151 | gn median=48.5 p99=899 max=51739 >1000:92 >4000:31
+bin ep391 (log ep392): n=10009 skipped=261 nan_grad=4 | zKL max=0.298 >0.3:0 >0.2:38 median=0.086 | hKL median=0.1549 | inv max=5.96 >2:109 >1:136 median=0.151 | gn median=48.7 p99=862 max=42356 >1000:88 >4000:29
+bin ep392 (log ep393): n=10009 skipped=259 nan_grad=3 | zKL max=0.262 >0.3:0 >0.2:33 median=0.086 | hKL median=0.1546 | inv max=4.62 >2:111 >1:136 median=0.150 | gn median=48.9 p99=554 max=30378 >1000:66 >4000:20
+bin ep393 (log ep394): n=10009 skipped=270 nan_grad=4 | zKL max=0.335 >0.3:2 >0.2:52 median=0.086 | hKL median=0.1545 | inv max=7.55 >2:107 >1:127 median=0.149 | gn median=49.1 p99=678 max=43654 >1000:74 >4000:32
+bin ep394 (log ep395): n=10009 skipped=273 nan_grad=4 | zKL max=0.428 >0.3:5 >0.2:53 median=0.086 | hKL median=0.1543 | inv max=13.90 >2:130 >1:148 median=0.149 | gn median=49.4 p99=528 max=48687 >1000:66 >4000:33
+bin ep395 (log ep396): n=10009 skipped=265 nan_grad=3 | zKL max=0.272 >0.3:0 >0.2:35 median=0.086 | hKL median=0.1542 | inv max=7.77 >2:115 >1:134 median=0.148 | gn median=49.9 p99=704 max=31265 >1000:78 >4000:39
+bin ep396 (log ep397): n=10009 skipped=252 nan_grad=3 | zKL max=0.316 >0.3:1 >0.2:37 median=0.086 | hKL median=0.1540 | inv max=5.33 >2:105 >1:128 median=0.148 | gn median=50.0 p99=573 max=21278 >1000:68 >4000:29
+bin ep397 (log ep398): n=10009 skipped=266 nan_grad=4 | zKL max=0.289 >0.3:0 >0.2:33 median=0.086 | hKL median=0.1539 | inv max=9.74 >2:121 >1:151 median=0.147 | gn median=50.1 p99=705 max=42689 >1000:83 >4000:41
+bin ep398 (log ep399): n=10009 skipped=260 nan_grad=3 | zKL max=0.257 >0.3:0 >0.2:30 median=0.086 | hKL median=0.1539 | inv max=4.95 >2:113 >1:142 median=0.147 | gn median=50.6 p99=608 max=51459 >1000:72 >4000:29

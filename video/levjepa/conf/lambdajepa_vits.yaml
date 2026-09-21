@@ -1,0 +1,30 @@
+# The house v6 recipe on LeVJEPA's ViT-S/16 (E34 first cell): everything from config.yaml except
+# the loss, the view set and the arch. Doses = the e27v6s chain (31.07 / 225.50 / 1.671), rings
+# z-q3 / h-q3, slices 128 / 128, six global views @224, grad clip 1.0.
+# Launch: python main.py --config-name lambdajepa_vits data=k710_20pct ...
+defaults:
+  - config
+  - _self_
+
+model:
+  name: vit_small
+
+augmentation:
+  views: 6
+
+loss:
+  type: lambdajepa
+  lambdajepa:
+    w_inv: 31.07
+    w_z: 225.50
+    w_h: 1.671
+    z_d_slice: 128
+    h_d_slice: 128
+    queue_steps: 3
+    h_queue_steps: 3
+
+grad_clip: 1.0
+
+wandb:
+  config:
+    name: lambdajepa_vits_k710

@@ -1,0 +1,9 @@
+run_id,train_manifest,val_manifest,space,probe,val_acc,n_train,n_val,num_classes,best_ep,epochs_run
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,linear_raw_v1,0.6311999559402466,126689,5000,100,4.0,30.0
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,linear_raw_v2,0.6311999559402466,126689,5000,100,4.0,125.0
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,linear_house_v1,0.6313999891281128,126689,5000,100,7.0,30.0
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,linear_house_v2,0.6313999891281128,126689,5000,100,7.0,128.0
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,linear_l2_v1,0.6293999552726746,126689,5000,100,29.0,30.0
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,linear_l2_v2,0.6349999904632568,126689,5000,100,44.0,165.0
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,knn_v1_k200,0.59,126689,5000,100,,
+in100.floorssl.s0.e31g1.extF,in100.train.v1,in100.val.v1,student.h.cls,knn_v1_k20,0.6094,126689,5000,100,,

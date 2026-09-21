@@ -1,0 +1,42 @@
+cell_u: in100.floorssl.s0.d256vm4zonly.extL   # UNTREATED: w_cond_h = 0
+cell_t: in100.floorssl.s0.d256vm4.extL        # TREATED:   w_cond_h = 1.894
+store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
+
+space: student.h.cls                          # h = the projector's input (D-003/D-036)
+fit_manifest: in100.train500.v1L              # clean, 50k
+val_manifest: in100.val.v1L                   # clean, 5k
+view_manifest: in100.pairs1300.v1@audit_v1.o8 # 126,689 images x 8 views, the training aug family
+V_store: 8
+
+# THE RESIDUAL FRAME IS NOT A KNOB: alpha = 0 and full numerical rank is the only setting at which
+# the affine null holds (shrinkage/truncation break whitening's equivariance). rank is the shared
+# numerical rank of the two cells -- 383 drops the post-LayerNorm null direction only.
+rank: 383
+anchors: 384                                  # PROTOCOL §9: A = d, fixed seeded ids, shared
+anchor_seed: 0
+split_seed: 0
+
+# the READER stage may sweep alpha -- it needs no cross-model cancellation
+alpha_probe_grid: [0.0, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1, 1.0]
+lam_grid: [1.0e-6, 1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2]
+block_lam_extra: [1.0e-1, 1.0, 10.0, 100.0]   # reaches the block-off limit, so
+                                              # C_both provably nests A_mean
+lda_shrink_grid: [0.01, 0.1, 0.5]
+clean_manifest_csv: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests/in100.train500.v1.csv
+view_manifest_csv: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests/in100.pairs1300.v1.csv
+rank_rel_tol: 1.0e-8         # per-block numerical rank: eigenvalues above this x lam_1
+zoo_manifest: in100.pairs100.v1@audit_v1.o8   # the appendix figure's store, n = 10,000
+zoo_rank_grid: [100, 150, 50, 200]            # matched + truncated; n/d = 26 at the zoo's n
+thick_rank_grid: [383, 350, 300, 256, 200, 150, 100, 50]   # is ||Theta||_op a tail artifact?
+knn_k_grid: [20, 200]        # the stored knn_v1_k20 / knn_v1_k200 readers
+rank_grid: [384, 383, 380, 370, 350, 320, 256, 192, 128, 64]   # preflight stability sweep
+
+n_images: 60000        # view-store subsample (60/20/20 by IMAGE, never by (image,view) row)
+parity: true           # replicate the stored linear_raw_v2 rows for continuity
+
+stages: [preflight, reader, knn, rel, views]
+
+hydra:
+  run:
+    dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}
+views_sham: true       # U recoded by a random invertible map: the null for the view-stage residuals

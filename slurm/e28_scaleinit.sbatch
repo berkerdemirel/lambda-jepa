@@ -7,6 +7,7 @@
 #SBATCH --mem=96G
 #SBATCH --time=08:00:00
 #SBATCH --requeue
+#SBATCH --open-mode=append
 #SBATCH --output=/nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs/%x_%j.out
 
 # E28 (docs/experiments/E28_init_scale.md): the d256vm4zonly lane with the ViT's final
@@ -19,5 +20,20 @@
 # tensors. E28_MODE=control runs the same diagnostics over the landed ×1 checkpoints instead.
 source /nfs/scistore19/locatgrp/bdemirel/ssl_project/slurm/_env.sh
 cd /nfs/scistore19/locatgrp/bdemirel/ssl_project
+
+# Driver-health gate (2026-09-03): a driver update rolled through the fleet and every node not
+# yet rebooted kills new CUDA processes at the first `.to(cuda)` ("NVML: Driver/library version
+# mismatch", cudaGetDeviceCount error 803) — 21 of 22 allocatable GPU nodes, all H100s
+# included, probed BAD that morning. Such a node is unusable for anyone until it is rebooted,
+# so: wait briefly, then requeue (same JobId ⇒ the chain's dependencies hold; --open-mode=append
+# keeps every life's log). Bounded at 8 h of retrying so a dead fleet cannot spin forever.
+if ! nvidia-smi -L >/dev/null 2>&1; then
+  echo "[e28] $(date '+%F %T') $(hostname -s): CUDA driver unusable (life ${SLURM_RESTART_COUNT:-0}) — requeue in 3 min"
+  if [ "${SLURM_RESTART_COUNT:-0}" -ge 160 ]; then echo "[e28] giving up after 160 lives"; exit 1; fi
+  sleep 180
+  scontrol requeue "$SLURM_JOB_ID"
+  sleep 60          # slurm terminates this life; exit 0 only if it somehow has not
+  exit 0
+fi
 python experiments/e28_scaleinit.py "$@" +e28.mode=selftest || exit 1
 python experiments/e28_scaleinit.py "$@" +e28.mode=${E28_MODE:-train}

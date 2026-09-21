@@ -48,7 +48,7 @@ H, Z = "student.h.cls", "student.z.proj.out"
 ORBIT = {"toy": "imagenette.train.v1@audit_v1.o8", "in100": "in100.pairs100.v1@audit_v1.o8"}
 EVAL = {"toy": ("imagenette.train", "imagenette.val"),
         "in100": ("in100.train500", "in100.val")}
-DECLARED_Z = {"floorssl": True, "byol": False, "lejepa": True, "vicreg": True, "simclr": True}
+DECLARED_Z = {"lambdajepa": True, "byol": False, "lejepa": True, "vicreg": True, "simclr": True}
 SPLIT = 0.8
 
 

@@ -5,6 +5,7 @@ checkpoint cadence (schema v1, heads preserved), and resume.
   sbatch slurm/train.sbatch method=lejepa frame=toy_vits8            # frame-standard run
   sbatch slurm/train.sbatch method=lejepa frame=toy_vits8 frame.epochs=800 tag=portval
 """
+import math
 import os
 import random
 
@@ -18,7 +19,7 @@ from omegaconf import DictConfig, OmegaConf
 from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 
-from sslgap.ckpt.schema import provenance_stamp, save_checkpoint
+from sslgap.ckpt.schema import load_payload, provenance_stamp, save_checkpoint
 from sslgap.data import ViewsDataset, orbit_stack, seed_everything, seed_worker
 from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
@@ -71,7 +72,7 @@ def main(cfg: DictConfig):
 
     start_ep, best_acc, wandb_id = 0, 0.0, None
     if cfg.resume and os.path.exists(last_path):
-        pay = torch.load(last_path, map_location=frame.device, weights_only=False)
+        pay = load_payload(last_path, map_location=frame.device)
         saved_arch = {k: v for k, v in pay["arch"].items() if k != "probe"}
         assert saved_arch == method.arch(), (
             f"resume refused: {last_path} was trained with a different architecture "
@@ -261,7 +262,6 @@ def main(cfg: DictConfig):
             gn = torch.nn.utils.clip_grad_norm_(
                 [p for g in opt.param_groups for p in g["params"]],
                 frame.grad_clip if frame.grad_clip else float("inf")).item()
-            gnorm_med = gn if gnorm_med is None else 0.99 * gnorm_med + 0.01 * gn
             scaler.step(opt)
             scaler.update()
             scheduler.step()
@@ -271,9 +271,13 @@ def main(cfg: DictConfig):
                        "train/probe": probe_loss.item(), "train/grad_norm": gn,
                        "lr": scheduler.get_last_lr()[0],
                        **{f"monitor/{k_}": v for k_, v in monitors.items()}}, step=step)
-            if gnorm_med and gn > 100 * gnorm_med:
-                print(f"[train] INCIDENT: grad_norm {gn:.1f} > 100x running median "
+            # kill-trigger: compare against the running mean BEFORE folding this step in, and never
+            # fold a non-finite norm — otherwise the trigger can never fire (2026-09-02).
+            if gnorm_med and math.isfinite(gn) and gn > 100 * gnorm_med:
+                print(f"[train] INCIDENT: grad_norm {gn:.1f} > 100x running mean "
                       f"{gnorm_med:.3f} at step {step} (WORKFLOW.md kill-trigger)", flush=True)
+            if math.isfinite(gn):
+                gnorm_med = gn if gnorm_med is None else 0.99 * gnorm_med + 0.01 * gn
 
         # D-056: monitor eval every eval_every epochs (final epoch always); ckpt saves are
         # OUTSIDE the gate — _last/cadence must land every epoch regardless of eval cadence.

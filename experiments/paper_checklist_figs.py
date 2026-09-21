@@ -121,6 +121,8 @@ PAIRS_E12 = [  # (method, control run, treated run) — the CANONICAL ± treatme
     ("ours", "in100.floorssl.s0.d256vm4zonly.extL", "in100.floorssl.s0.d256vm4.extL"),
 ]
 OURS_IN100 = ("in100.floorssl.s0.d256vm4.extL", "ours")
+DISPLAY = {"vicreg": "VICReg", "simclr": "SimCLR", "byol": "BYOL", "dino*": "DINO*",
+           "lejepa": "LeJEPA", "ours": "Ours"}   # paper casing for figures that go to LaTeX
 
 
 def _h_row(run, kind, col=None):
@@ -137,23 +139,30 @@ def _h_row(run, kind, col=None):
 
 
 def c2_capacity():
-    """C2: does the h moment term protect stable center capacity? (±treatment per method)"""
+    """C2: does the h moment term protect stable center capacity? (±treatment per method)
+
+    Paper-grade (Berker 2026-08-28): no title and no estimator jargon on the axis — the
+    LaTeX caption carries "kept eigenvalues of B̂ at each run's declared h, IN-100
+    single-factor pairs", same convention as the fig_* exhibits."""
     groups = [(m, _h_row(c, "capacity"), _h_row(t, "capacity")) for m, c, t in PAIRS_E12]
     if all(c is None and t is None for _, c, t in groups):
         print("  [skip] C2"); return
-    fig, ax = plt.subplots(figsize=(6.5, 3))
-    x = 0.0; ticks, labs = [], []
-    for m, c, t in groups:
+    fig, ax = plt.subplots(figsize=(6.4, 2.6))
+    ax.set_axisbelow(True)
+    w = .38
+    for i, (m, c, t) in enumerate(groups):
         if c is not None:
-            ax.bar(x, c.b_rank, width=.6, color=CTRL, label="control" if not ticks else None)
+            ax.bar(i - w / 2, c.b_rank, width=w, color=CTRL,
+                   label="control" if not i else None)
         if t is not None:
-            ax.bar(x + .7, t.b_rank, width=.6, color=TREAT,
-                   label="+h moment floor" if not ticks else None)
-        ticks.append(x + .35); labs.append(m); x += 2.0
-    ax.set_xticks(ticks, labs)
-    ax.set_ylabel("stable-center rank of declared h (kept eigs of B̂)")
-    ax.legend(frameon=False, loc="lower right")
-    ax.set_title("C2 — stable center capacity at h, with vs without the moment term (IN-100, single-factor pairs)")
+            ax.bar(i + w / 2, t.b_rank, width=w, color=TREAT,
+                   label="+ the $h$ moment term" if not i else None)
+    ax.set_xticks(range(len(groups)), [DISPLAY[m] for m, _, _ in groups])
+    ax.set_xlim(-.6, len(groups) - .4)
+    ax.set_ylabel("stable-center rank at $h$")
+    ax.grid(axis="x", visible=False)
+    ax.legend(frameon=False, ncol=2, loc="lower left", bbox_to_anchor=(0, 1.0),
+              handlelength=1.2, columnspacing=1.6, borderaxespad=0)
     _save(fig, "C2_capacity")
 
 
@@ -397,33 +406,38 @@ def c3b_profile():
     punishes narrow targets, best-16 is 3% of vicreg's target but 100% of lejepa's).
     The full curve subsumes every slice; methods are comparable at ANY support and
     honest at their OWN full support simultaneously."""
-    fig, axes = plt.subplots(1, len(PAIRS_E12), figsize=(13, 2.6), sharey=True)
+    fig, axes = plt.subplots(1, len(PAIRS_E12), figsize=(8.6, 2.3), sharex=True,
+                             sharey=True, layout="constrained")
     drew = False
     for k_, (m, c, t) in enumerate(PAIRS_E12):
         ax = axes[k_]
-        for run, col, ls, lab in ((c, CTRL, "--", "control"), (t, TREAT, "-", "+moment floor")):
+        for run, col, ls, lab in ((c, CTRL, "--", "control"),
+                                  (t, TREAT, "-", "+ the $h$ moment term")):
             pr = _acc_profile(run)
             if pr is None: continue
             drew = True
             kk, y = pr
-            ax.plot(kk, y, color=col, ls=ls, lw=1.5, label=lab)
-            ax.scatter([kk[-1]], [y[-1]], s=22, color=col, zorder=3)
-            right = kk[-1] > 150
-            ax.annotate(f"{y[-1]:.2f}@{kk[-1]}", (kk[-1], y[-1]),
-                        textcoords="offset points",
-                        xytext=(-4 if right else 2, -9 if ls == "--" else 5),
-                        ha="right" if right else "left", fontsize=6, color=col)
-        ax.axvline(16, color=MUT, lw=.6, ls=":")
-        ax.set_xscale("log"); ax.set_xticks([1, 4, 16, 64, 256], [1, 4, 16, 64, 256])
-        ax.set_xlabel("k best directions", fontsize=7)
-        ax.set_title(m, fontsize=9)
-        ax.set_ylim(-0.05, 1.04)
+            ax.plot(kk, y, color=col, ls=ls, lw=1.4, label=lab)
+            ax.scatter([kk[-1]], [y[-1]], s=18, color=col, zorder=3)
+            # every endpoint sits at the right of its own curve, so labels always run
+            # leftward; a curve that ends high has no room above it, so both of its
+            # labels drop below instead of straddling the endpoint.
+            high = y[-1] > .8
+            dy = (-21 if ls == "--" else -10) if high else (-10 if ls == "--" else 8)
+            ax.annotate(f"{y[-1]:.2f} @ {kk[-1]}", (kk[-1], y[-1]),
+                        textcoords="offset points", xytext=(-7, dy),
+                        ha="right", fontsize=6.2, color=col)
+        ax.set_xscale("log"); ax.set_xticks([1, 16, 256], [1, 16, 256])
+        ax.set_title(DISPLAY[m], fontsize=8.5, pad=4)
+        ax.set_ylim(-0.14, 1.08)
+        ax.grid(alpha=.25, lw=.5)
+        ax.tick_params(labelsize=7)
     if not drew:
         print("  [skip] C3b profile"); return
-    axes[0].set_ylabel("mean explained over\nthe k best directions")
-    axes[0].legend(frameon=False, fontsize=7, loc="lower left")
-    fig.suptitle("C3b — the accessibility profile (endpoint dot = bare $R^2_{acc}$ at the method's own $r_z$; "
-                 "dotted line = k(16); IN-100)", y=1.08, fontsize=10)
+    axes[-1].legend(frameon=False, fontsize=6.5, loc="lower right", handlelength=1.6,
+                    handletextpad=.5, borderaxespad=.2)
+    axes[0].set_ylabel("mean $R^2$", fontsize=9)
+    fig.supxlabel("k best directions", fontsize=9)
     _save(fig, "C3b_accessibility_profile")
 
 

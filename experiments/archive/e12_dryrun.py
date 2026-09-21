@@ -18,14 +18,14 @@ BASE = {"name": "lejepa", "lamb": 0.02, "V": 2, "proj_dim": 16, "emb_dim": 512, 
 ARMS = {  # amended 2026-07-11 (E12 card §Amendment): A2/A3 additive h-term, shipped z-side kept
     "e12a1": {"proj_depth": 0, "embed_calib": True},
     "e12a2": {"spec_norm": True, "embed_calib": True, "h_reg": "sigreg", "h_lamb": 0.0257},
-    "e12a3": {"spec_norm": True, "embed_calib": True, "h_reg": "moment", "h_lamb": 0.4775},
+    "e12a3": {"spec_norm": True, "embed_calib": True, "h_reg": "sacreg", "h_lamb": 0.4775},
     "e12c1": {"spec_norm": True, "embed_calib": True},
     # F-wave (D-027): f1/f2 = dose variants of a3 (mechanics identical, skipped here);
     # f3-f6 exercise the new terms + the h_start_ep gate
     "e12f3": {"spec_norm": True, "embed_calib": True, "h_reg": "spec_floor", "h_lamb": 0.4775},
     "e12f4": {"spec_norm": True, "embed_calib": True, "h_reg": "sigreg_std", "h_lamb": 0.1},
     "e12f5": {"spec_norm": True, "embed_calib": True, "h_reg": "moment_diag", "h_lamb": 0.4775},
-    "e12f6": {"spec_norm": True, "embed_calib": True, "h_reg": "moment", "h_lamb": 0.4775,
+    "e12f6": {"spec_norm": True, "embed_calib": True, "h_reg": "sacreg", "h_lamb": 0.4775,
               "h_start_ep": 10},
 }
 
@@ -50,7 +50,7 @@ def main():
         gn = torch.cat([p.grad.reshape(-1) for p in modules["encoder"].parameters()
                         if p.grad is not None]).norm()
         assert torch.isfinite(terms["loss"]) and torch.isfinite(gn), f"{tag}: non-finite"
-        reg_key = "moment_kl" if over.get("floor") == "moment" else "sigreg"
+        reg_key = "moment_kl" if over.get("floor") == "sacreg" else "sigreg"
         assert reg_key in terms, f"{tag}: missing term {reg_key}"
         if over.get("h_reg"):
             from sslgap.methods.lejepa import H_KEYS

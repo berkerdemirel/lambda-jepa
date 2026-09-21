@@ -17,7 +17,7 @@ for CELL in "" b; do
   for SEG in 1 2 3 4 5 6 7 8; do
     sbatch --partition=gpu100 --constraint=H100 --job-name="$NAME" \
       --dependency=singleton --cpus-per-task=28 --mem=128G --begin=now+120 \
-      slurm/train.sbatch method=floorssl frame=in1k_vits16 bs=128 num_classes=1000 \
+      slurm/train.sbatch method=lambdajepa frame=in1k_vits16 bs=128 num_classes=1000 \
       share_log_every=1 +method.aug=lejepa_mc method.head_layers=2 \
       method.expander_dim=256 method.mlp_wd=0.05 method.z_floor_batch=view_mean \
       method.h_floor_batch=view_mean method.queue_steps=3 \

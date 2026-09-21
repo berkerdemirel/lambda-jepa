@@ -1,0 +1,27 @@
+# The house v6 recipe on LeVJEPA's ViT-B/16 (ssl_project video side project, 2026-09-02):
+# everything from config.yaml except the loss and the view set. Doses = the e27v6b400 chain
+# (22.81 / 222.26 / 4.054), rings z-q3 / h-q7, slices 128 / 256, six global views @224.
+# Launch: python main.py --config-name lambdajepa_vitb data=<store> ...
+defaults:
+  - config
+  - _self_
+
+augmentation:
+  views: 6
+
+loss:
+  type: lambdajepa
+  lambdajepa:
+    w_inv: 22.81
+    w_z: 222.26
+    w_h: 4.054
+    z_d_slice: 128
+    h_d_slice: 256
+    queue_steps: 3
+    h_queue_steps: 7
+
+grad_clip: 1.0   # house training hygiene (grad_clip=1.0 from day one); the donor clips nothing
+
+wandb:
+  config:
+    name: lambdajepa_vitb
