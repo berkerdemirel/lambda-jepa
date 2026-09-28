@@ -1,5 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-toy.lejepa.s0.e10D0.ext,imagenette.train.v1,student.z.embed~student.z.proj.out,cka_linear,cross,1.0,,,9469,512x512,none
-toy.lejepa.s0.e10D0.ext,imagenette.train.v1,student.z.embed~student.z.proj.out,neighbor_jaccard,cross,1.0,,,9469,512x512,none
-toy.lejepa.s0.e10D0.ext,imagenette.train.v1,student.z.embed~student.z.proj.out,procrustes_distance,cross,8.514195444331813e-16,,,9469,512x512,none
-toy.lejepa.s0.e10D0.ext,imagenette.train.v1,student.z.embed~student.z.proj.out,knn_label_agreement,cross,1.0,,,9469,512x512,none

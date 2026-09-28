@@ -1,9 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.out,cka_linear,cross,0.4877086360677952,,,50000,384x512,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.out,neighbor_jaccard,cross,0.31757646302785614,,,50000,384x512,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.out,procrustes_distance,cross,0.7628859364914456,,,50000,384x512,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.out,knn_label_agreement,cross,0.555,,,50000,384x512,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.tap1,cka_linear,cross,0.7792075035879348,,,50000,384x4096,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.tap1,neighbor_jaccard,cross,0.4240193783340842,,,50000,384x4096,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.tap1,procrustes_distance,cross,0.6183434780445298,,,50000,384x4096,none
-in100.simclr.s0.e17c.ext,in100.train500.v1L,student.h.cls~student.z.proj.tap1,knn_label_agreement,cross,0.6142,,,50000,384x4096,none

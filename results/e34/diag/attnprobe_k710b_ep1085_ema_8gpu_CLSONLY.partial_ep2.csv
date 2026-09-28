@@ -1,3 +1,0 @@
-ckpt,weights,epoch,train_top1,val_top1
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710b/spt_cache/runs/20260909/201413/35e1c1e77378/checkpoints/last.ckpt,ema,1,11.779329486843256,21.644
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710b/spt_cache/runs/20260909/201413/35e1c1e77378/checkpoints/last.ckpt,ema,2,16.67494036691519,25.06

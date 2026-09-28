@@ -1,18 +1,14 @@
-"""Isotropy / Gaussianity. Epps–Pulley sliced statistic ported from ssl_explore/sslx/sigreg.py
-(itself the lejepa-minimal SIGReg with seeded slices). HOUSE RULE (CLAUDE.md): the sliced statistic
-is foolable — the battery always pairs it with the top-eigenvector kurtosis from spectra.py, and
-isotropy claims lead with the worst-direction numbers."""
+"""Isotropy and Gaussianity: moment KL to N(0, I), the Epps-Pulley sliced statistic."""
 import numpy as np
 import torch
 
-
 def gauss_kl_full(X, shrink=1e-3):
-    """Full-covariance Gaussian moment-KL to N(0,I), per dimension (D-040). The exact MOMENT
+    """Full-covariance Gaussian moment-KL to N(0,I), per dimension. The exact MOMENT
     component of KL(P‖N(0,I)) via the Pythagorean split KL(P‖N(0,I)) = KL(P‖P_G) + KL(P_G‖N(0,I))
     — the log-ratio of two Gaussians is quadratic, so only moments 1–2 enter; no shape is read.
     Decomposed: location = ‖μ‖²/2d (the cone); spectrum = Stein/Burg divergence Σ(λ−1−logλ)/2d on
     shrunk eigenvalues — the logdet barrier is the anti-collapse content the DIAGONAL moment-KL
-    lacks (E17: sigreg_inv rank-15 collapse read diagKL .041). Deliberately not scale-free
+    lacks (a rank-collapsed space can read a small diagonal KL). Deliberately not scale-free
     (calibration instrument)."""
     X = np.asarray(X, dtype=np.float64)
     mu = X.mean(0)
@@ -23,7 +19,6 @@ def gauss_kl_full(X, shrink=1e-3):
     spec = float(np.sum(lam - 1 - np.log(lam)) / (2 * d))
     return {"total": loc + spec, "location": loc, "spectrum": spec}
 
-
 def fixed_slice(d, d_slice=128, d_draw=None, seed=0):
     """The SACReg's random orthonormal slice, drawn ONCE from a seeded stream.
     A training step redraws every forward (fresh-slice coverage); a MEASUREMENT holds the slice
@@ -32,7 +27,6 @@ def fixed_slice(d, d_slice=128, d_draw=None, seed=0):
     g = torch.Generator().manual_seed(seed)
     Q, _ = torch.linalg.qr(torch.randn(d, d_draw or d_slice, generator=g))
     return Q[:, :d_slice].double().numpy()
-
 
 def moment_kl_slice(X, Q, eps=1e-4):
     """SACReg's OWN value on a given orthonormal slice Q [d, d']: Gaussian moment KL
@@ -47,9 +41,8 @@ def moment_kl_slice(X, Q, eps=1e-4):
     cov = pc.T @ pc / (len(p) - 1) + eps * np.eye(d)
     return float(0.5 * (np.trace(cov) + mu @ mu - d - np.linalg.slogdet(cov)[1]) / d)
 
-
 def radial_gauss(X, seed=0, shrink=1e-3):
-    """Normalized radial law vs the isotropic Gaussian (Berker 2026-07-16; D-040). Cross-fit:
+    """Normalized radial law vs the isotropic Gaussian. Cross-fit:
     whitening moments (μ, Σ^{-1/2}) from one half, radii r² = ‖W(x−μ)‖² on the held-out half
     (in-sample whitening over-Gaussianizes). Rotation-invariant and CLT-immune — reads shells vs
     balls vs clumped mixtures, the axis sliced tests are blind to at high effective rank.
@@ -66,7 +59,6 @@ def radial_gauss(X, seed=0, shrink=1e-3):
     r2 = (((B - mu) @ (V / np.sqrt(lam))) ** 2).sum(1)
     d = X.shape[1]
     return {"var_ratio": float(r2.var() / (2 * d)), "mean_ratio": float(r2.mean() / d)}
-
 
 def epps_pulley(X, n_slices=256, seed=0, standardize=True, knots=17, t_max=3.0):
     """Sliced Epps–Pulley distance to N(0, I). Lower = more isotropic-Gaussian.

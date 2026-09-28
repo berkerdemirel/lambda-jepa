@@ -1,9 +1,0 @@
-facet,space,n_dirs,V_c,resid_logcorr,med_obs_over_pred,w_law_relerr,lam_max
-ours IN-100 (vm4),student.h.cls,366,4,0.999,1.057,0.153,14.514
-ours IN-100 (vm4),student.z.proj.out,256,4,0.9936,1.036,0.052,0.334
-lejepa IN-100 (control),student.z.embed,43,4,0.9998,1.007,0.032,2.458
-lejepa IN-100 (control),student.z.proj.out,16,4,0.9974,0.997,0.01,0.131
-vicreg IN-100 (control),student.h.cls,172,4,0.9995,1.026,0.111,17.653
-vicreg IN-100 (control),student.z.proj.out,559,4,0.9943,1.107,0.141,2.731
-simclr IN-100 (control),student.h.cls,128,4,0.9994,1.019,0.092,9.423
-simclr IN-100 (control),student.z.proj.out,101,4,0.9954,1.03,0.048,0.781

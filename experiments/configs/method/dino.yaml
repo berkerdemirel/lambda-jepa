@@ -1,6 +1,4 @@
 name: dino
-# classic DINO at the sslx toy scale: K=4096, const t_temp 0.04, EMA 0.99, centering m 0.9,
-# prototypes frozen ep0; Lightly-faithful multi-crop 2x128 + 6x64. grad_clip 3.0 (paper/control).
 K: 4096
 head_hidden: 2048
 bottleneck: 256
@@ -17,4 +15,3 @@ wd: 5e-2
 warmup_ep: 10
 eta_min: 1e-5
 grad_clip: 3.0
-

@@ -1,8 +1,0 @@
-in1k.floorssl.s0.d256vm4,dtd,10,1880,1880,0.0025,0.7053
-in1k.floorssl.s0.d256vm4,aircraft,10,6667,3333,0.025,0.5218
-in1k.floorssl.s0.d256vm4,cars,10,8144,8041,0.025,0.5727
-in1k.floorssl.s0.d256vm4,cifar10,10,50000,10000,0.00625,0.9409
-in1k.floorssl.s0.d256vm4,cifar100,10,50000,10000,0.0125,0.7859
-in1k.floorssl.s0.d256vm4,flowers,10,1020,6149,0.00625,0.8873
-in1k.floorssl.s0.d256vm4,food,10,75750,25250,0.00625,0.7430
-in1k.floorssl.s0.d256vm4,pets,10,3680,3669,0.0125,0.8427

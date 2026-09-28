@@ -1,4 +1,0 @@
-arm,varimax_crit,null_crit_mean,null_crit_max,sparsity_gain_x,kurt_mean,kurt_median,kurt_frac_pos,kurt_p90
-e12a3,0.00937,0.0008,0.00082,11.65,-0.006,0.018,0.67,0.084
-e12c1,0.00857,0.0008,0.00082,10.69,1.063,0.673,0.81,2.111
-e12f2,0.00773,0.00078,0.0008,9.86,0.435,0.356,0.87,0.997

@@ -1,6 +1,0 @@
-ckpt,weights,epoch,train_top1,val_top1
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710s2/spt_cache/runs/20260903/200245/27bdf5febbae/checkpoints/epoch-0089.ckpt,student,1,0.7578125,2.186
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710s2/spt_cache/runs/20260903/200245/27bdf5febbae/checkpoints/epoch-0089.ckpt,student,2,2.4109375,4.94
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710s2/spt_cache/runs/20260903/200245/27bdf5febbae/checkpoints/epoch-0089.ckpt,student,3,4.09375,6.892
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710s2/spt_cache/runs/20260903/200245/27bdf5febbae/checkpoints/epoch-0089.ckpt,student,4,5.7640625,8.674
-/mnt/beegfs/locatgrp/shared/bdemirel/levjepa_runs/vid.floorssl.s0.k710s2/spt_cache/runs/20260903/200245/27bdf5febbae/checkpoints/epoch-0089.ckpt,student,5,6.715625,8.908

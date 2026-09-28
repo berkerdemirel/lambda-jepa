@@ -1,7 +1,0 @@
-model,timm_name,selftest,measured,reference,verdict
-clipb16,vit_base_patch16_clip_quickgelu_224.openai,zeroshot,68.32,68.3,PASS
-siglipb16,vit_base_patch16_siglip_224.webli,zeroshot,76.05,76.0,PASS
-dinov2b14,vit_base_patch14_dinov2.lvd142m,hub,1.00000,0.999,PASS
-dinob16,vit_base_patch16_224.dino,hub,1.00000,0.999,PASS
-maeb16,vit_base_patch16_224.mae,cfgonly,16.871,,SMOKE
-dinov3b16,vit_base_patch16_dinov3.lvd1689m,cfgonly,16.752,,SMOKE

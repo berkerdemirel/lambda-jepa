@@ -1,31 +1,4 @@
-"""E27 §(j): the Lightly-benchmark linear protocol (their ViT/MAE recipe) on a project checkpoint.
-
-Faithful port of lightly-ai/lightly benchmarks/imagenet/vitb16/linear_eval.py (+ lightly/utils/
-lars.py, lightly/utils/scheduler.py, lightly/utils/benchmarking/linear_classifier.py; master read
-2026-08-10) — the protocol behind the benchmark table's LeJEPA ViT-S/16 "Linear Top1 64.0" row:
-frozen backbone in eval mode, feature = trunk CLS; head = BatchNorm1d(D, affine=False, eps=1e-6)
-+ Linear(D, C); their LARS(lr=0.1·total_bs/256, momentum=0.9, weight_decay=0.0) — at wd=0 their
-LARS skips trust-ratio scaling for EVERY parameter (lars.py: "Parameters with weight decay set
-to 0 will automatically be excluded from layer-wise LR scaling"), so torch SGD(momentum=0.9) is
-the faithful optimizer; their CosineWarmupScheduler stepped per step (linear warmup over the
-first 10/90 of steps from 0.01·peak, cosine to 0.001·peak); 90 epochs; train aug
-RandomResizedCrop(224)+HFlip; val Resize(256)+CenterCrop(224); reported number = max over epochs
-of val top1 (their max(metric_callback.val_metrics["val_top1"])).
-
-Declared deviations (E25 pattern, mirrored on the E27 card): single GPU at bs 1024 vs their
-4-device runs — their lr formula 0.1·total_bs/256 self-scales, but the head-BN batch statistics
-ride our larger per-step batch; bf16 autocast vs their "16-mixed"; torchvision ImageFolder
-plumbing. Rider: when the run's extL feature store exists, the house kNN (same InstDisc
-functional) is re-read at their temperature t=.07 beside the canonical t=.1 on the same
-500/class bank — bank size vs their full-train bank stays a recorded protocol delta.
-
-  python experiments/bench_probe.py <ckpt> <run_id> [epochs=90]
-CSVs (written every epoch, wall-safe): results/probes/<run_id>.bench.csv (+ .bench_knn.csv)
-Head/opt/sched state checkpoints to outputs/<run_id>.bench_head.pt each epoch and resumes from
-it, so a bench larger than one wall (ViT-L: ~41-52h vs the 24h wall) chains across singleton
-segments; the state file survives completion, making spare segments idempotent (resume at
-final epoch = no-op). To re-bench a run_id fresh, delete the state file (and the stale CSV).
-"""
+"""ImageNet-1k linear probe and kNN in the Lightly benchmark recipe (BatchNorm + linear head, 90 epochs; kNN k = 200)."""
 import math
 import os
 import sys
@@ -48,7 +21,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.expanduser("~/data/imagenet")
 NORM = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
-
 def knn_rider(run_id, device, out_csv):
     run_dir = os.path.join(ROOT, "features", run_id)
     if not os.path.isdir(run_dir):
@@ -69,9 +41,8 @@ def knn_rider(run_id, device, out_csv):
         print(f"[bench] {run_id} {r['probe']}={r['val_acc']:.4f}", flush=True)
     pd.DataFrame(rows).to_csv(out_csv, index=False)
 
-
 def main():
-    if sys.argv[1] == "--knn-only":  # store-side rider alone (backfill for wall-killed benches)
+    if sys.argv[1] == "--knn-only":
         out_csv = os.path.join(ROOT, "results/probes", f"{sys.argv[2]}.bench.csv")
         knn_rider(sys.argv[2], "cuda", out_csv.replace(".bench.csv", ".bench_knn.csv"))
         return
@@ -159,7 +130,6 @@ def main():
     print(f"[bench] done {run_id}: bench_linear_top1={best['val_top1']:.4f} "
           f"top5={best['val_top5']:.4f} (ep{best['epoch']}) -> {out_csv}", flush=True)
     knn_rider(run_id, device, out_csv.replace(".bench.csv", ".bench_knn.csv"))
-
 
 if __name__ == "__main__":
     main()

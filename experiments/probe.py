@@ -1,10 +1,4 @@
-"""Probe driver: frozen probes on every space present in both train and val manifests of a run.
-Each linear family runs twice: v1 (fixed 30 ep — continuity with pre-D-020 tables and the M0
-parity anchor) and v2 (patience-converged headline, D-020; best_ep/epochs_run land in the CSV
-so boundary-censoring is visible). kNN is optimizer-free and unversioned by D-020.
-
-  sbatch slurm/probe.sbatch run_id=in100.dino-ctrl.ep100.ext
-"""
+"""Frozen probes on a run's feature store: linear on raw features (AdamW, early stopping) and kNN (k = 200)."""
 import os
 
 import hydra
@@ -21,7 +15,6 @@ LINEAR = {"raw": [("linear_raw_v1", linear_raw_v1), ("linear_raw_v2", linear_raw
           "house": [("linear_house_v1", linear_house_v1), ("linear_house_v2", linear_house_v2)],
           "l2": [("linear_l2_v1", linear_l2_v1), ("linear_l2_v2", linear_l2_v2)]}
 
-
 @hydra.main(version_base=None, config_path="configs", config_name="probe")
 def main(cfg: DictConfig):
     if not knn_self_test():
@@ -37,7 +30,7 @@ def main(cfg: DictConfig):
 
     rows = []
     spaces = sorted(set(store.spaces(cfg.run_id, man_tr)) & set(store.spaces(cfg.run_id, man_va)))
-    if cfg.get("space"):                 # per-space parallel landing (same probes, wall / #spaces)
+    if cfg.get("space"):
         spaces = [s for s in spaces if s == cfg.space]
     for space in spaces:
         Xtr = np.asarray(store.get(cfg.run_id, man_tr, space), dtype=np.float32)
@@ -61,14 +54,11 @@ def main(cfg: DictConfig):
                   "n_val": len(yva), "num_classes": num_classes,
                   "best_ep": v.get("best_ep"), "epochs_run": v.get("epochs_run")}
                  for k, v in res.items()]
-        # cumulative rewrite after every space: a wall/preemption kill keeps all finished
-        # spaces on disk (the 2026-08-10 e27lej 4h-timeout lost 8 probed spaces + the CSV)
         out_dir = os.path.join(cfg.results_root, "probes")
         os.makedirs(out_dir, exist_ok=True)
         suffix = f".part_{cfg.space}" if cfg.get("space") else ""
         pd.DataFrame(rows).to_csv(os.path.join(out_dir, f"{cfg.run_id}{suffix}.csv"), index=False)
     print(f"[probe] done: {cfg.run_id} -> {os.path.join(cfg.results_root, 'probes')}")
-
 
 if __name__ == "__main__":
     main()

@@ -1,11 +1,6 @@
-"""Head modules + tap wrappers. A "taps" module maps one trunk feature (cls or gap) to a dict of
-named z-space tensors — the guillotine axis through the head (PROTOCOL §3).
-
-DINOHead is ported verbatim from ssl_explore/sslx/dinov2.py (which follows Caron et al. 2021,
-norm_last_layer semantics included) so the DINO-control checkpoints load unchanged."""
+"""Projection heads and tap wrappers."""
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 class DINOHead(nn.Module):
     """3-layer MLP -> L2-normalized bottleneck -> weight-normed prototypes. Port: sslx/dinov2.py."""
@@ -24,12 +19,11 @@ class DINOHead(nn.Module):
     def forward(self, x):
         return self.last(F.normalize(self.mlp(x), dim=-1))
 
-
 class DINOLinearHead(nn.Module):
-    """E17 h-pull (D-039): the small LINEAR prototype head at the backbone h — DINO's final stage
-    (L2-normalize then weight-normed prototypes) WITHOUT the MLP+bottleneck. "linear K_small"
-    (Berker 2026-07-15). Same `last`/`original0` structure as DINOHead so the ep0-freeze +
-    norm_last_layer gain-freeze logic (dino.on_epoch_start) applies unchanged."""
+    """The small LINEAR prototype head at the backbone h — DINO's final stage (L2-normalize then
+    weight-normed prototypes) WITHOUT the MLP+bottleneck. Same `last`/`original0` structure as
+    DINOHead so the ep0-freeze + norm_last_layer gain-freeze logic (dino.on_epoch_start) applies
+    unchanged."""
 
     def __init__(self, in_dim=384, K=512, norm_last_layer=True):
         super().__init__()
@@ -42,11 +36,10 @@ class DINOLinearHead(nn.Module):
     def forward(self, x):
         return self.last(F.normalize(x, dim=-1))
 
-
 class DinoHeadTaps(nn.Module):
     """z-taps through a DINOHead: post-GELU hiddens + the (raw) bottleneck. Prototype logits
     (K up to 65k) are NOT emitted — recompute when a metric needs them:
-    `l2norm(bottleneck) @ head.last.weight.T` (D-005)."""
+    `l2norm(bottleneck) @ head.last.weight.T`."""
 
     def __init__(self, head: DINOHead):
         super().__init__()
@@ -58,13 +51,10 @@ class DinoHeadTaps(nn.Module):
         t2 = m[3](m[2](t1))
         return {"dino.tap1": t1, "dino.tap2": t2, "dino.bottleneck": m[4](t2)}
 
-
 class BottleneckStage(nn.Module):
-    """E23 rev2 depth-ladder stage: Linear(w→m)-BN-ReLU-Linear(m→w)-BN-ReLU — a fully
-    BN-pinned capacity increment with EVERY path nonlinear (no skip: the residual ladder's
-    always-open linear path defeated the depth dial — E23 card §Launch log 2026-07-29).
-    m = the per-stage bottleneck width, the fine capacity dial between coarse K jumps
-    (Berker 2026-07-30). TVMLPTaps taps its output."""
+    """Projector depth-ladder stage: Linear(w→m)-BN-ReLU-Linear(m→w)-BN-ReLU, a BN-pinned capacity
+    increment with every path nonlinear (no skip). m = the per-stage bottleneck width.
+    TVMLPTaps taps its output."""
 
     def __init__(self, width, m):
         super().__init__()
@@ -75,12 +65,9 @@ class BottleneckStage(nn.Module):
     def forward(self, x):
         return self.f(x)
 
-
 class ResBlock(nn.Module):
-    """Identity-init residual MLP block: x + W2·ReLU([BN](W1·x)), W2 zero-init. REJECTED as
-    the E23 ladder (2026-07-29, card §Launch log: the skip is an always-open linear path
-    h→z, so depth cannot modulate invariance pressure — 6/6 arms collapsed). Kept ONLY so
-    the e23 diagnostic checkpoints remain assemblable (arch() references resolve)."""
+    """Identity-init residual MLP block: x + W2·ReLU([BN](W1·x)), W2 zero-init. The skip is an
+    always-open linear path h→z, so depth cannot modulate invariance pressure through it."""
 
     def __init__(self, dim, norm="none"):
         super().__init__()
@@ -95,7 +82,6 @@ class ResBlock(nn.Module):
     def forward(self, x):
         return x + self.f(x)
 
-
 class TVMLPTaps(nn.Module):
     """z-taps through a torchvision.ops.MLP (the lejepa projector: Linear-BN-ReLU blocks
     + final Linear[+Dropout]). Taps = post-activation hidden states; "out" = final linear
@@ -109,11 +95,10 @@ class TVMLPTaps(nn.Module):
 
     def forward(self, x):
         out, k = {}, 0
-        # depth-0 projector (E10 D0) is a bare nn.Identity, not a Sequential -> proj.out = input
         layers = self.mlp if isinstance(self.mlp, nn.Sequential) else [self.mlp]
         for layer in layers:
             x = layer(x)
-            if isinstance(x, tuple):  # no torchvision layer returns tuples; guard for exotic mlps
+            if isinstance(x, tuple):
                 x = x[0]
             if isinstance(layer, (nn.ReLU, nn.GELU, ResBlock, BottleneckStage)):
                 k += 1
@@ -121,10 +106,9 @@ class TVMLPTaps(nn.Module):
         out[f"{self.prefix}.out"] = x
         return out
 
-
 class ByolHeads(nn.Module):
     """BYOL student head stack: projector taps, then predictor taps chained on proj.out
-    (z.proj.tap1, z.proj.out, z.pred.tap1, z.pred.out — PROTOCOL §3; loss space = pred.out)."""
+    (z.proj.tap1, z.proj.out, z.pred.tap1, z.pred.out; loss space = pred.out)."""
 
     def __init__(self, proj: nn.Sequential, pred: nn.Sequential):
         super().__init__()
@@ -135,10 +119,9 @@ class ByolHeads(nn.Module):
         p = self.proj(cls)
         return {**p, **self.pred(p["proj.out"])}
 
-
 class DonorProjTap(nn.Module):
     """A donor-format projector rebuilt verbatim, exposing ONLY its output (z.proj.out) —
-    the lean anchor lift (no intermediate z taps; Berker 2026-08-24)."""
+    the lean lift of public checkpoints (no intermediate z taps)."""
 
     def __init__(self, seq: nn.Sequential):
         super().__init__()
@@ -147,10 +130,9 @@ class DonorProjTap(nn.Module):
     def forward(self, cls):
         return {"proj.out": self.seq(cls)}
 
-
 class LejepaHeads(nn.Module):
     """The lejepa-minimal head stack: trunk CLS (384) -> timm classifier Linear 384->512
-    (= the recipe's "emb"; our tap z.embed, D-003) -> torchvision MLP projector (z.proj.*)."""
+    (= the recipe's "emb"; our tap z.embed) -> torchvision MLP projector (z.proj.*)."""
 
     def __init__(self, embed_linear: nn.Linear, proj_mlp: nn.Sequential):
         super().__init__()
@@ -160,7 +142,6 @@ class LejepaHeads(nn.Module):
     def forward(self, cls):
         e = self.embed(cls)
         return {"embed": e, **self.proj(e)}
-
 
 class LinearTap(nn.Module):
     """Single named linear tap — the deitlite classifier (z.logits): the supervised anchor's

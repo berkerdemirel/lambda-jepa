@@ -1,5 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in1k.pub.ibotb400.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.4880474799960808,0.4862240186128506,0.49004276157431487,100000,768,cheap
-in1k.pub.ibotb400.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.7559762600019525,0.7549304675596322,0.7569592042945912,100000,768,cheap
-in1k.pub.ibotb400.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.47922583951864456,0.47746440645253957,0.48088018971569113,100000,768,cheap
-in1k.pub.ibotb400.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.7603870802406606,0.7594218286599708,0.7611787067733856,100000,768,cheap

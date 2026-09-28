@@ -1,11 +1,4 @@
-"""I-JEPA (Assran et al. 2023) — port of the ssl_explore/sslx/ijepa.py building blocks (verbatim
-MaskSampler and Predictor; the sslx trainer was deleted) on the frame. Faithful pieces: multi-block
-target sampling (shapes per batch, locations per image; official MaskCollator behaviour), context =
-block minus target-union truncated to batch-min, narrow ViT predictor (dim 384 depth 6; FIXED
-sincos pos, verified vs official), smooth-L1 on layer-normed EMA-teacher tokens (official code; paper text
-says L2), EMA momentum 0.996->1 LINEAR (paper). Minimal aug (RRC 0.3-1.0 + flip). Toy adaptations
-per D-012: house AdamW schedule; drop_path 0. Known fragility (C-JEPA): teacher-token std is
-monitored per step from birth."""
+"""I-JEPA (kept for the checkpoint adapters; not used in the paper)."""
 import copy
 import math
 import random
@@ -24,9 +17,7 @@ from sslgap.methods.base import SSLMethod
 from sslgap.models.backbones import build_vit_trunk
 from sslgap.models.vitops import ema_update, vit_tokens
 
-
 class MaskSampler:
-    """Port of sslx/ijepa.MaskSampler (shapes per batch, locations per image)."""
 
     def __init__(self, grid=16, n_targets=4, tgt_scale=(0.15, 0.2), tgt_aspect=(0.75, 1.5),
                  ctx_scale=(0.85, 1.0)):
@@ -62,16 +53,14 @@ class MaskSampler:
         ctx = torch.stack([c[torch.randperm(len(c))[:kc]] for c in ctx])
         return ctx, tgt
 
-
 class Predictor(nn.Module):
-    """Port of sslx/ijepa.Predictor (narrow ViT; one pass per target block via batch repeat)."""
 
     def __init__(self, dim=384, depth=6, heads=6, n_patches=256):
         super().__init__()
         self.embed = nn.Linear(dim, dim)
         self.mask_token = nn.Parameter(torch.zeros(1, 1, dim))
-        grid = int(n_patches ** 0.5)                      # FIXED sincos (official predictor pos,
-        self.register_buffer("pos", get_2d_sincos_pos_embed(dim, grid)[None])  # ijepa@52c1ae9)
+        grid = int(n_patches ** 0.5)
+        self.register_buffer("pos", get_2d_sincos_pos_embed(dim, grid)[None])
         self.blocks = nn.Sequential(*[Block(dim, heads, qkv_bias=True) for _ in range(depth)])
         self.norm = nn.LayerNorm(dim)
         self.out = nn.Linear(dim, dim)
@@ -88,10 +77,8 @@ class Predictor(nn.Module):
         h = self.norm(self.blocks(torch.cat([z, mt], 1)))[:, -Kt:]
         return self.out(h).reshape(B, T, Kt, -1)
 
-
 def ijepa_predictor(dim=384, depth=6, heads=6, n_patches=256):
     return Predictor(dim, depth, heads, n_patches)
-
 
 class IJEPA(SSLMethod):
     name = "ijepa"
@@ -106,7 +93,7 @@ class IJEPA(SSLMethod):
         trunk = build_vit_trunk(self.frame.model_name, self.frame.img_size, drop_path_rate=0.0)
         pred = ijepa_predictor(384, self.cfg.pred_depth, 6, self.n_patches)
         t_trunk = copy.deepcopy(trunk).requires_grad_(False)
-        if self.cfg.get("h_reg") == "sacreg":     # E20 calibrated zoo floor (no RNG at construction)
+        if self.cfg.get("h_reg") == "sacreg":
             self.floor = SACReg()
         return nn.ModuleDict({"backbone": trunk, "predictor": pred, "teacher_backbone": t_trunk})
 
@@ -146,30 +133,27 @@ class IJEPA(SSLMethod):
         pred = modules["predictor"](ctx, ctx_keep, tgt_idx)
         jepa = F.smooth_l1_loss(pred.float(), tgt.float())
         loss, terms = jepa, {"jepa": jepa}
-        # E20 (calibrated zoo floor): moment floor at ijepa's TRAINING-TIME student h — GAP
-        # over the context-encoder tokens (the grad branch; audited h is the EMA teacher GAP —
-        # deviation declared on the E20 card; the teacher inherits conditioning via EMA).
         if self.cfg.get("h_reg") == "sacreg":
             h_loss = self.floor(ctx.mean(1))
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
-        probe_feats = tt.mean(1).detach()      # teacher GAP = the audited branch (PROTOCOL §3),
-        return ({"loss": loss, **terms}, probe_feats, 1)  # free: tt already computed
+        probe_feats = tt.mean(1).detach()
+        return ({"loss": loss, **terms}, probe_feats, 1)
 
     def train_mode(self, modules):
         modules["backbone"].train()
         modules["predictor"].train()
-        modules["teacher_backbone"].eval()      # EMA target encoder stays eval (sslx convention)
+        modules["teacher_backbone"].eval()
 
     def post_step(self, modules, step, total_steps):
-        m = self.cfg.ema_base + (1.0 - self.cfg.ema_base) * step / total_steps   # linear (paper)
+        m = self.cfg.ema_base + (1.0 - self.cfg.ema_base) * step / total_steps
         ema_update(modules["teacher_backbone"], modules["backbone"], m)
         return {"ema_m": m, "teacher_tok_std": self._t_std}
 
     @torch.inference_mode()
     def eval_features(self, modules, x, device):
         feats = modules["teacher_backbone"].forward_features(x)
-        return feats[:, 1:].mean(1)                            # audited branch (teacher GAP)
+        return feats[:, 1:].mean(1)
 
     def probe_dim(self):
         return 384

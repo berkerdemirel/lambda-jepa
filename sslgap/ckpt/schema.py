@@ -1,14 +1,4 @@
-"""Checkpoint schema v1 + the uniform in-memory form every checkpoint loads into.
-
-Two layers:
-- `LoadedCkpt` — what the extraction/audit pipeline consumes. Adapters (adapters.py) lift legacy
-  formats (lejepa minimal, ssl_explore DINO control, later solo-learn/official releases) into it;
-  our own trainers (M1+) will save the native v1 payload below.
-- native payload `sslgap/ckpt/v1` — the head-preserving format for our trainers: every module role
-  (backbone, projector, predictor, decoder, teacher_*) with an `arch` block (class + kwargs) so any
-  head can be rebuilt WITHOUT the trainer, plus full cfg and provenance. This is what makes the
-  audit possible on our checkpoints and impossible on most public ones.
-"""
+"""Checkpoint schema and the uniform in-memory form every checkpoint loads into."""
 import json
 import os
 import subprocess
@@ -18,7 +8,6 @@ import torch
 import torch.nn as nn
 
 FORMAT = "sslgap/ckpt/v1"
-
 
 @dataclass
 class Branch:
@@ -30,17 +19,16 @@ class Branch:
     trunk pass, I-JEPA context-only)."""
     trunk: nn.Module
     heads: nn.Module | None = None
-    head_input: str = "cls"          # "cls" | "gap" | "seq" | "image"
-
+    head_input: str = "cls"
 
 @dataclass
 class LoadedCkpt:
     run_id: str
     method: str
-    frame: dict                      # model_name, img_size, dynamic_img_size, dataset, num_classes
-    cfg: dict                        # full source cfg (verbatim)
-    branches: dict[str, Branch]      # "student" [, "teacher"]
-    probed_branch: str               # the branch the method's paper evaluates (PROTOCOL §3)
+    frame: dict
+    cfg: dict
+    branches: dict[str, Branch]
+    probed_branch: str
     provenance: dict = field(default_factory=dict)
 
     def eval_(self, device):
@@ -49,7 +37,6 @@ class LoadedCkpt:
             if br.heads is not None:
                 br.heads.to(device).eval().requires_grad_(False)
         return self
-
 
 def provenance_stamp(**extra):
     """Best-effort provenance for payloads and feature-store meta."""
@@ -61,7 +48,6 @@ def provenance_stamp(**extra):
         sha = ""
     return {"git_sha": sha, "slurm_job_id": os.environ.get("SLURM_JOB_ID", ""),
             "host": os.uname().nodename, "torch": torch.__version__, **extra}
-
 
 def save_checkpoint(path, *, method, epoch, step, frame, cfg, arch, modules, extras=None,
                     optim=None, meters=None, best_acc=None, provenance=None):
@@ -78,8 +64,7 @@ def save_checkpoint(path, *, method, epoch, step, frame, cfg, arch, modules, ext
         raise ValueError(f"refusing to save invalid ckpt: {errs}")
     torch.save(payload, path)
 
-
-REQUIRED_ROLES = {  # minimal module set per method for the native format (M1 trainers)
+REQUIRED_ROLES = {
     "simclr": {"backbone", "projector"},
     "lambdajepa": {"backbone", "projector"},
     "byol": {"backbone", "projector", "predictor", "teacher_backbone", "teacher_projector"},
@@ -87,20 +72,13 @@ REQUIRED_ROLES = {  # minimal module set per method for the native format (M1 tr
     "dino": {"backbone", "projector", "teacher_backbone", "teacher_projector"},
     "mae": {"backbone", "decoder"},
     "ijepa": {"backbone", "predictor", "teacher_backbone"},
-    "lejepa": {"encoder", "projector"},   # encoder = timm ViT WITH the emb Linear (exact port);
-                                          # the extraction adapter splits trunk/embed (D-003v2 F4)
+    "lejepa": {"encoder", "projector"},
 }
 
-
-# 2026-09-21 rename (D-127): the method `floorssl` is `lambdajepa`, the regularizer class
-# `SpectralConditioner` is `SACReg`, the zoo's backbone hook `h_reg=moment` is `h_reg=sacreg`.
-# Checkpoints written before that day carry the old names in `method`, the arch class paths and
-# the stored cfg; `modernize` maps them on load. Run ids, file names and stored provenance stay.
-LEGACY_METHOD = {"floorssl": "lambdajepa"}
-LEGACY_CLASS = {f"sslgap.methods.floorssl.floorssl_{k}": f"sslgap.methods.lambdajepa.lambdajepa_{k}"
+LEGACY_METHOD = {"lambdajepa": "lambdajepa"}
+LEGACY_CLASS = {f"sslgap.methods.lambdajepa.lambdajepa_{k}": f"sslgap.methods.lambdajepa.lambdajepa_{k}"
                 for k in ("head", "ladder_head", "res_head", "stage_head")}
 LEGACY_REG = {"moment": "sacreg"}
-
 
 def modernize(payload):
     payload["method"] = LEGACY_METHOD.get(payload.get("method"), payload.get("method"))
@@ -114,11 +92,9 @@ def modernize(payload):
             m[k] = LEGACY_REG[m[k]]
     return payload
 
-
 def load_payload(path, **kw):
     """torch.load of a native payload with the legacy names mapped (every reader goes through here)."""
     return modernize(torch.load(path, weights_only=False, **kw))
-
 
 def validate(payload):
     errs = []
@@ -135,7 +111,6 @@ def validate(payload):
     if missing_arch:
         errs.append(f"modules without arch block: {missing_arch}")
     return errs
-
 
 def write_meta(path, meta):
     with open(path, "w") as f:

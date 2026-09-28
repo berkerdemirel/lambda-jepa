@@ -1,6 +1,6 @@
-# The house v6 recipe on LeVJEPA's ViT-S/16 (E34 first cell): everything from config.yaml except
-# the loss, the view set and the arch. Doses = the e27v6s chain (31.07 / 225.50 / 1.671), rings
-# z-q3 / h-q3, slices 128 / 128, six global views @224, grad clip 1.0.
+# lambda-JEPA on LeVJEPA's ViT-S/16: everything from config.yaml except the loss, the view set
+# and the arch. Loss weights 31.07 / 225.50 / 1.671 (invariance / projector term / backbone term),
+# rings z-q3 / h-q3, slices 128 / 128, six global views @224, grad clip 1.0.
 # Launch: python main.py --config-name lambdajepa_vits data=k710_20pct ...
 defaults:
   - config

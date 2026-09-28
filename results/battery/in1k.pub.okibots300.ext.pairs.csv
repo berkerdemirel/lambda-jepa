@@ -1,5 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in1k.pub.okibots300.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.6189874321752947,0.617190259066165,0.6214051008898601,100000,384,cheap
-in1k.pub.okibots300.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.6905062839123409,0.6892395258903184,0.6916526325310335,100000,384,cheap
-in1k.pub.okibots300.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.43798480724233596,0.43632574973315924,0.4398077846432492,100000,384,cheap
-in1k.pub.okibots300.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.781007596378818,0.7799735266409058,0.7818902472551077,100000,384,cheap

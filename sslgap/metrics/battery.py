@@ -1,10 +1,4 @@
-"""The metric battery: pure functions over stored feature arrays, computed identically on every
-space (PROTOCOL §6 estimator discipline is enforced HERE — variants, PCA-k, bootstrap, nulls).
-
-run_battery(store, run_id, manifest_key, space) -> tidy DataFrame:
-  (space, metric, variant, value, ci_lo, ci_hi, n, d, null_gauss, seed)
-variant ∈ {raw, l2} × {full, pca64}; metrics declare which apply. Bootstrap resamples images;
-spectral metrics bootstrap on a row-subsample (cost class), noted in the `boot` column."""
+"""Metric battery: pure functions over stored feature arrays."""
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -14,24 +8,21 @@ import pandas as pd
 from sslgap.metrics import cross, isotropy, pairs, single, spectra
 from sslgap.metrics.nulls import gaussian_match
 
-
 @dataclass
 class MetricSpec:
     name: str
-    fn: Callable                      # fn(X, seed=...) -> float | dict[str, float]
-    dim_sensitive: bool = False       # also computed on the PCA-64 projection
-    l2_variant: bool = True           # also computed on row-L2-normalized features
-    boot: str = "cheap"               # "cheap" (full-N resample) | "spectral" (10k subsample) | "none"
-    gauss_null: bool = False          # also computed on the moment-matched Gaussian
+    fn: Callable
+    dim_sensitive: bool = False
+    l2_variant: bool = True
+    boot: str = "cheap"
+    gauss_null: bool = False
     kwargs: dict = field(default_factory=dict)
-
 
 def _spectrum_metric(agg):
     def fn(X, seed=0):
         eigs = spectra.covariance_eigs(X)
         return agg(eigs)
     return fn
-
 
 DEFAULT_BATTERY = [
     MetricSpec("uniformity", lambda X, seed=0: single.uniformity(X, seed=seed),
@@ -49,8 +40,6 @@ DEFAULT_BATTERY = [
     MetricSpec("alpha", _spectrum_metric(spectra.power_law_alpha), boot="spectral"),
     MetricSpec("epps_pulley", lambda X, seed=0: isotropy.epps_pulley(X, seed=seed),
                dim_sensitive=True, gauss_null=True, boot="spectral"),
-    # D-040 ISO-ladder v2: the moment component of KL(P||N(0,I)) exactly (location + Stein
-    # spectrum, logdet barrier) + the CLT-immune radial law. Nulls give the finite-sample floors.
     MetricSpec("gauss_kl_full", lambda X, seed=0: isotropy.gauss_kl_full(X),
                l2_variant=False, gauss_null=True, boot="spectral"),
     MetricSpec("radial_gauss", lambda X, seed=0: isotropy.radial_gauss(X, seed=seed),
@@ -69,23 +58,20 @@ PAIR_BATTERY = [
     ("cos_invariance", pairs.cos_invariance),
 ]
 
-CROSS_BATTERY = [  # (name, fn(X, Y, **kw)) — the similarity triple + neighborhood consistency
+CROSS_BATTERY = [
     ("cka_linear", cross.cka_linear),
     ("neighbor_jaccard", cross.neighbor_jaccard),
     ("procrustes_distance", cross.procrustes_distance),
 ]
 
-
 def _l2(X):
     return X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
-
 
 def _pca_k(X, k=64):
     Xc = X - X.mean(0)
     kk = min(k, X.shape[1])
     _, V = np.linalg.eigh((Xc.T @ Xc) / (Xc.shape[0] - 1))
     return Xc @ V[:, ::-1][:, :kk]
-
 
 def _rows_for(spec, X, variant, n_boot, seed):
     rows = []
@@ -109,7 +95,6 @@ def _rows_for(spec, X, variant, n_boot, seed):
                      "ci_lo": float(lo), "ci_hi": float(hi),
                      "n": X.shape[0], "d": X.shape[1], "boot": spec.boot})
     return rows
-
 
 def run_battery(store, run_id, manifest_key, space, specs=None, n_boot=100, pca_k=64,
                 max_n=None, seed=0):
@@ -146,7 +131,6 @@ def run_battery(store, run_id, manifest_key, space, specs=None, n_boot=100, pca_
     df.insert(0, "run_id", run_id)
     return df
 
-
 def run_pair_battery(store, run_id, manifest_key, base_spaces, seed=0, n_boot=200):
     """Pair metrics per space (needs <space>.viewA/.viewB in the store)."""
     rows = []
@@ -166,7 +150,6 @@ def run_pair_battery(store, run_id, manifest_key, base_spaces, seed=0, n_boot=20
                          "ci_lo": float(lo), "ci_hi": float(hi),
                          "n": A.shape[0], "d": A.shape[1], "boot": "cheap"})
     return pd.DataFrame(rows)
-
 
 def run_cross_battery(store, run_id, manifest_key, space_x, space_y, seed=0):
     """The similarity triple between two spaces on the same manifest (CKA never alone)."""

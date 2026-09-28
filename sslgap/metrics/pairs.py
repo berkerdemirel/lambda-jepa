@@ -1,7 +1,5 @@
-"""Metrics on positive-pair feature matrices (A, B) [N, d] — two views of the same images,
-extracted under a declared aug stack (own vs audit_v1; PROTOCOL §5)."""
+"""Positive-pair metrics: alignment, positive and random-pair cosines, class-conditioned cosine margin."""
 import numpy as np
-
 
 def alignment(A, B):
     """Wang–Isola alignment: E ||a - b||^2 on L2-normalized features. Lower = more view-invariant."""
@@ -9,19 +7,16 @@ def alignment(A, B):
     b = B / (np.linalg.norm(B, axis=1, keepdims=True) + 1e-12)
     return float(((a - b) ** 2).sum(1).mean())
 
-
 def cos_invariance(A, B):
     """Mean cosine similarity of raw positive pairs (the RCDM-style invariance readout)."""
     num = (A * B).sum(1)
     den = np.linalg.norm(A, axis=1) * np.linalg.norm(B, axis=1) + 1e-12
     return float((num / den).mean())
 
-
 def class_margin(X, y):
     """Label-conditioned cosine margin: mean same-class cos − mean diff-class cos on
     L2-normalized features, via the class-sum identity (no pairwise materialization).
-    The zoo-guillotine 'class margin (same−diff)' column — promoted from the spent
-    e20_guillotine_zoo/e23_guillotine_1k copies per D-054 (reused by e24_guillotine)."""
+    Reported as the class margin (same − diff)."""
     X = X.astype(np.float32)
     X = X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
     same_n, same_s, S = 0.0, 0.0, np.zeros(X.shape[1], np.float64)
@@ -41,11 +36,10 @@ def class_margin(X, y):
     diff = (S @ S - tot_c2) / (N * N - sum(n ** 2 for n in counts))
     return float(same - diff)
 
-
 def pair_margin(A, B, seed=0):
     """Positive-pair vs random-pair contrast within the same space — the baseline that makes
-    alignment/cos_invariance interpretable (METRICS.md coupling caveat: a cone-collapsed space has
-    tiny alignment with zero invariance achievement; M1 dress rehearsal, Berker 2026-07-08).
+    alignment/cos_invariance interpretable (a cone-collapsed space has tiny alignment with zero
+    invariance achievement).
     Random pairs are cross-view different-image pairs (a[p_i] vs b[p_{i+1}]), so the view pipeline
     is identical for both terms and only image identity differs."""
     a = A / (np.linalg.norm(A, axis=1, keepdims=True) + 1e-12)

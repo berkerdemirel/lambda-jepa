@@ -1,18 +1,10 @@
-"""Feature store: one fp16 .npy per (run_id, manifest_key, space) + meta.json (D-005).
-
-Layout:  <root>/<run_id>/<manifest_key>/<space>.npy      [N, d] fp16
-         <root>/<run_id>/<manifest_key>/labels.npy       [N] int64
-         <root>/<run_id>/<manifest_key>/meta.json
-manifest_key = "<manifest-name>@<stack>" for pair extractions, else the manifest name.
-Reads are memmap; the metric battery consumes these in float64 without touching any model.
-A hard byte-budget refuses writes past the cap — the NFS quota is shared (D-005)."""
+"""Feature store: one fp16 .npy per (run_id, manifest, space) plus meta.json."""
 import json
 import os
 
 import numpy as np
 
 from sslgap.ckpt.schema import provenance_stamp, write_meta
-
 
 class FeatureStore:
     def __init__(self, root, cap_gb=3000):
@@ -34,10 +26,10 @@ class FeatureStore:
     def put(self, run_id, manifest_key, space, X):
         X = np.ascontiguousarray(X, dtype=np.float16)
         if X.shape[1] > 8192:
-            raise ValueError(f"{space}: d={X.shape[1]} > 8192 — recompute, don't store (D-005)")
+            raise ValueError(f"{space}: d={X.shape[1]} > 8192 — recompute, don't store")
         if self._used_bytes() + X.nbytes > self.cap:
             raise RuntimeError(
-                f"feature store cap exceeded ({self.cap >> 30} GB) — purge or raise cap (D-005)")
+                f"feature store cap exceeded ({self.cap >> 30} GB) — purge or raise cap")
         path = os.path.join(self.dir(run_id, manifest_key), f"{space}.npy")
         np.save(path, X)
         return path

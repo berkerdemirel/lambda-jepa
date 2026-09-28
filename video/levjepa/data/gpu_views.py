@@ -1,18 +1,15 @@
-"""Photometric half of the lejepa view stack on the GPU (E34 second launch, 2026-09-03). The workers keep read,
+"""Photometric half of the lejepa view stack on the GPU. The workers keep read,
 decode and RandomResizedCrop and ship uint8 crops; this applies to each (clip, view) sample, with its own parameter
 draws, exactly the ops the CPU Compose applied after the crop — ColorJitter(0.8, 0.8, 0.8, 0.2) at p .8 in a random
 op order, RandomGrayscale p .2, GaussianBlur k7 sigma U(0.1, 2) p .5, RandomSolarize 128 p .2, RandomHorizontalFlip
 p .5 — in float [0, 1], and returns uint8 so `main.to_float_normalized` stays the one normalization seam. Every op
-reproduces torchvision's functional reference to 0.000/255 (scratch/video/e34_gpu_photometrics_bench.py, A100 and
-H100); the one declared difference from the CPU path is the absence of the uint8 rounding between consecutive ops.
+reproduces torchvision's functional reference to 0.000/255 (checked on A100 and H100); the one declared difference from the CPU path is the absence of the uint8 rounding between consecutive ops.
 Why: on the CPU these ops cost 0.38 core-seconds per clip, 95 percent of a worker's CPU time, and bound the
 loader; here they cost ~0.8 s per 576-sample micro-batch on an H100 while the workers keep ~0.04 core-s per clip."""
 import torch
 import torch.nn.functional as F
 
-
 def _gray(x): return 0.2989 * x[..., 0:1, :, :] + 0.587 * x[..., 1:2, :, :] + 0.114 * x[..., 2:3, :, :]
-
 
 def _rgb2hsv(img):
     r, g, b = img.unbind(dim=-3)
@@ -23,7 +20,6 @@ def _rgb2hsv(img):
     hr = (maxc == r) * (bc - gc); hg = ((maxc == g) & (maxc != r)) * (2.0 + rc - bc); hb = ((maxc != g) & (maxc != r)) * (4.0 + gc - rc)
     return torch.stack((torch.fmod(((hr + hg + hb) / 6.0 + 1.0), 1.0), s, maxc), dim=-3)
 
-
 def _hsv2rgb(img):
     h, s, v = img.unbind(dim=-3)
     h6 = h * 6.0; i = torch.floor(h6); f = h6 - i; i = i.to(torch.int32) % 6
@@ -31,13 +27,11 @@ def _hsv2rgb(img):
     def sel(a): return torch.where(i == 0, a[0], torch.where(i == 1, a[1], torch.where(i == 2, a[2], torch.where(i == 3, a[3], torch.where(i == 4, a[4], a[5])))))
     return torch.stack((sel((v, q, p, p, t, v)), sel((t, v, v, q, p, p)), sel((p, p, t, v, v, q))), dim=-3)
 
-
 def _brightness(x, f): return (x * f).clamp_(0, 1)
 def _contrast(x, f): m = _gray(x).mean(dim=(-3, -2, -1), keepdim=True); return (f * x + (1 - f) * m).clamp_(0, 1)
 def _saturation(x, f): return (f * x + (1 - f) * _gray(x)).clamp_(0, 1)
 def _hue(x, f): hsv = _rgb2hsv(x); return _hsv2rgb(torch.cat([(hsv[..., 0:1, :, :] + f) % 1.0, hsv[..., 1:, :, :]], -3))
 _JITTER = (_brightness, _contrast, _saturation, _hue)
-
 
 def _blur(x, sigma, apply):
     """Separable k7 gaussian with reflect padding, one kernel per sample (the identity where not applied)."""
@@ -50,7 +44,6 @@ def _blur(x, sigma, apply):
     y = F.conv2d(y, k.view(-1, 1, 1, 7), groups=B * T * C)
     y = F.conv2d(y, k.view(-1, 1, 7, 1), groups=B * T * C)
     return y.reshape(B, T, C, H, W)
-
 
 def _stack(x, gen):
     """uint8 (B, T, 3, H, W) -> uint8, the stack per sample; the op order of ColorJitter is drawn per sample."""
@@ -70,7 +63,6 @@ def _stack(x, gen):
     m = (U(B) < 0.2).view(B, 1, 1, 1, 1); x = torch.where(m & (x >= 128 / 255), 1 - x, x)
     m = (U(B) < 0.5).view(B, 1, 1, 1, 1); x = torch.where(m, x.flip(-1), x)
     return x.mul_(255).round_().to(torch.uint8)
-
 
 def photometrics(views, seed, chunk=144):
     """views: uint8 (N, V, T, C, H, W) crops on the GPU -> uint8 of the same shape, every (clip, view) sample through

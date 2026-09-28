@@ -1,14 +1,11 @@
-"""Metrics on a single feature matrix X [N, d] (float64 numpy). Multi-valued metrics return a
-dict of sub-metrics; the battery flattens them into rows."""
+"""Single-matrix metrics: uniformity, variance floor, redundancy, collapse margin."""
 import numpy as np
-
 
 def _sq_dists(x, y):
     """Pairwise squared distances via the gram trick (one matmul, no [N,N,d] broadcast)."""
     xx = (x ** 2).sum(1)[:, None]
     yy = (y ** 2).sum(1)[None, :]
     return np.clip(xx + yy - 2.0 * (x @ y.T), 0.0, None)
-
 
 def uniformity(X, n_sub=4096, seed=0):
     """Wang–Isola uniformity: log E exp(-2 ||u_i - u_j||^2) on L2-NORMALIZED features (the metric
@@ -22,7 +19,6 @@ def uniformity(X, n_sub=4096, seed=0):
     iu = np.triu_indices_from(sq, k=1)
     return float(np.log(np.exp(-2.0 * sq[iu]).mean()))
 
-
 def variance_floor(X, gamma=1.0):
     """VICReg's variance criterion read as a meter: per-dim std profile. hinge = the VICReg term
     value at gamma (exactly satisfied at z by VICReg training); floor fractions are
@@ -34,7 +30,6 @@ def variance_floor(X, gamma=1.0):
             "frac_below_tenth_mean": float((s < 0.1 * m).mean()),
             "min_over_mean_std": float(s.min() / m)}
 
-
 def offdiag_redundancy(X):
     """Barlow/VICReg decorrelation read as a meter, on standardized features:
     off-diagonal mean square of the correlation matrix + mean |corr|."""
@@ -43,7 +38,6 @@ def offdiag_redundancy(X):
     d = C.shape[0]
     off = C[~np.eye(d, dtype=bool)]
     return {"offdiag_msq": float((off ** 2).mean()), "mean_abs_corr": float(np.abs(off).mean())}
-
 
 def collapse_margin(X, n_sub=2048, seed=0):
     """Sanity tier: distance from complete collapse."""

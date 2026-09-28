@@ -1,3 +1,0 @@
-run_id,probe,space,val_acc
-in1k.visreg.s0.vrb.extL,knn_k200_t0.1,student.h.cls,0.52492
-in1k.visreg.s0.vrb.extL,knn_k200_t0.07,student.h.cls,0.5255

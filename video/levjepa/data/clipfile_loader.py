@@ -1,13 +1,12 @@
-"""Clip-file dataset (fix B, E34): one `{label}/{episode}.clip` file per clip = the donor builder's JPEG
+"""Clip-file dataset: one `{label}/{episode}.clip` file per clip = the donor builder's JPEG
 frames at 15 fps, short edge 384 (see scripts/lance_to_clipfiles.py). A sample = 16 frames at the training
 stride from a random start, decoded with PIL — identical frames to the Lance path; the header (frame count and
-offsets) then ONE window read of the 31-frame span (~1.2 of the ~5 MB file; 2026-09-03: BeeGFS is bound per
-request and per client node, ~35 whole-file vs ~60-80 span reads per second per node, not per byte).
+offsets) then ONE window read of the 31-frame span (~1.2 of the ~5 MB file; a shared file system is bound per
+request and per client node, not per byte).
 Output: {"frame": uint8 (T, C, H, W), "label": int}."""
 import io, os, random, struct
 import numpy as np, torch
 from PIL import Image
-
 
 class ClipFileDataset(torch.utils.data.Dataset):
     def __init__(self, roots, classes_file, num_frames=16, frame_stride=2, clips_per_video=1, random_crop=True, transform=None, name="clipfiles",
@@ -16,8 +15,8 @@ class ClipFileDataset(torch.utils.data.Dataset):
         the store builder (<store>.classes.txt, identical for every set) = the global label index space.
         shard=(rank, world): this rank keeps a FIXED slice of the sorted file list (rank::world, cut to equal length) instead of
         Lightning's per-epoch DistributedSampler split — the same expectation, and it lets stage_dir copy the slice ONCE to the
-        node's local disk (2026-09-06: BeeGFS serves ~25-35 clip reads per second per node, which bounds a 120k-clip epoch at
-        ~10 min on eight nodes; the copy costs ~7 min per rank, the epochs then read local NVMe). stage_limit caps the slice (smokes)."""
+        node's local disk (a shared file system serving ~30 clip reads per second per node bounds a 120k-clip epoch at
+        ~10 min on eight nodes; the copy costs a few minutes per rank, the epochs then read local disk). stage_limit caps the slice (smokes)."""
         self.classes = [c for c in open(classes_file).read().split("\n") if c]
         index = {c.replace("/", "_"): i for i, c in enumerate(self.classes)}
         self.files, self.labels = [], []
@@ -58,7 +57,7 @@ class ClipFileDataset(torch.utils.data.Dataset):
             span = self.frame_stride * (self.num_frames - 1) + 1
             start = random.randrange(0, n - span + 1) if (self.random_crop and n > span) else 0
             last = min(start + span - 1, n - 1)
-            f.seek(base + int(offs[start])); blob = f.read(int(offs[last + 1] - offs[start]))   # the span only
+            f.seek(base + int(offs[start])); blob = f.read(int(offs[last + 1] - offs[start]))
         idx = [min(start + i * self.frame_stride, n - 1) for i in range(self.num_frames)]
         frames = [np.asarray(Image.open(io.BytesIO(blob[int(offs[i] - offs[start]): int(offs[i + 1] - offs[start])])).convert("RGB")) for i in idx]
         return torch.from_numpy(np.stack(frames)).permute(0, 3, 1, 2)

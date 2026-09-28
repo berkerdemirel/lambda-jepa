@@ -1,22 +1,4 @@
-"""LeJEPA — EXACT port of the official minimal recipe (../lejepa/scripts/minimal_imagenette.py,
-Balestriero & LeCun; our M1 ground truth: wandb lejepa-reproduce/z2zqw1bs, final test/acc 0.90217
-at ep800 with {lamb 0.02, V 4, proj_dim 16, lr 2e-3, bs 256}).
-
-Port-exactness choices (D-011): module CREATION ORDER mirrors the official script (encoder → probe
-[trainer] → SIGReg) so the seed-0 init RNG stream matches as closely as a refactor allows; the
-encoder is built as timm-ViT(num_classes=512) exactly like the official ViTEncoder and SPLIT into
-trunk+embed roles only at checkpoint time; NO grad clipping (official: none); cosine eta_min=1e-3
-(official — note: violates the house eta_min≤lr/20 rule BY DESIGN, recorded in D-011); SIGReg slices
-are unseeded per step (official); DataLoader persistent_workers=False (official — worker aug RNG
-would differ otherwise).
-
-Deviations from the paper (inherited from the official minimal recipe, not ours): single-dataset toy
-scale; probe is the online monitor only.
-
-Arm machinery riding on the port (all off by default; defaults reproduce the port byte-exactly):
-E10 (sigreg_at / proj_depth / embed_calib, D-016/D-021) and E12 (spec_norm on the projector,
-floor=sacreg → SACReg, D-026 — see docs/experiments/E12_moment_floor.md).
-"""
+"""LeJEPA (SIGReg + invariance at the projector output) with the optional backbone term (h_reg=sacreg | sigreg)."""
 import timm
 import torch
 import torch.nn as nn
@@ -28,34 +10,17 @@ from sslgap.data import LejepaMultiCropDataset, LightlyLejepaMultiCropDataset, V
 from sslgap.methods._common import SACReg
 from sslgap.methods.base import SSLMethod
 
-
 def t_nu_cf(t, nu):
-    """CF of the UNIT-VARIANCE Student-t_ν at the knots t, as float32 constants (E18 declared-
-    prior arm). Standard t_ν has CF K_{ν/2}(√ν|u|)·(√ν|u|)^{ν/2} / (Γ(ν/2)·2^{ν/2−1}); scaling
-    to unit variance (u = t·√((ν−2)/ν)) keeps the moment-1/2 targets identical to the Gaussian
-    arm — only the tail/shape declaration changes. Needs ν > 4 (fit is by excess kurtosis)."""
     import numpy as np
     from scipy.special import gammaln, kv
-    u = t.double().numpy() * (nu - 2) ** 0.5          # √ν·√((ν−2)/ν)·t = √(ν−2)·t
+    u = t.double().numpy() * (nu - 2) ** 0.5
     pos = u > 0
-    logphi = np.zeros_like(u)                          # φ(0) = 1
+    logphi = np.zeros_like(u)
     logphi[pos] = (np.log(kv(nu / 2, u[pos])) + (nu / 2) * np.log(u[pos])
                    - gammaln(nu / 2) - (nu / 2 - 1) * np.log(2.0))
     return torch.from_numpy(np.exp(logphi)).float()
 
-
 class SIGReg(nn.Module):
-    """Verbatim from the official script (unseeded slices, device-agnostic). standardize=True
-    (E12 F-wave arm f4, D-027) z-scores each slice over the batch before the CF distance —
-    kills the moment channel, isolating the shape/anti-CLT (cluster) response (R4c(d)'s listed
-    intervention; framework-E7(i)); dead-slice division guarded by the std clamp (gradient
-    vanishes at exact death — the term sees degeneracy but is not its fixer). Default path is
-    numerically identical to the port.
-
-    nu (E18, agenda iv): declared-prior fork — the CF TARGET at the knots becomes the unit-
-    variance spherical t_ν's (slice-coherent: rotation invariance keeps one target for every
-    slice). The quadrature weights keep the Gaussian window so the integration measure — how
-    CF error is weighted across t — is byte-identical to the Gaussian arm; only phi swaps."""
 
     def __init__(self, knots=17, n_slices=256, t_max=3.0, standardize=False, nu=None):
         super().__init__()
@@ -81,23 +46,12 @@ class SIGReg(nn.Module):
         statistic = (err @ self.weights) * proj.size(-2)
         return statistic.mean()
 
-
 def lejepa_encoder(model_name, img_size, emb_dim=512, drop_path=0.1, dynamic_img_size=False):
-    """The official ViTEncoder backbone half: timm ViT WITH the emb Linear (num_classes=emb_dim).
-    dynamic_img_size (D-082 multicrop control): pos-embed interpolation for the 96-px locals;
-    default False = byte-identical legacy construction."""
     return timm.create_model(model_name, pretrained=False, num_classes=emb_dim,
                              drop_path_rate=drop_path, img_size=img_size,
                              dynamic_img_size=dynamic_img_size)
 
-
 def lejepa_projector(proj_dim, emb_dim=512, hidden=2048, depth=3, spec_norm=False):
-    """The official projector: torchvision MLP with BatchNorm1d. depth counts trainable layers
-    (E10 arm D): 3 = official [hidden, hidden, proj_dim]; 0 = Identity (whole loss on the
-    embedding — the no-buffer arm); 1..2 = shallower MLPs ending at proj_dim. spec_norm (E12 p1,
-    D-026) parametrizes each Linear with spectral normalization — bounds the Linears' spectral
-    norms only; BN affines stay unnormalized (declared caveat on the E12 card, σ_min/eff-rank of
-    the fitted head watched via D-015)."""
     if depth == 0:
         return nn.Identity()
     mlp = MLP(emb_dim, [hidden] * (depth - 1) + [proj_dim], norm_layer=nn.BatchNorm1d)
@@ -107,29 +61,17 @@ def lejepa_projector(proj_dim, emb_dim=512, hidden=2048, depth=3, spec_norm=Fals
                 spectral_norm(m)
     return mlp
 
-
-# SACReg moved to sslgap/methods/_common.py (E12 cross-method arms, 2026-07-12);
-# imported at the top so all existing references keep working.
-
-
-# h-side regularizer routing (E12 §Amendment + F-wave): cfg.h_reg -> wandb term key
 H_KEYS = {"sigreg": "h_sigreg", "sacreg": "h_moment_kl", "sigreg_std": "h_sigreg_std",
           "sigreg_t": "h_sigreg_t"}
 
-
 class LeJEPA(SSLMethod):
     name = "lejepa"
-    _epoch = 0                    # tracked via on_epoch_start; gates h_start_ep (F-wave f6)
+    _epoch = 0
 
     def on_epoch_start(self, modules, epoch):
         self._epoch = epoch
 
     def build_modules(self):
-        # creation order mirrors the official script: backbone-with-emb, then projector.
-        # (spec_norm and SACReg consume no RNG at construction — init streams unshifted.)
-        # D-092 Lightly-replication anatomy: emb_dim=0 -> timm num_classes=0, encoder(x) = bare
-        # trunk CLS (their benchmark has NO embedding stage); projector rides the trunk width.
-        # grad_ckpt (bs=512 fit) and n_slices are RNG-free at construction — init streams unshifted.
         self._mc = self.cfg.get("aug") in ("lejepa_mc", "lightly_mc")
         enc = lejepa_encoder(self.frame.model_name, self.frame.img_size,
                              emb_dim=self.cfg.emb_dim, drop_path=self.cfg.drop_path,
@@ -151,8 +93,6 @@ class LeJEPA(SSLMethod):
         return nn.ModuleDict({"encoder": enc, "projector": proj})
 
     def arch(self):
-        # depth recorded only when non-default so pre-existing checkpoints' arch dicts (and any
-        # in-flight requeue resume asserts) stay byte-identical; rebuild defaults to depth=3.
         proj_kwargs = {"proj_dim": self.cfg.proj_dim,
                        "emb_dim": self.cfg.emb_dim or self._probe_dim}
         if self.cfg.get("proj_depth", 3) != 3:
@@ -163,7 +103,6 @@ class LeJEPA(SSLMethod):
                       "img_size": self.frame.img_size,
                       "emb_dim": self.cfg.emb_dim,
                       "drop_path": self.cfg.drop_path}
-        # dynamic recorded only when True (D-082) — pre-existing arch dicts byte-identical.
         if getattr(self, "_mc", False):
             enc_kwargs["dynamic_img_size"] = True
         return {"encoder": {"class": "sslgap.methods.lejepa.lejepa_encoder",
@@ -172,10 +111,6 @@ class LeJEPA(SSLMethod):
                               "kwargs": proj_kwargs}}
 
     def build_train_dataset(self):
-        # aug="lejepa_mc" (D-082): the Recipe v2 multicrop control — same dataset class,
-        # scales, and view counts as the floorssl lanes (repo-published geometry).
-        # aug="lightly_mc" (D-092): the Lightly-benchmark replication views (their
-        # DINOTransform construction; solarize on global-2 only, 6 locals).
         if self.cfg.get("aug") == "lightly_mc":
             return LightlyLejepaMultiCropDataset(
                 self.frame.dataset, "train", img_size=self.frame.img_size,
@@ -205,21 +140,7 @@ class LeJEPA(SSLMethod):
         return SequentialLR(optimizer, schedulers=[s1, s2], milestones=[warmup])
 
     def training_step(self, modules, views, device, y=None):
-        # E10 arms (D-016, card §SIGReg-on-h): sigreg_at ∈ {proj (A, default), embed (B), cls (C)}
-        # routes ONLY the SIGReg input; invariance stays at proj.out and modules are identical, so
-        # arch/extraction/probing are unchanged across arms.
-        # embed_calib (E10 arm B‴/e10Bi): one-shot data-dependent init of the emb Linear — fold
-        # first-batch per-dim (mu, sigma) into (W, b) so the embed starts unit-scale/zero-mean.
-        # The timm head init (trunc_normal std .02, NOT fan-in-scaled) leaves the embed ~10x
-        # under-scaled; sigreg's unbuffered opening rescale of the trunk is the measured collapse
-        # trigger (grad-share diag; E10 card amendment). Loss untouched; the calibrated weights
-        # persist through checkpoints, the extras flag guards re-entry on resume.
         if isinstance(views, (list, tuple)):
-            # D-082 multicrop control (Recipe v2): globals+locals through the encoder,
-            # image-major concat; everything downstream (proj / view-to-mean inv /
-            # per-view SIGReg / λ-convex loss) is the port verbatim — the official inv
-            # already IS the view-to-mean form. E10/E12 arm machinery (sigreg_at != proj,
-            # embed_calib) is out of scope for the control cell BY DESIGN.
             assert self.cfg.get("sigreg_at", "proj") == "proj" and \
                 not self.cfg.get("embed_calib", False), "mc control supports the default path only"
             g, l = views
@@ -229,7 +150,7 @@ class LeJEPA(SSLMethod):
             emb = torch.cat(
                 [modules["encoder"](g.flatten(0, 1)).reshape(N, Vg, -1),
                  modules["encoder"](l.flatten(0, 1)).reshape(N, V - Vg, -1)],
-                1).flatten(0, 1)                                           # [N*V, emb_dim]
+                1).flatten(0, 1)
         else:
             if self.cfg.get("embed_calib", False) and not getattr(self, "_calibrated", False):
                 with torch.no_grad():
@@ -243,36 +164,26 @@ class LeJEPA(SSLMethod):
             sig_at = self.cfg.get("sigreg_at", "proj")
             x = views.flatten(0, 1)
             if sig_at == "cls":
-                feats = modules["encoder"].forward_features(x)             # [N*V, T, trunk_dim]
+                feats = modules["encoder"].forward_features(x)
                 cls = feats[:, 0]
-                emb = modules["encoder"].forward_head(feats)               # [N*V, emb_dim]
+                emb = modules["encoder"].forward_head(feats)
             else:
-                emb = modules["encoder"](x)                                # [N*V, emb_dim]
-        proj = modules["projector"](emb).reshape(N, V, -1).transpose(0, 1)  # [V, N, proj_dim]
+                emb = modules["encoder"](x)
+        proj = modules["projector"](emb).reshape(N, V, -1).transpose(0, 1)
         if self.cfg.get("mc_form") == "lightly":
-            # D-092 Lightly-replication loss (their lejepa_loss.py verbatim semantics):
-            # anchor = mean over the Vg GLOBALS (no stop-grad — gradient flows into the
-            # centroid); inv pulls the LOCALS only; SIGReg sees the locals only. The paper
-            # form (Eq. 6-9: all views pulled, SIGReg on all) is NOT this — deviation theirs.
             inv_loss = (proj[:Vg].mean(0) - proj[Vg:]).square().mean()
-            proj = proj[Vg:]                       # downstream reg/sig_in = locals only
+            proj = proj[Vg:]
         else:
             inv_loss = (proj.mean(0) - proj).square().mean()
         sig_in = {"proj": proj,
                   "embed": emb.reshape(N, V, -1).transpose(0, 1),
                   "cls": cls.reshape(N, V, -1).transpose(0, 1) if sig_at == "cls" else None}[sig_at]
-        # E12 (D-026): floor ∈ {sigreg (default), moment} picks the regularizer applied to sig_in
-        # — same routing, different term. "sacreg" = SACReg (arm A3, the thesis cell).
         if self.cfg.get("floor", "sigreg") == "sacreg":
             reg_key, reg_loss = "moment_kl", self.floor(sig_in)
         else:
             reg_key, reg_loss = "sigreg", self.sigreg.to(device)(sig_in)
         loss = reg_loss * self.cfg.lamb + inv_loss * (1 - self.cfg.lamb)
         terms = {reg_key: reg_loss, "inv": inv_loss}
-        # E12 amendment (D-026) + F-wave (D-027): h_reg picks an ADDITIVE regularizer at the
-        # embedding, weight h_lamb; h_start_ep (f6) delays enablement (§4-p2's burn-in variant).
-        # The shipped z-side term always stays: without its scale pin at proj.out, inv
-        # (scale-dependent) admits a lazy-projector minimum — measured on the e12a{2,3} smokes.
         h_reg = self.cfg.get("h_reg")
         if h_reg and self._epoch >= self.cfg.get("h_start_ep", 0):
             emb_in = emb.reshape(N, V, -1).transpose(0, 1)
@@ -282,9 +193,6 @@ class LeJEPA(SSLMethod):
                       "sigreg_t": lambda: self.sigreg_t.to(device)(emb_in)}[h_reg]()
             loss = loss + self.cfg.h_lamb * h_loss
             terms[H_KEYS[h_reg]] = h_loss
-        # H-wave (D-035): tiny ADDITIVE view-invariance pull at the embedding itself (H3: move
-        # invariance work out of the projector MLP). Same functional form as the proj-space inv
-        # term; weight declared (not equal-pull measured) — per-term logging watches its share.
         h_inv = self.cfg.get("h_inv", 0.0)
         if h_inv:
             emb_v = emb.reshape(N, V, -1).transpose(0, 1)

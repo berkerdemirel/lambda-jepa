@@ -1,9 +1,5 @@
-"""Null references (PROTOCOL §6.6). The random-init backbone null is a first-class run_id
-(adapters' random_init=True); here: the moment-matched Gaussian null that calibrates every
-dimension-sensitive statistic (what WOULD this metric read on a Gaussian with this exact
-mean/covariance and N?)."""
+"""Null references (random-init backbone, Gaussian match)."""
 import numpy as np
-
 
 def gaussian_match(X, seed=0):
     """Sample N(mean(X), cov(X)) with X's own (N, d) — full-covariance moment match, so spectral

@@ -1,32 +1,4 @@
-"""Single-node multi-GPU DDP trainer for LambdaJEPA — an INDEPENDENT add-on (Berker 2026-08-13:
-"build single node multi gpu ddp for floorssl trainer ... as if it is an independent patch ...
-do not patch anything to the existing scripts"). Touches NOTHING in experiments/train.py or
-sslgap/; it reuses the method, conditioners, datasets, ckpt schema, and share-logger verbatim.
-
-Why it exists: experiments/train.py is single-GPU, and the lm4s5b recipe (bs=512, ViT-B) fills
-one 80GB H100 with grad_ckpt. ViT-L at bs=512 does not fit one card, so the L rung needs DDP.
-
-Faithfulness (the two things a naive DDP would get wrong):
-  1. The floor is a BATCH-COVARIANCE statistic. At single-GPU bs=512 it sees n=512 centers; if
-     each rank floored its local n=bs/W it would be a different (much noisier) estimator and the
-     doses would not transfer. So the conditioner inputs (per-image z-/h-centers) are autograd
-     ALL-GATHERED across ranks and the floor is computed once over the global batch — making
-     DDP-bs512 == single-GPU-bs512 in the loss. The invariance term is per-sample (local, DDP
-     averages it exactly).
-  2. SACReg draws a FRESH RANDOM slice per step (torch.randn -> QR). For the global
-     floor to be consistent across ranks that draw must be shared: at world_size>1 we seed it from
-     the step under fork_rng (main stream untouched). At world_size=1 we leave it on the stream,
-     so the W=1 path is byte-identical to experiments/train.py (asserted by train_ddp_selftest.py).
-
-DDP wraps only the student forward (a wrapper module whose .forward() does trunk.forward_features
--> projector, since DDP hooks .forward() only). Teacher (SWA twin) stays unwrapped/grad-free;
-post_step updates it from the DDP-synced student. Rank 0 owns eval, wandb, the share logger, and
-checkpointing; checkpoints are written in the exact schema (unwrapped state_dicts) so
-extract/probe/bench/twospace consume them unchanged.
-
-  torchrun --standalone --nproc_per_node=4 experiments/train_ddp.py \
-      method=lambdajepa frame=in1k_vitl16 num_classes=1000 <the lm4s5b overrides> bs=512 tag=...
-"""
+"""Multi-GPU DDP trainer for lambda-JEPA: SACReg on the all-gathered view centers with rank-shared random slices; checkpoints in the schema of train.py."""
 import math
 import os
 import random
@@ -51,11 +23,7 @@ from sslgap.methods import METHODS
 from sslgap.methods.base import Frame
 from sslgap.metrics.orbit_energy import orbit_energies, transmission
 
-
 class _StudentFwd(nn.Module):
-    """Full student pass behind ONE .forward() so DDP's grad hooks fire (the trunk is otherwise
-    called via forward_features, which DDP does not intercept). Mirrors LambdaJEPA.training_step's
-    forward EXACTLY for the multicrop path; returns (cls[N,V,d], z[N,V,d])."""
 
     def __init__(self, backbone, projector):
         super().__init__()
@@ -75,45 +43,31 @@ class _StudentFwd(nn.Module):
         z = self.projector(cls.flatten(0, 1)).reshape(N, V, -1)
         return cls, z
 
-
 def _all_gather(t):
-    """Autograd-aware all-gather along dim 0 (equal shapes; guaranteed by drop_last + a bs that
-    divides by world_size). Backward is reduce_scatter, so each rank receives the gradient for its
-    own rows and DDP's param-grad averaging then reconstructs the exact global-batch gradient."""
     if not (dist.is_initialized() and dist.get_world_size() > 1):
         return t
     return torch.cat(dist_nn.all_gather(t.contiguous()), 0)
 
-
 def _ddp_loss(method, ddp_student, modules, views, w_inv, w_floor, h_lamb, q_seed):
-    """The LambdaJEPA loss under DDP: per-sample inv (local), global-batch floor (all-gathered).
-    Faithful to the multicrop/V-view path, cond_stream in {None,'all'}; asserts otherwise so a
-    wrong config fails loudly, never silently. Rings (queue_steps>0, D-103 all-global cells):
-    the ring rows are the all-gathered GLOBAL centers — identical on every rank — so each
-    rank's detached ring holds the same global history and the widened floor equals the
-    single-GPU ring at the global bs (grad through current rows only, as in _ring). At W=1
-    the path is method._ring verbatim (train_ddp_selftest ring case)."""
     cs = method.cfg.get("cond_stream")
     assert cs in (None, "all"), f"train_ddp supports cond_stream in (None,'all'); got {cs!r}"
     cls, z = ddp_student(views)
     N, V = z.shape[:2]
-    if "teacher_backbone" in modules:                       # swa anchor (grad-free), local
+    if "teacher_backbone" in modules:
         anchor = method._swa_mu(modules, views)
         inv = (z - anchor).square().mean()
         if not isinstance(views, (list, tuple)):
-            inv = inv * (2 * V / (V - 1))                   # all-pairs scale (selftest §3 identity)
+            inv = inv * (2 * V / (V - 1))
     elif isinstance(views, (list, tuple)):
         inv = (z - z.mean(1, keepdim=True)).square().mean()
     else:
         inv = sum(F.mse_loss(z[:, u], z[:, w]) for u in range(V) for w in range(u + 1, V)) \
             / (V * (V - 1) / 2)
-    zin = _all_gather(z[:, :V].mean(1))                     # per-image centers, global batch
+    zin = _all_gather(z[:, :V].mean(1))
     hin = _all_gather(cls[:, :V].mean(1))
     q = int(method.cfg.get("queue_steps", 0) or 0)
     qh = method.cfg.get("h_queue_steps")
     qh = q if qh is None else int(qh)
-    # shared random slice across ranks (see module docstring); untouched stream at W=1;
-    # z drawn before h (the method's fresh-frame RNG order)
     if dist.is_initialized() and dist.get_world_size() > 1:
         with torch.random.fork_rng(devices=[z.device]):
             torch.manual_seed(q_seed)
@@ -126,7 +80,6 @@ def _ddp_loss(method, ddp_student, modules, views, w_inv, w_floor, h_lamb, q_see
     terms = {"inv": inv, "moment_kl": reg_z, "h_moment_kl": reg_h}
     probe_feats = cls.flatten(0, 1).detach()
     return {"loss": loss, **terms}, probe_feats, V
-
 
 @hydra.main(version_base=None, config_path="configs", config_name="train")
 def main(cfg: DictConfig):
@@ -156,28 +109,13 @@ def main(cfg: DictConfig):
     ckpt_base = os.path.join(out_dir, run_id)
     last_path = f"{ckpt_base}_last.pt"
 
-    seed_everything(cfg.seed)                               # identical init on every rank
+    seed_everything(cfg.seed)
     method = METHODS[cfg.method.name](cfg.method, frame)
-    modules = method.build_modules().to(device)            # underlying modules (post_step/save/swa)
-    # freeze_prebn (2026-09-10, E27 v6s400): the two projector Linears that feed a BatchNorm.
-    # Their SCALE cannot change the function, so weight decay only ever controlled their radius —
-    # but the forensics found the damage is DIRECTIONAL: over 80 epochs at wd 0 the row-normalised
-    # stable rank of W3 fell 14.7 -> 8.3 and of W0 40.3 -> 20.6, and the variance-outlier blocks
-    # that spike the z conditioner are ordinary at h and after BN1 and first become outliers after
-    # BN2 (100% of spikes). Freezing removes the drift at its source and holds the norm exactly,
-    # so no separate norm control is needed. requires_grad_(False) keeps the optimizer's group
-    # structure intact, so a checkpoint saved before the freeze still resumes.
+    modules = method.build_modules().to(device)
     if cfg.method.get("freeze_prebn"):
         for i in (0, 3):
             for par in modules["projector"][i].parameters():
-                par.requires_grad_(False)   # survives load_state_dict (it copies in place)
-    # freeze_prebn_bn (2026-09-12, E27 v6s400rb roll-back): hold the two BatchNorms of the frozen block as
-    # well — the forward uses their running statistics (eval mode) and the affines are fixed. With W0/W3 frozen
-    # the block still drifted: BN-2's running variance fell .34 -> .067 (min .034 -> .025) over ep203-302 and the
-    # D-117 outlier storm opened at ep301. A BatchNorm re-amplifies by 1/sqrt(running var), so that drift is the
-    # gain driver; holding the statistics pins the gain at the resume values and removes the batch coupling. The
-    # block becomes a fixed map (only W6 and the trunk train) and the function at the resume point changes only by
-    # batch-vs-running normalisation. Re-applied after every train_mode() call, where per-module modes are set.
+                par.requires_grad_(False)
     if cfg.method.get("freeze_prebn_bn"):
         for i in (1, 4):
             for par in modules["projector"][i].parameters():
@@ -227,10 +165,6 @@ def main(cfg: DictConfig):
         for role, sd in pay["modules"].items():
             (probe_core if role == "probe" else modules[role]).load_state_dict(sd)
         opt.load_state_dict(pay["optim"]["opt"])
-        # the saved optimizer state carries its own per-group hyperparameters and overwrites the config's; the
-        # config wins on resume (2026-09-04, D-115: e27v6s100's tail resumed with method.mlp_wd=0 after weight
-        # decay on the projector's pre-BN layers collapsed the BN input variance 11x and the run stormed from
-        # ep85). lr stays the scheduler's; weight_decay is re-applied group by group (backbone, projector, probe).
         for g, ref in zip(opt.param_groups, method.param_groups(modules) + [{"weight_decay": cfg.probe_wd}]):
             g["weight_decay"] = ref["weight_decay"]
         if is_main:
@@ -254,11 +188,6 @@ def main(cfg: DictConfig):
 
     run = None
     if is_main:
-        # +wandb_new_run=<suffix> on a resume from an EARLIER checkpoint than the run's last: log the resumed segment
-        # to a fresh wandb run "<run_id>.<suffix>" starting at the checkpoint's step, so its charts are clean
-        # (D-115: v6s100's wd0 rerun next to its storm run). The default resume="allow" appends to the old run, and
-        # wandb drops every step below that run's current maximum, hiding a rolled-back segment for as long as it
-        # trails the old one. (wandb's rewind, resume_from=..., is refused for this account: "private preview".)
         suffix = cfg.get("wandb_new_run")
         wb = {"name": f"{run_id}.{suffix}"} if (suffix and wandb_id) else {"name": run_id, "id": wandb_id, "resume": "allow"}
         run = wandb.init(project=cfg.wandb_project, mode=cfg.wandb_mode, config=OmegaConf.to_container(cfg, resolve=True), **wb)
@@ -286,11 +215,6 @@ def main(cfg: DictConfig):
                         best_acc=best_acc,
                         provenance=provenance_stamp(wandb_id=run.id, run_id=run_id, seed=cfg.seed))
 
-    # --- share/dose logger (rank 0): the canonical g measurement on a fixed 128-batch, single
-    # process, floor at n=share_log_bs — byte-identical dosing to experiments/train.py, read on
-    # the DDP-trained (bs512) model state. The Ω orbit channel is the same diagnostic Berker
-    # watches. Uses the UNDERLYING modules via method.training_step (bypasses DDP: it is a
-    # measurement, not a train step).
     share_batch = omega_aud = omega_gentle = None
     if is_main and cfg.share_log_every:
         pull_w = getattr(method, "PULL_W", None)
@@ -336,7 +260,6 @@ def main(cfg: DictConfig):
                 nb, vb = xb.shape[:2]
                 with torch.no_grad(), autocast("cuda", dtype=torch.bfloat16):
                     cls_e = modules["backbone"].forward_features(to_device(xb).flatten(0, 1))[:, 0]
-                    # canonical role chain — mirrors train.py (embed stage when registered).
                     z_e = (modules["projector"](modules["embed"](cls_e) if "embed" in modules
                                                 else cls_e) if with_z else None)
                 o = {}
@@ -376,11 +299,9 @@ def main(cfg: DictConfig):
 
     total_steps = steps_per_epoch * frame.epochs
     cadence = set(frame.cadence()) | {int(e) for e in (cfg.extra_cadence or [])}
-    # smoke cap (env-gated, off by default): run N DDP steps with per-step prints then stop —
-    # catches an all-gather/DDP deadlock or a fit failure cheaply before a full multi-card run.
     smoke = int(os.environ.get("DDP_MAX_STEPS", 0) or 0)
     gnorm_med, step, stop = None, start_ep * steps_per_epoch, False
-    inv_med, zkl_med = None, None  # outlier-batch skip guard statistics
+    inv_med, zkl_med = None, None
     for epoch in range(start_ep, frame.epochs):
         train_mode()
         probe.train()
@@ -404,10 +325,6 @@ def main(cfg: DictConfig):
             gn = torch.nn.utils.clip_grad_norm_(
                 [p for gr in opt.param_groups for p in gr["params"]],
                 frame.grad_clip if frame.grad_clip else float("inf")).item()
-            # outlier-batch skip guard (Berker; v6b400 storm mechanism, 2026-09-06): discard the update when this batch's
-            # invariance loss or z moment-KL is far above its running level (the trigger of the tail storm: an outlier batch
-            # spikes the gradient and contaminates the z ring for queue_steps more steps). Rank-max all-reduced so every
-            # rank skips the same step; scaler bookkeeping, schedule and step counter advance as on an overflow. Off unless set.
             skip = False
             zkl_trip = False
             if cfg.get("skip_inv_ratio") or cfg.get("skip_zkl_ratio"):
@@ -423,12 +340,6 @@ def main(cfg: DictConfig):
             evicted = ""
             if skip:
                 opt.zero_grad(set_to_none=True)
-                # skip_zkl_evict (2026-09-10): a z trip is ONE block whose within-batch variance is
-                # inflated (99% of the trace excursion; the block means carry 1%). It sits in the
-                # detached ring for queue_steps more steps, so the plain guard pays queue_steps + 1
-                # skips for one bad block. Drop that block from the ring instead: the leave-one-out
-                # read puts the ring's KL at 0.163 once it is gone, below any trigger. Every rank
-                # holds the same all-gathered blocks, so the choice is identical without a sync.
                 if zkl_trip and cfg.get("skip_zkl_evict"):
                     buf = getattr(method, "_zq", [])
                     if len(buf) > 1:
@@ -444,7 +355,6 @@ def main(cfg: DictConfig):
             scaler.update()
             scheduler.step()
             step += 1
-            # running means of the guard's statistics, updated on kept steps only (an outlier must not raise its own bar)
             if not skip:
                 inv_med = terms["inv"].item() if inv_med is None else 0.99 * inv_med + 0.01 * terms["inv"].item()
                 zkl_med = terms["moment_kl"].item() if zkl_med is None else 0.99 * zkl_med + 0.01 * terms["moment_kl"].item()
@@ -454,9 +364,6 @@ def main(cfg: DictConfig):
                            "train/probe": probe_loss.item(), "train/grad_norm": gn, "train/skipped": int(skip),
                            "lr": scheduler.get_last_lr()[0],
                            **{f"monitor/{k_}": v for k_, v in monitors.items()}}, step=step)
-            # kill-trigger (CLAUDE.md): compare against the running mean BEFORE folding this step in,
-            # and never fold a non-finite norm (the scaler's overflow steps) — otherwise the
-            # trigger can never fire (100x the post-update mean >= the step itself; 2026-09-02).
             if is_main and gnorm_med and math.isfinite(gn) and gn > 100 * gnorm_med:
                 print(f"[train_ddp] INCIDENT: grad_norm {gn:.1f} > 100x running mean {gnorm_med:.3f} "
                       f"at step {step}", flush=True)
@@ -495,7 +402,7 @@ def main(cfg: DictConfig):
             if (epoch + 1) in cadence:
                 save(f"{ckpt_base}_ep{epoch + 1}.pt", epoch)
         if world > 1:
-            dist.barrier()                                 # ranks wait for rank-0 eval/save
+            dist.barrier()
         if stop:
             break
     if is_main:
@@ -503,7 +410,6 @@ def main(cfg: DictConfig):
         print(f"[train_ddp] done {run_id}: best={best_acc:.4f}", flush=True)
     if world > 1:
         dist.destroy_process_group()
-
 
 if __name__ == "__main__":
     main()

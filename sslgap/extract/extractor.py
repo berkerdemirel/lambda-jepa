@@ -1,9 +1,4 @@
-"""Frozen-feature extraction: one pass per (checkpoint, manifest[, stack]) writing every requested
-space to the store. All spaces come from the SAME forward pass per batch, so h and z are computed
-on identical inputs — the two-space comparison is paired by construction.
-
-Space names: "<branch>.h.cls", "<branch>.h.gap" (+ ".L<k>" per-layer when h_layers set),
-"<branch>.z.<tap>" for every tap the branch's head module emits (PROTOCOL §1, §3)."""
+"""Frozen-feature extraction: one pass per (checkpoint, manifest) writing every requested space to the store."""
 import torch
 from torch.amp import autocast
 from torch.utils.data import DataLoader
@@ -11,20 +6,18 @@ from torch.utils.data import DataLoader
 from sslgap.data import seed_worker
 from sslgap.models.backbones import trunk_features
 
-
 def _loader(ds, bs, num_workers, seed=0):
     return DataLoader(ds, batch_size=bs, num_workers=num_workers, shuffle=False,
                       persistent_workers=num_workers > 0, pin_memory=True,
                       generator=torch.Generator().manual_seed(seed),
-                      worker_init_fn=seed_worker)   # pair-extraction transforms are stochastic
-
+                      worker_init_fn=seed_worker)
 
 def _batch_spaces(loaded, x, h_layers):
     """All spaces for one input batch -> {space: [B, d] float32 cpu}."""
     out = {}
     for bname, br in loaded.branches.items():
         feats = trunk_features(br.trunk, x, h_layers=h_layers)
-        feats["image"] = x               # heads needing their own trunk pass (I-JEPA context-only)
+        feats["image"] = x
         for kind in ("cls", "gap"):
             out[f"{bname}.h.{kind}"] = feats[kind].float().cpu()
         for l in h_layers:
@@ -35,7 +28,6 @@ def _batch_spaces(loaded, x, h_layers):
             for tap, v in taps.items():
                 out[f"{bname}.z.{tap}"] = v.float().cpu()
     return out
-
 
 @torch.inference_mode()
 def extract_eval(loaded, dataset, store, manifest_key, manifest_info, bs=256, num_workers=8,
@@ -59,15 +51,14 @@ def extract_eval(loaded, dataset, store, manifest_key, manifest_info, bs=256, nu
         "ckpt_provenance": loaded.provenance})
     return sorted(acc)
 
-
 @torch.inference_mode()
 def extract_views(loaded, orbit_dataset, store, manifest_key, manifest_info, stack, bs=256,
                   num_workers=8, device="cuda", h_layers=(), seed=0, keep=None):
     """V views per image -> "<space>.view<k>": every view file is row-aligned with labels.npy
     (and with the pair store of the same manifest). Unlike extract_pairs, per-layer trunk taps
-    ride along when h_layers is set — the orbit store carries the E02 depth axis. `keep`: an
-    optional set of space names to store (full-train orbit stores, 2026-09-02: h.cls only —
-    every tap of 126k x 8 views would not fit the disk or the accumulator)."""
+    ride along when h_layers is set — the orbit store carries the depth axis. `keep`: an
+    optional set of space names to store (full-train orbit stores keep h.cls only: every tap of
+    126k x 8 views would not fit the disk or the accumulator)."""
     loaded.eval_(device)
     acc, ys = {}, []
     for views, y in _loader(orbit_dataset, bs, num_workers, seed=seed):
@@ -90,7 +81,6 @@ def extract_views(loaded, orbit_dataset, store, manifest_key, manifest_info, sta
         "method": loaded.method, "frame": loaded.frame,
         "ckpt_provenance": loaded.provenance})
     return sorted(acc)
-
 
 @torch.inference_mode()
 def extract_pairs(loaded, pair_dataset, store, manifest_key, manifest_info, stack, bs=256,

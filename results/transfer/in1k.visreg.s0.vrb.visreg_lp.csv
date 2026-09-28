@@ -1,8 +1,0 @@
-in1k.visreg.s0.vrb,dtd,10,1880,1880,0.0025,0.7330
-in1k.visreg.s0.vrb,aircraft,10,6667,3333,0.00625,0.5308
-in1k.visreg.s0.vrb,cars,10,8144,8041,0.00625,0.5803
-in1k.visreg.s0.vrb,cifar10,10,50000,10000,0.0025,0.9430
-in1k.visreg.s0.vrb,cifar100,10,50000,10000,0.0025,0.7963
-in1k.visreg.s0.vrb,flowers,10,1020,6149,0.00625,0.8793
-in1k.visreg.s0.vrb,food,10,75750,25250,0.0125,0.7910
-in1k.visreg.s0.vrb,pets,10,3680,3669,0.0025,0.8550

@@ -1,12 +1,4 @@
-"""Two-space program driver (docs/paper §6 validation order; D-100): V-view cloud
-stores -> results/twospace/{run_id}.csv (+ .spectra.csv, .classes.csv). Per o8
-manifest: capacity + Θ spectrum per space, the fidelity-law test per space, the G/S
-split (linear closed form; +MLP with do_mlp=true), accessibility h→each z tap, and
-per-class organization/decomposition against the primary z. Numbers only —
-interpretation happens in card discussion.
-
-  sbatch slurm/twospace.sbatch run_id=in1k.lejepa.s0.e27lej.extL
-"""
+"""Two-space estimators over the 8-view stores: capacity, the Theta spectrum, per-class organization vs view-sensitivity (results/twospace/)."""
 import os
 import re
 
@@ -18,14 +10,12 @@ from omegaconf import DictConfig
 from sslgap.extract import FeatureStore
 from sslgap.metrics import twospace as tw
 
-
 def _views(store, run_id, man, space, V, idx=None):
     out = []
     for k in range(V):
         X = np.asarray(store.get(run_id, man, f"{space}.view{k}"), dtype=np.float64)
         out.append(X[idx] if idx is not None else X)
     return out
-
 
 @hydra.main(version_base=None, config_path="configs", config_name="twospace")
 def main(cfg: DictConfig):
@@ -36,16 +26,13 @@ def main(cfg: DictConfig):
         mans = [m for m in mans if m == cfg.manifest]
     out_dir = os.path.join(cfg.results_root, "twospace")
     os.makedirs(out_dir, exist_ok=True)
-    S, P, C = [], [], []      # summary / spectra / class rows
+    S, P, C = [], [], []
 
     for man in mans:
         meta = store.meta(cfg.run_id, man)
         V = int(meta["v"])
         bases = sorted({s.rsplit(".view", 1)[0] for s in store.spaces(cfg.run_id, man)})
         if cfg.get("max_tap_d"):
-            # byol-style 4096-d hidden taps turn the eigendecompositions into an
-            # hours-long wall (the audit battery's known byol split case) — cap by
-            # stored width; the deck needs declared h + layer taps + z outs only
             wide = [b for b in bases
                     if store.get(cfg.run_id, man, f"{b}.view0").shape[1] > cfg.max_tap_d]
             if wide:
@@ -71,7 +58,7 @@ def main(cfg: DictConfig):
         cache = {}
         def views_of(space):
             if space not in cache:
-                cache.clear()               # one space resident at a time per group
+                cache.clear()
                 cache[space] = _views(store, cfg.run_id, man, space, V, idx)
             return cache[space]
 
@@ -127,7 +114,6 @@ def main(cfg: DictConfig):
             df.insert(0, "run_id", cfg.run_id)
             df.to_csv(os.path.join(out_dir, f"{cfg.run_id}{suff}.csv"), index=False)
     print(f"[twospace] done: {cfg.run_id} -> {out_dir}")
-
 
 if __name__ == "__main__":
     main()

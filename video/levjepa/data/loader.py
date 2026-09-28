@@ -197,7 +197,7 @@ class VJEPAClipDataset(LanceDataset):
 
         Returns a callable mapping a global row index to its JPEG bytes.
 
-        Deviation from the donor (ssl_project, 2026-09-03): the donor issued one ``take(rows)`` for
+        Deviation from upstream: upstream issued one ``take(rows)`` for
         the whole batch. On our multi-fragment Kinetics stores (13 x ~1M rows) a cold ``take`` of one
         clip's 16 rows measured 24-210 s, against 0.2 s for ``to_table(offset, limit)`` over the same
         span; the training loop was decode-bound at ~8 s per clip per worker. A clip's rows sit in one
@@ -420,7 +420,7 @@ class LejepaViewsTransform:
     draws its own parameters once and applies them to every frame of the clip (v2 treats the
     leading T dim as a batch), as the donor's global_aug does. Output key "views":
     (V, T, C, H, W); uint8 when normalize_on_gpu (main.to_float_normalized), else float. With
-    photometrics_on_gpu (E34 second launch, 2026-09-03) the workers apply only the RandomResizedCrop and ship
+    photometrics_on_gpu the workers apply only the RandomResizedCrop and ship
     uint8 crops; data/gpu_views.py applies the rest per (clip, view) on the GPU inside the model's forward."""
 
     def __init__(self, views=6, size=224, normalize_on_gpu=False, photometrics_on_gpu=False):
@@ -515,7 +515,7 @@ def build_loader(
         normalize_on_gpu=normalize_on_gpu,
     )
     if isinstance(lance_path, dict) and "clipfile_base" in lance_path:
-        # clip-file path (E34 fix B; data/clipfile_loader.py): one contiguous file per clip, the builder's JPEGs
+        # clip-file path (data/clipfile_loader.py): one contiguous file per clip, the builder's JPEGs
         from data.clipfile_loader import ClipFileDataset
         base = os.environ.get("LEVJEPA_CLIPFILE_ROOT", lance_path["clipfile_base"])
         sets = os.environ.get("LEVJEPA_CLIPFILE_SETS", "k700_2020,k600,k400").split(",")
@@ -532,7 +532,7 @@ def build_loader(
                                  prefetch_factor=prefetch_factor)
         return DataLoader(ds, **loader_kwargs)
     if isinstance(lance_path, dict) and "mp4_base" in lance_path:
-        # mp4-backed path (E34; data/mp4_loader.py): one small file per clip, decoded in the worker
+        # mp4-backed path (data/mp4_loader.py): one small file per clip, decoded in the worker
         from data.mp4_loader import Mp4ClipDataset, mp4_roots
         base = os.environ.get("LEVJEPA_MP4_ROOT", lance_path["mp4_base"])
         ds = Mp4ClipDataset(mp4_roots(base), lance_path["draw_csv"], num_frames=num_frames, frame_stride=frame_stride,

@@ -1,16 +1,4 @@
-"""E33 rich-vs-lazy diagnostic: does training keep moving features/kernels (rich) or freeze
-them near init (lazy), and does the h floor change that?
-
-Per checkpoint vs the run's TRUE init — from_native(random_init, seed = the run's training
-seed), verified bit-exact against the trainer's seed_everything→build_modules path for all
-four E33 cells (2026-08-31); both members of a pair share arch+seed, hence ONE common init:
-- per-layer linear CKA of h.cls / h.gap on a fixed val subset (n_cka, seeded permutation);
-- empirical-NTK alignment on the nested first n_ntk of the same permutation.
-Model-in-the-loop by necessity (NTK grads; per-layer taps at epochs never extracted); writes
-tidy CSV + a kernels .npz only — no feature stores (D-005 untouched).
-
-  sbatch slurm/feature_drift.sbatch cell=in1k.floorssl.s0.e27v6b100 'epochs=[10,25,50,75,100]'
-"""
+"""Rich-vs-lazy diagnostic: per-layer CKA and empirical-NTK alignment of a run's checkpoints against its true initialization."""
 import csv
 import os
 
@@ -29,19 +17,16 @@ from sslgap.models.backbones import trunk_features
 from sslgap.paths import DIAG, OUTPUTS
 from sslgap.ckpt.schema import load_payload
 
-
 def _val_subset(frame, manifest_dir, n_cka, seed):
     tag = {"imagenet100": "in100", "imagenet1k": "in1k"}[frame["dataset"]]
     root = os.path.expanduser(frame["data_root"])
-    assert not root.rstrip("/").endswith("imagenet-100"), "imagenet-100 is the WRONG split (D-002)"
+    assert not root.rstrip("/").endswith("imagenet-100"), "imagenet-100 is a different class subset; use the CMC imagenet100 split"
     ds = EvalDataset(os.path.join(manifest_dir, f"{tag}.val.v1.csv"),
                      _Source("imagefolder", root=os.path.join(root, "val")), frame["img_size"])
     idx = torch.randperm(len(ds), generator=torch.Generator().manual_seed(seed))[:n_cka].tolist()
     return ds, idx
 
-
 def _layer_feats(trunk, ds, idx, h_layers, bs, workers, device):
-    """{space: [n, D] fp32 numpy} for cls/gap at h_layers + final; extractor-parity bf16."""
     trunk = trunk.to(device).eval()
     acc = {}
     for x, _ in DataLoader(Subset(ds, idx), batch_size=bs, num_workers=workers, shuffle=False):
@@ -52,7 +37,6 @@ def _layer_feats(trunk, ds, idx, h_layers, bs, workers, device):
             for l in h_layers:
                 acc.setdefault(f"h.{kind}.L{l:02d}", []).append(f[f"{kind}.L{l:02d}"].float().cpu())
     return {k: torch.cat(v).numpy() for k, v in acc.items()}
-
 
 @hydra.main(version_base=None, config_path="configs", config_name="feature_drift")
 def main(cfg: DictConfig):
@@ -69,10 +53,10 @@ def main(cfg: DictConfig):
     print(f"[e33] {cfg.cell}: {init.frame['model_name']}@{init.frame['img_size']} "
           f"n_cka={len(idx)} n_ntk={len(ntk_idx)} probes={cfg.n_probes}", flush=True)
 
-    rows = []          # cell, epoch, metric, space, value
+    rows = []
     trunk0 = init.branches[init.probed_branch].trunk
     feats0 = _layer_feats(trunk0, ds, idx, cfg.h_layers, cfg.bs, cfg.num_workers, cfg.device)
-    if cfg.init_check_store:   # house random-init null store of the same arch+seed, same rows
+    if cfg.init_check_store:
         stored = np.load(os.path.expanduser(cfg.init_check_store), mmap_mode="r")[idx].astype(np.float64)
         cos = (np.einsum("nd,nd->n", stored, feats0["h.cls"].astype(np.float64))
                / (np.linalg.norm(stored, axis=1) * np.linalg.norm(feats0["h.cls"], axis=1)))
@@ -115,7 +99,6 @@ def main(cfg: DictConfig):
         for r in rows:
             w.writerow([*r, len(idx), len(ntk_idx), cfg.n_probes, cfg.subset_seed, cfg.probe_seed])
     print(f"[e33] done: {out} ({len(rows)} rows) + {kdir / (cfg.cell + '.ntk.npz')}", flush=True)
-
 
 if __name__ == "__main__":
     main()

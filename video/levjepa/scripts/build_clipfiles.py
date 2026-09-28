@@ -1,16 +1,4 @@
-"""Clip-file stores for the video EVALUATION sets (E34, Berker 2026-09-06: "we need to do ssv2 and k400 as they did").
-Same file format as the K710 training stores (data/clipfile_loader.py: header n_frames + int64 offsets + JPEG q90 frames,
-one file per clip, `{out}/{split}/{class}/{stem}.clip`, `{out}/classes.txt` = the label index space), built straight from
-the sources — no Lance store, no extracted-mp4 intermediate:
-  --ssv2      the Qualcomm webm files + the label JSONs; frames kept at NATIVE rate (12 fps) and NATIVE size (240p): V-JEPA's
-              SSv2 probe samples `frame_step 4` at the native rate and resizes the short side itself.
-  --kinetics  the CVDF tarballs streamed once each (members read into memory, decoded by decord from bytes); labels from the
-              K400 annotation CSV keyed by `{youtube_id}_{start:06d}_{end:06d}`; stored at 15 fps (integer stride off the
-              native rate, the K710 builder's convention) and short edge 256 (V-JEPA's probe resizes the short side to 224;
-              its training crops are resized from whatever the source gives) — half the bytes of the 384 training stores.
-Resumable (existing non-empty clip files are skipped); one SLURM array task per shard (--shard i/n).
-Usage: build_clipfiles.py --ssv2 --split train|validation --out <root> [--shard i/n] [--limit N]
-       build_clipfiles.py --kinetics --split train|val --tars <tar.gz ...> --annotations <csv> --out <root> [--limit N]"""
+"""Build the SSv2 and K400 evaluation clip-file stores (one file of JPEG frames per clip)."""
 import argparse, io, json, os, struct, sys, tarfile, time
 from multiprocessing import get_context
 
@@ -18,9 +6,7 @@ import numpy as np
 
 JPEG_Q = 90
 
-
 def encode_video(task):
-    """(key, source, short_edge, target_fps, max_frames, min_frames) -> (key, [jpeg bytes] | None). source = path or bytes."""
     from PIL import Image
     from decord import VideoReader, cpu
     key, src, short_edge, target_fps, max_frames, min_frames = task
@@ -41,10 +27,9 @@ def encode_video(task):
                     img = img.resize((nw, nh), Image.BILINEAR)
                 buf = io.BytesIO(); img.save(buf, format="JPEG", quality=JPEG_Q); out.append(buf.getvalue())
         return key, out
-    except Exception as exc:  # one bad video must not kill the build; counted by the caller
+    except Exception as exc:
         print(f"  {key} failed: {type(exc).__name__}: {str(exc)[:80]}", flush=True)
         return key, None
-
 
 def write_clip(path, jpegs):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -54,17 +39,15 @@ def write_clip(path, jpegs):
         f.write(struct.pack("<I", len(jpegs))); f.write(offs.tobytes()); [f.write(b) for b in jpegs]
     os.replace(tmp, path)
 
-
 def done(path):
     return os.path.exists(path) and os.path.getsize(path) > 0
-
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ssv2", action="store_true"); ap.add_argument("--kinetics", action="store_true")
     ap.add_argument("--split", required=True); ap.add_argument("--out", required=True)
-    ap.add_argument("--videos", default="/mnt/beegfs/locatgrp/shared/datasets/ssv2/videos/20bn-something-something-v2")
-    ap.add_argument("--labels", default="/mnt/beegfs/locatgrp/shared/datasets/ssv2/labels/labels")
+    ap.add_argument("--videos", default="/path/to/ssv2/videos/20bn-something-something-v2")
+    ap.add_argument("--labels", default="/path/to/ssv2/labels/labels")
     ap.add_argument("--tars", nargs="*", default=[]); ap.add_argument("--annotations", default=None)
     ap.add_argument("--short-edge", type=int, default=None); ap.add_argument("--target-fps", type=float, default=None)
     ap.add_argument("--max-frames", type=int, default=192); ap.add_argument("--min-frames", type=int, default=None)
@@ -130,7 +113,6 @@ def main():
             sink(key, jpegs, label_of[key])
     pool.close(); pool.join()
     print(f"CLIPFILES_DONE {a.split} shard {si}/{sn}: {stats} in {(time.time() - t0) / 60:.1f} min", flush=True)
-
 
 if __name__ == "__main__":
     sys.exit(main())

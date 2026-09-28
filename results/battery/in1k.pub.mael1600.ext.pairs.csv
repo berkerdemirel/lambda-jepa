@@ -1,5 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in1k.pub.mael1600.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.035651112018490055,0.03549207508837332,0.0357924109127307,100000,1024,cheap
-in1k.pub.mael1600.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.9821744439907492,0.9820993989497099,0.9822609610002366,100000,1024,cheap
-in1k.pub.mael1600.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.7523470173486718,0.7486319634579021,0.7562702746099775,100000,1024,cheap
-in1k.pub.mael1600.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.6238264913255877,0.6219894567430857,0.6254775296594359,100000,1024,cheap

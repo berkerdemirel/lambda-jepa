@@ -1,13 +1,5 @@
-"""Feature/kernel drift similarity (E33 rich-vs-lazy diagnostic).
-
-linear_cka: Kornblith et al. 2019 linear CKA between two feature matrices, computed from
-D×D cross-moments (no N×N Gram needed). frob_alignment: ⟨K1,K2⟩_F/(‖K1‖_F‖K2‖_F), the
-empirical-NTK alignment of the E33 spec; centered=True double-centers both kernels first
-(Cortes et al. 2012 centered kernel alignment — reported alongside the plain cosine because
-the uncentered mean component can dominate ViT kernels).
-"""
+"""Linear CKA and Frobenius alignment (feature and kernel drift)."""
 import numpy as np
-
 
 def linear_cka(X, Y):
     X = np.asarray(X, np.float64)
@@ -17,7 +9,6 @@ def linear_cka(X, Y):
     num = np.linalg.norm(Xc.T @ Yc) ** 2
     den = np.linalg.norm(Xc.T @ Xc) * np.linalg.norm(Yc.T @ Yc)
     return float(num / den)
-
 
 def frob_alignment(K1, K2, centered=False):
     K1 = np.asarray(K1, np.float64)

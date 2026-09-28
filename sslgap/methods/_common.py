@@ -1,44 +1,12 @@
-"""Shared recipe utilities: the house toy-rung optimizer schedule (D-012), arch helpers, and the
-E12 moment floor (promoted from lejepa.py for the D5 cross-method arms, Berker 2026-07-12)."""
+"""Shared pieces: SACReg, the warmup + cosine schedule, trunk construction, the EMA momentum schedule."""
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
-
 class SACReg(nn.Module):
-    """E12 lineage (D-026/D-027; renamed from SACReg per D-059 — Berker: "there is
-    nothing floored in there. it is two sided spectral conditioner"): the TWO-SIDED
-    Gaussian-moment conditioner. KL penalizes deviation from (0, I) in BOTH directions —
-    variance above 1 is taxed exactly like variance below it (the E21 2048-d collapse lived
-    on that cap side), plus the mean/cone term.
-    KL(N(mu_Q, Sigma_Q) || N(0, I_d')) / d' on a fresh random d'-dim orthonormal subspace Q per
-    step (batch covariance is rank-deficient at full D; the subspace keeps the logdet barrier
-    meaningful — fresh-slice coverage logic, unseeded like the official SIGReg). A pure function
-    of batch mean+covariance: blind to clusters and all higher-order shape BY CONSTRUCTION;
-    the logdet is the anti-degeneracy barrier. Estimator settings (d', eps) declared on the E12
-    card and fixed. fp32 with autocast disabled (Cholesky). Measured dose lesson (E12 F-wave):
-    conditioner with an interior optimum near lambda~.02 at h; destination weights (~.5) scrub
-    class structure — see the card before reusing at other weights."""
+    """KL(N(mu, Sigma) || N(0, I)) / d' of the batch mean and covariance on a fresh random d'-dimensional orthonormal slice per step (the batch covariance is rank-deficient at full width); eps stabilizes the log-determinant, shrink="oas" replaces the slice covariance by its OAS-shrunk estimate; fp32."""
 
     def __init__(self, d_slice=128, eps=1e-4, d_draw=None, shrink=None):
-        # d_draw: RNG-stream-parity discipline (the hinge-arm precedent — "per-step RNG
-        # streams stay aligned across floor variants"). A narrower slice (estimator co-design
-        # for small-n inputs, D-051 view-mean payment) still DRAWS the family's canonical
-        # frame shape and uses its first d_slice columns: Householder QR's leading k columns
-        # depend only on the first k input columns, so the sub-frame IS the fresh k-frame
-        # draw — same distribution, and the shared draw keeps h-floor slices matched across
-        # arms at matched steps. Default d_draw=None (== d_slice) is byte-identical to the
-        # historical behavior.
-        # shrink="oas" (D-073, Berker's prescription): fresh-batch Oracle Approximating
-        # Shrinkage of the slice scatter toward its own scalar mean mI before the KL —
-        # the no-ring answer to n = d' rows/step (the ring's temporal rows carry moving-
-        # model bias; OAS trades it for a known statistical one). rho from S.detach()
-        # (estimator parameter, not a loss path); m stays LIVE and the target is mI,
-        # never I (the desired answer must not be the estimator target — trace is
-        # preserved exactly, so scale error stays fully supervised at every rho).
-        # lambda_min(Sigma) >= rho*m + eps bounds the null-direction inverse gain; at
-        # rho->1 only the isotropic scale force survives; at rho->0 the legacy
-        # conditioner returns. None = byte-identical legacy path.
         super().__init__()
         self.d_slice, self.eps, self.d_draw = d_slice, eps, d_draw or d_slice
         self.shrink, self.rho_last = shrink, None
@@ -65,26 +33,17 @@ class SACReg(nn.Module):
             logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum()
             return 0.5 * (cov.diagonal().sum() + mu.square().sum() - self.d_slice - logdet) / self.d_slice
 
-
 def house_scheduler(optimizer, steps_per_epoch, total_steps, warmup_ep, eta_min):
-    """Toy-rung schedule: linear warmup (start 0.01x) then cosine to eta_min (house rule:
-    eta_min <= lr/20)."""
     warmup = steps_per_epoch * warmup_ep
     s1 = LinearLR(optimizer, start_factor=0.01, total_iters=warmup)
     s2 = CosineAnnealingLR(optimizer, T_max=total_steps - warmup, eta_min=eta_min)
     return SequentialLR(optimizer, schedulers=[s1, s2], milestones=[warmup])
 
-
 def trunk_arch(frame, drop_path, dynamic_img_size=False):
-    # dynamic_img_size (Recipe v2, D-079a): multicrop trunks interpolate pos-embed for the
-    # 96-px locals; @224 forward is parity-asserted (e27_selftest). Default False = every
-    # pre-E27 arch stamp byte-identical.
     return {"class": "sslgap.models.backbones.build_vit_trunk",
             "kwargs": {"model_name": frame.model_name, "img_size": frame.img_size,
                        "dynamic_img_size": dynamic_img_size, "drop_path_rate": drop_path}}
 
-
 def ema_momentum(step, total_steps, base, end=1.0):
-    """Cosine EMA momentum schedule base -> end (BYOL/DINO convention)."""
     import math
     return end - (end - base) * (math.cos(math.pi * step / total_steps) + 1) / 2

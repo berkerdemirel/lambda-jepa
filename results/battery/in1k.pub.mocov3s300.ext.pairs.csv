@@ -1,5 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in1k.pub.mocov3s300.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.04736655880707327,0.04717927714165854,0.04756368456100778,100000,384,cheap
-in1k.pub.mocov3s300.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.9763167205962663,0.9762072228505324,0.9764152730505407,100000,384,cheap
-in1k.pub.mocov3s300.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.012315151022893605,0.012256663871634444,0.012380277314913148,100000,384,cheap
-in1k.pub.mocov3s300.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.993842424488305,0.9938168666373086,0.993868063933707,100000,384,cheap

@@ -1,2 +1,0 @@
-run_id,protocol,epoch,lr,train_loss,val_top1,val_top5
-in1k.visreg.s0.vrb.smoke,lightly_mae_linear,1,0.4,2.0915025186767395,0.62878,0.86194

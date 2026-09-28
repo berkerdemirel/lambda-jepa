@@ -1,5 +1,0 @@
-tokenizer,dir,stratum,D_m,sig_mult,sigma,sigma0,kern_offdiag_mean,kern_offdiag_sd,kern_offdiag_p05,kern_offdiag_p95,sketch_effrank_sub2048,target_bt,target_kmeans100_nmi
-mae,A2B,far,1024,1.0,26.5133,26.5133,0.6004,0.1291,0.3665,0.7905,32.8,0.1461,0.3703
-mae,B2A,far,1024,1.0,26.297,26.297,0.6,0.1301,0.3637,0.7928,33.58,0.151,0.3773
-dino,A2B,far,1024,1.0,27.8485,27.8485,0.6097,0.0436,0.543,0.6856,102.24,0.1455,0.4693
-dino,B2A,far,1024,1.0,27.8528,27.8528,0.6102,0.0437,0.5435,0.6861,101.34,0.1515,0.4723

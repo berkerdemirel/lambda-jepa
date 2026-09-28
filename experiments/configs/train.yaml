@@ -1,37 +1,27 @@
 defaults:
-  - frame: toy_vits8
+  - frame: in100_vits16
   - method: lejepa
   - _self_
 
 seed: 0
-tag: ""                      # run_id suffix (e.g. portval)
+tag: ""
 bs: 256
-num_classes: 10              # online-probe head width (imagenette 10; in100 100)
+num_classes: 100
 probe_lr: 1e-3
 probe_wd: 1e-7
-num_workers: null            # null -> one worker per allocated CPU (SLURM_CPUS_PER_TASK); D-057
-pin_memory: true             # FAST defaults (D-057, Berker: "for the next potential in100 runs it
-persistent_workers: true     # should be the fast version please") — measured input-bound at the old
-prefetch_factor: 2           # 8w/no-pin/no-persist (e22_bench{,2}); portval-exact rerun would
-                             # override persistent_workers=false (D-011 lineage)
-eval_every: 1                # monitor eval every N epochs (final epoch always evaluated); D-056:
-                             # default 1 = unchanged for every existing lane; E22 runs 2 (Berker)
-extra_cadence: null          # D-079a: extra checkpoint epochs beyond the quarter-point cadence
-                             # (E27 cells: [10] — the ep10 dose-confirm read rides a saved state,
-                             # Berker "be mindful of ep10 checkpoint"). null = unchanged.
-share_log_every: null        # E24 (D-070): epochs between realized w·g share measurements on a
-                             # fixed probe batch (trunk-only g_enc; RNG/buffers restored — the
-                             # trajectory is identical to off). null = off (byte-identical path).
-share_log_bs: null           # D-072 rider: probe-batch size for the share logger. null = 128
-                             # (house). Set to the TRAINING bs when a no-queue view-mean cell
-                             # trains at bs>128 — the logger must present the conditioner a
-                             # non-degenerate input matching the operating estimator (e24v3nq).
+num_workers: null
+pin_memory: true
+persistent_workers: true
+prefetch_factor: 2
+eval_every: 1
+extra_cadence: null
+share_log_every: null
+share_log_bs: null
 device: cuda
 resume: true
-out_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/outputs
+out_dir: outputs
 wandb_project: sslgap
-wandb_mode: online
-
+wandb_mode: offline
 hydra:
   run:
     dir: outputs/hydra/${hydra.job.name}/${now:%Y%m%d_%H%M%S}

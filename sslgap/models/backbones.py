@@ -1,12 +1,6 @@
-"""ViT trunks and the h-space readout.
-
-h is the trunk's forward_features output (final LayerNorm applied by timm): h.cls = prefix token,
-h.gap = mean over patch tokens (DECISIONS D-003 — anything trainable after this is head).
-Per-layer readout for guillotine curves uses timm's get_intermediate_layers with norm=True
-(the DINO convention: intermediate blocks passed through the final norm)."""
+"""ViT trunks (timm) and the backbone readout."""
 import timm
 import torch
-
 
 def build_vit_trunk(model_name, img_size, dynamic_img_size=False, drop_path_rate=0.0, **kw):
     """Headless ViT (num_classes=0) — h never contains a classifier layer. kw overrides
@@ -16,7 +10,6 @@ def build_vit_trunk(model_name, img_size, dynamic_img_size=False, drop_path_rate
                              img_size=img_size, dynamic_img_size=dynamic_img_size,
                              drop_path_rate=drop_path_rate, **kw)
 
-
 @torch.inference_mode()
 def trunk_features(trunk, x, h_layers=()):
     """One frozen pass -> {"cls": [B,D], "gap": [B,D], "tokens": [B,N,D], "seq": [B,npre+N,D],
@@ -24,7 +17,7 @@ def trunk_features(trunk, x, h_layers=()):
     "seq" is the full normed sequence incl. prefix — the mask-ratio-0 decoder input for MAE
     (vit_tokens(keep=all) == forward_features, asserted by vitops_self_test)."""
     npre = getattr(trunk, "num_prefix_tokens", 1)
-    feats = trunk.forward_features(x)                      # [B, npre+N, D], final norm applied
+    feats = trunk.forward_features(x)
     out = {"cls": feats[:, 0], "gap": feats[:, npre:].mean(1), "tokens": feats[:, npre:],
            "seq": feats}
     if h_layers:

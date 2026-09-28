@@ -1,3 +1,0 @@
-run_id,probe,space,val_acc
-in1k.floorssl.s0.e27lm4Ls5b.extL,knn_k200_t0.1,student.h.cls,0.59794
-in1k.floorssl.s0.e27lm4Ls5b.extL,knn_k200_t0.07,student.h.cls,0.608

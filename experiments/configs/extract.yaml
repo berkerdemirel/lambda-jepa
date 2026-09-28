@@ -1,33 +1,27 @@
-ckpt: ???                    # checkpoint path
-adapter: lejepa_minimal      # lejepa_minimal | sslx_dino  (sslgap/ckpt/adapters.py)
-run_id: ???                  # e.g. toy.lejepa-lamb002.ext (MODELS.md naming)
-random_init: false           # true -> same architecture, fresh seed (the null run)
+ckpt: ???
+adapter: native
+run_id: ???
+random_init: false
 seed: 0
 
-store_root: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features
-manifest_dir: /nfs/scistore19/locatgrp/bdemirel/ssl_project/features/manifests
+store_root: features
+manifest_dir: features/manifests
 manifest_seed: 0
-cap_gb: 3000                 # → 3 TB (Berker 2026-08-15, critical: stacked in1k extract peaks)
+cap_gb: 3000
 
 bs: 256
 num_workers: 12
 device: cuda
-h_layers: []                 # e.g. [3,6,9,12] for guillotine (E02) extraction
+h_layers: []
 
 do_eval: true
 do_pairs: true
-orbit_v: null                # V>2 orbit views per pairs-manifest image (audit_v1 + own stack),
-                             # h_layers ride along -> "@<stack>.o<V>" stores (E02 depth axis)
-orbit_stacks: null           # restrict orbit stores to these stacks (null = audit_v1 + own stack)
-orbit_spaces: null           # restrict orbit stores to these spaces, e.g. [student.h.cls]
-                             # (null = every space; full-train orbits, 2026-09-02)
-foveal: null                 # E14 (D-031): event | ctx | both -> pairs under foveal_v1[_ctx]
-train_per_class: null        # null = the dataset's PROTOCOL standard (in100 m50k 500/class,
-                             # in1k FULL train per D-066); 0 = full split; N = N/class.
-                             # Default changed from 500 on 2026-08-10 (voas/e27lej landings
-                             # silently rode the superseded in1k train500 frame).
-pairs_per_class: 100         # IN-100 pairs10k (ignored for imagenette = full train)
-linspace_n: null             # parity mode: evenly-spaced train subset (CAMPAIGN_LOG used 4000)
+orbit_v: null
+orbit_stacks: null
+orbit_spaces: null
+train_per_class: null
+pairs_per_class: 100
+linspace_n: null
 
 hydra:
   run:

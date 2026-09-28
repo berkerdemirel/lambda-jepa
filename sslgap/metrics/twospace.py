@@ -1,29 +1,11 @@
-"""Two-space program estimators (docs/paper main.tex §4-6 + App. E; D-100): the H→Z
-center-accessibility bridge, the view-to-center fidelity law, and the structured/excess
-thickness split, computed from V-view cloud stores (`.o8` manifests, <space>.view0..).
-
-Paper objects, per space: B = Cov(m(Q)) stable center spread, A = E[Cov(S|Q)] cloud
-thickness, Θ = R A Rᵀ with R center-whitening B̂ on its eigenvalue-truncated support
-(threshold and kept rank are always reported). Estimators (App. E): Â is the
-within-cloud scatter, Bessel-corrected over views (V-unbiased); B̂ is the pooled-center
-covariance debiased by Â/V (stack-agnostic default), with the even/odd cross-group
-covariance B̂x as the A-free check (audit_v1 alternates stacks even/odd, so B̂x is also
-the asymmetric-stack canary). Whitening and every fit use train sources only; every
-reported error is held-out AND in-sample (D-100: report both) — the head_linearity
-lesson: unwhitened average R² hides low-rank maps, so targets are always whitened.
-Pure functions over arrays; the MLP center predictor (Ĝ tightening) imports torch
-lazily so the audit path stays model-free.
-"""
+"""Two-space estimators over V-view stores: whitening, the Theta spectrum, per-class organization vs view-sensitivity."""
 import numpy as np
 import pandas as pd
-
-
-# ---------------------------------------------------------------- moment estimators
 
 def cloud_moments(views):
     """views: list of V (N,D) same-source-order arrays. Returns mu, pooled centers m,
     Â (V-unbiased), B̂ = B̂pool − Â/V (debiased), B̂pool, B̂x (even/odd cross-group)."""
-    X = np.stack([np.asarray(v, dtype=np.float64) for v in views])       # (V,N,D)
+    X = np.stack([np.asarray(v, dtype=np.float64) for v in views])
     V, N, _ = X.shape
     m = X.mean(0)
     mu = m.mean(0)
@@ -36,7 +18,6 @@ def cloud_moments(views):
     return {"mu": mu, "m": m, "A": A, "B": Bpool - A / V, "Bpool": Bpool,
             "Bx": (C + C.T) / 2, "V": V, "N": N}
 
-
 def whiten_map(B, floor_frac=1e-3):
     """Center-whitening on the truncated support: keep eigenvalues > floor_frac·top,
     descending. Returns R (r,D) with R B Rᵀ = I_r, the kept eigenvalues, and r."""
@@ -44,7 +25,6 @@ def whiten_map(B, floor_frac=1e-3):
     keep = w > floor_frac * w.max()
     w, U = w[keep][::-1], U[:, keep][:, ::-1]
     return (U / np.sqrt(w)).T, w, int(w.size)
-
 
 def theta_spectrum(A, B, floor_frac=1e-3):
     """Θ = R A Rᵀ and its eigen-decomposition (descending)."""
@@ -54,26 +34,20 @@ def theta_spectrum(A, B, floor_frac=1e-3):
     return {"R": R, "theta": Th, "lam": lam[::-1], "evecs": Uv[:, ::-1],
             "r": r, "b_eigs": b_eigs}
 
-
 def _psd_clip(M):
     w, U = np.linalg.eigh((M + M.T) / 2)
     return (U * np.clip(w, 0, None)) @ U.T
-
 
 def _split(N, holdout, seed):
     perm = np.random.default_rng(seed).permutation(N)
     ntr = int(round(N * (1 - holdout)))
     return perm[:ntr], perm[ntr:]
 
-
 def _ls(X, Y, ridge=1e-8):
     """Ridge-stabilized least squares X→Y (both pre-centered); ridge is relative."""
     G = X.T @ X / X.shape[0]
     lam = ridge * np.trace(G) / G.shape[0]
     return np.linalg.solve(G + lam * np.eye(G.shape[0]), X.T @ Y / X.shape[0])
-
-
-# ------------------------------------------------------------------- accessibility
 
 def accessibility(mh, mz, Az=None, V=None, holdout=0.5, floor_frac=1e-3, seed=0):
     """Held-out linear recovery of center-whitened z-centers from h-centers
@@ -106,9 +80,6 @@ def accessibility(mh, mz, Az=None, V=None, holdout=0.5, floor_frac=1e-3, seed=0)
         for tau in (0.5, 0.2, 0.1):
             summary[f"frac_resid_gt{tau}_{split}"] = float((ev > tau).mean())
     return summary, eigs
-
-
-# ---------------------------------------------------------------- fidelity law test
 
 def center_fidelity(views, holdout=0.5, floor_frac=1e-3, seed=0):
     """Label-free test of the fidelity law (Thm 5.2ii): held-out residual spectrum of
@@ -151,9 +122,6 @@ def center_fidelity(views, holdout=0.5, floor_frac=1e-3, seed=0):
                            "split": (tr, te), "wh": wh, "tgt": tgt,
                            "pred_views": pred_views}
 
-
-# --------------------------------------------------- structured / excess thickness
-
 def gs_split(ts, resid_cov, Vc):
     """Ĝ upper bound from ANY held-out view→center predictor's whitened residual
     covariance (App. E identity: that covariance = G + PSD extra + Θ/V_c target
@@ -170,12 +138,11 @@ def gs_split(ts, resid_cov, Vc):
             "S_lb_tr_linclosed": float(np.trace(lin)),
             "S_share_lb": float(np.trace(S_lb) / max(np.trace(ts["theta"]), 1e-12))}
 
-
 def mlp_center_residuals(fid_ctx, width=1024, max_epochs=300, patience=20, bs=8192,
                          lr=1e-3, seed=0):
     """MLP q(view)→whitened center for the Ĝ tightening (same disjoint view groups as
-    center_fidelity). Fit discipline (Berker 2026-08-12: watch the train/val interplay
-    — the 20-epoch fixed budget UNDERFIT below the linear closed form): the training
+    center_fidelity). Fit discipline (a fixed 20-epoch budget underfits below the linear closed
+    form): the training
     sources are split fit/val BY SOURCE (all views of a source on one side — mixed
     views would leak the memorized center into val), early stopping on val MSE with
     best-val weight restore, and the held-out test sources are touched exactly once
@@ -240,9 +207,6 @@ def mlp_center_residuals(fid_ctx, width=1024, max_epochs=300, patience=20, bs=81
             "mlp_epochs_run": int(ep + 1)}
     return (E - E.mean(0)).T @ (E - E.mean(0)) / (E.shape[0] - 1), diag
 
-
-# ------------------------------------------------- task organization + decomposition
-
 def organization(h_views, mz, labels, holdout=0.5, floor_frac=1e-3, seed=0):
     """Per-class rows: d̂_h(y), d̂_z(y) (held-out center-organization errors of the
     unit-normalized centered class indicator), the transfer bound d_z + √(uᵀΣ_c u)
@@ -254,26 +218,24 @@ def organization(h_views, mz, labels, holdout=0.5, floor_frac=1e-3, seed=0):
     N = y.shape[0]
     tr, te = _split(N, holdout, seed)
     cls = np.unique(y)
-    # classes must be represented on both splits or the normalized indicator target
-    # degenerates (pairs10-scale manifests: 10 sources/class → empty-split classes)
     n_tr = np.array([(y[tr] == c).sum() for c in cls])
     n_te = np.array([(y[te] == c).sum() for c in cls])
     cls = cls[(n_tr >= 5) & (n_te >= 5)]
     p = np.array([(y[tr] == c).mean() for c in cls])
     T = (y[:, None] == cls[None, :]).astype(np.float64)
-    T = (T - p) / np.sqrt(p * (1 - p))                       # unit-variance targets
+    T = (T - p) / np.sqrt(p * (1 - p))
     mom = cloud_moments([v[tr] for v in h_views])
     ts = theta_spectrum(mom["A"], mom["B"], floor_frac)
     mh_all = np.mean([np.asarray(v, dtype=np.float64) for v in h_views], axis=0)
-    Mh = (mh_all - mom["mu"]) @ ts["R"].T                    # whitened h centers
+    Mh = (mh_all - mom["mu"]) @ ts["R"].T
     muz = mz[tr].mean(0)
     Rz, _, rz = whiten_map(np.cov(mz[tr], rowvar=False), floor_frac)
     Mz = (mz - muz) @ Rz.T
-    Wc = _ls(Mh[tr], Mz[tr])                                 # h→z bridge in center coords
+    Wc = _ls(Mh[tr], Mz[tr])
     Ec = Mz[te] - Mh[te] @ Wc
     Sc = (Ec - Ec.mean(0)).T @ (Ec - Ec.mean(0)) / (len(te) - 1)
-    Ah = _ls(Mh[tr], T[tr])                                  # a per class (r_h, C)
-    Az_ = _ls(Mz[tr], T[tr])                                 # u_y per class (r_z, C)
+    Ah = _ls(Mh[tr], T[tr])
+    Az_ = _ls(Mz[tr], T[tr])
     d_h = np.sqrt(np.maximum(((T[te] - Mh[te] @ Ah) ** 2).mean(0), 0))
     d_z = np.sqrt(np.maximum(((T[te] - Mz[te] @ Az_) ** 2).mean(0), 0))
     dir_resid = np.einsum("rc,rs,sc->c", Az_, Sc, Az_)

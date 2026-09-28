@@ -1,10 +1,7 @@
-"""Cross-space metrics: how differently do two spaces (h vs z, same images) arrange the data?
-CKA is CONTESTED for cross-representation correspondence (refuted in the report's adversarial
-verification) — it is only ever reported as the triple (CKA, neighbor-Jaccard, Procrustes)."""
+"""Cross-space metrics between two representations of the same images."""
 import numpy as np
 from scipy.linalg import orthogonal_procrustes
 from sklearn.neighbors import NearestNeighbors
-
 
 def cka_linear(X, Y):
     """Biased linear CKA on centered features, via cross-gram (feasible at N=50k)."""
@@ -14,7 +11,6 @@ def cka_linear(X, Y):
     xx = np.linalg.norm(Xc.T @ Xc)
     yy = np.linalg.norm(Yc.T @ Yc)
     return float(xy / (xx * yy + 1e-12))
-
 
 def neighbor_jaccard(X, Y, k=10, n_sub=5000, seed=0):
     """Mean Jaccard overlap of k-NN sets computed in each space on the SAME image subsample —
@@ -26,7 +22,6 @@ def neighbor_jaccard(X, Y, k=10, n_sub=5000, seed=0):
     ny = NearestNeighbors(n_neighbors=k + 1).fit(Ys).kneighbors(Ys, return_distance=False)[:, 1:]
     jac = [len(set(a) & set(b)) / len(set(a) | set(b)) for a, b in zip(nx, ny)]
     return float(np.mean(jac))
-
 
 def knn_label_agreement(X, Y, labels, k=10, n_sub=5000, seed=0):
     """Fraction of images whose k-NN majority label matches between the two spaces."""
@@ -40,7 +35,6 @@ def knn_label_agreement(X, Y, labels, k=10, n_sub=5000, seed=0):
         return np.array([np.bincount(r).argmax() for r in neigh])
 
     return float((votes(X[idx]) == votes(Y[idx])).mean())
-
 
 def procrustes_distance(X, Y, k=64, seed=0):
     """Orthogonal-Procrustes residual between PCA-k projections (unit-scaled):
@@ -59,18 +53,16 @@ def procrustes_distance(X, Y, k=64, seed=0):
     R, _ = orthogonal_procrustes(Xk, Yk)
     return float(np.linalg.norm(Xk @ R - Yk) / (np.linalg.norm(Yk) + 1e-12))
 
-
 def linear_map_fit(H_tr, Z_tr, H_va, Z_va, eps=1e-12):
-    """Head-linearity index (D-015, approved 2026-07-08; its R² half was later CANCELLED as
-    a standalone metric by D-060 and its map-spectrum half left unbuilt — this builds both,
-    and the spectrum is the part that survives D-060's critique).
+    """Head-linearity index: the R² of the best linear map h -> z and the singular spectrum of
+    that map (the spectrum is the part that reads contraction directly).
 
     Best linear fit h -> z by OLS on the TRAIN split (both sides centred by TRAIN means),
     scored on VAL. Returns:
 
       r2_total    1 - ||Z - HW||_F^2 / ||Z - Zbar||_F^2 on val. Invariant to any invertible
                   linear map of h and to rotation/global scale of z, so it is comparable
-                  across methods. **D-060's caveat is REAL and rides with every use: a
+                  across methods. **Caveat that rides with every use: a
                   contractive many-to-little head reads HIGH r2 while doing heavy nonlinear
                   work — r2 measures linear REACHABILITY of the output, not head magnitude.
                   Never quote it alone.**

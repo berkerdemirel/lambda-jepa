@@ -1,9 +1,4 @@
-"""Fix B (E34, 2026-09-03): re-pack a Lance frame store into ONE SMALL FILE PER CLIP so training reads are
-one contiguous read per clip (the ImageNet access pattern; BeeGFS handles ~9 MB files well) and the frames
-stay exactly the JPEGs the donor's builder produced (15 fps, short edge 384, JPEG q90). Sequential scan of
-one fragment (fast on BeeGFS: ~1,000 rows/s) -> for every episode a file `{out}/{label}/{episode_idx}.clip`
-= header (n_frames, offsets) + concatenated JPEG bytes. Usage: lance_to_clipfiles.py <store> <out_dir> <fragment_idx>
-(one SLURM array task per fragment; the label names come from <store>.classes.txt)."""
+"""Convert a Lance store to one file per clip."""
 import os, sys, struct, time
 import lance, numpy as np
 

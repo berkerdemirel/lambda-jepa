@@ -1,8 +1,4 @@
-"""Synthetic smoke of the lambda-JEPA recipe on the donor's training loop (no data, no GPU needed):
-vit_tiny at 32px x 4 frames, six random-noise views per clip, three optimizer steps through
-spt.Module's manual optimization with the share logger firing at epoch start. Checks: the forward
-returns finite terms, the rings fill, gradient clipping and the twin-free loss run, the [share]
-line prints. Usage: .venv/bin/python scripts/lambdajepa_smoke.py"""
+"""Smoke test of the lambda-JEPA loss branch of main.py on random clips."""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import lightning as pl
@@ -15,7 +11,6 @@ from lambdajepa_reg import Ring, ShareLogger, SACReg
 
 V, T, S, N = 6, 4, 32, 8
 
-
 class Fake(torch.utils.data.Dataset):
     def __len__(self):
         return 32
@@ -23,7 +18,6 @@ class Fake(torch.utils.data.Dataset):
     def __getitem__(self, i):
         g = torch.Generator().manual_seed(i)
         return {"views": (torch.rand(V, T, 3, S, S, generator=g) * 255).to(torch.uint8)}
-
 
 loader = torch.utils.data.DataLoader(Fake(), batch_size=N, shuffle=True, drop_last=True, num_workers=0)
 enc = vit_models.vit_tiny(img_size=S, patch_size=16, num_frames=T, tubelet_size=1, use_rope=True,

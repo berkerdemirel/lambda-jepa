@@ -1,21 +1,4 @@
-"""Frozen attentive probe on ImageNet-1k, the V-JEPA protocol (Bardes et al. 2024, facebookresearch/jepa
-evals/image_classification_frozen + configs/evals/vitl16_in1k.yaml), which LeVJEPA states it follows
-"without modification" and does not ship. Ported here in math and hyperparameters, verbatim where the
-code allows (E34 evaluator; ssl_project 2026-09-02):
-  classifier  = AttentiveClassifier: one learnable query, ONE cross-attention block (pre-LN on the
-                tokens, heads = encoder heads, MLP ratio 4, residuals), then Linear -> 1000; the
-                encoder's full token set (CLS + patches, no token dropping at eval) is the key/value set.
-  input       = each image repeated over the encoder's 16 frames (their forward pre-hook).
-  train aug   = timm create_transform(is_training, auto_augment='original', bicubic, random erasing
-                p .25 'pixel'); val = Resize(256/224 * res) + CenterCrop + ImageNet normalization.
-  optimization= AdamW, lr 1e-3 -> 0 cosine (no warmup), wd 1e-3 -> 1e-6 cosine, biases/1-d params
-                without wd, 20 epochs, batch 16 per GPU x 64 GPUs = 1,024 (world size scales the
-                per-GPU batch here: --bs is per GPU, the global batch is reported), bf16 autocast,
-                cross-entropy, top-1 on the 50,000 val images at the end of every epoch.
-Weights: --weights ema (the donor's evaluation convention: checkpoints carry the EMA encoder) or
-student. Output: `[attn-probe] ep k/N train_top1=.. val_top1=..` lines and a CSV.
-Launch: torchrun --nproc_per_node=8 scripts/attentive_probe.py --ckpt <lightning .ckpt> --out <csv>
-"""
+"""ImageNet-1k attentive probe on a video checkpoint (V-JEPA frozen-evaluation protocol)."""
 import argparse
 import csv
 import math
@@ -35,7 +18,6 @@ import module as vit_models
 
 NORM = ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 
-
 class CrossAttention(nn.Module):
     def __init__(self, dim, num_heads, qkv_bias=True):
         super().__init__()
@@ -50,14 +32,9 @@ class CrossAttention(nn.Module):
         N = x.shape[1]
         kv = self.kv(x).reshape(B, N, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q = F.scaled_dot_product_attention(q, kv[0], kv[1])
-        # the output projection (V-JEPA's CrossAttention applies self.proj after the attention; the port had dropped it —
-        # the peek of 09-04 ran without it, and under DDP the unused proj weights made the reducer hang, 09-06)
         return self.proj(q.transpose(1, 2).reshape(B, n, C))
 
-
 class AttentiveClassifier(nn.Module):
-    """V-JEPA AttentiveClassifier (depth 1, complete block): q <- q + xattn(q, LN(x)); q <- q + MLP(LN(q));
-    logits = Linear(q). Init: trunc-normal .02, the proj and fc2 weights rescaled by 1/sqrt(2)."""
 
     def __init__(self, embed_dim, num_heads, num_classes=1000, mlp_ratio=4.0, init_std=0.02):
         super().__init__()
@@ -85,7 +62,6 @@ class AttentiveClassifier(nn.Module):
         q = q + self.mlp(self.norm2(q))
         return self.linear(q.squeeze(1))
 
-
 class WarmupCosineSchedule:
     def __init__(self, optimizer, warmup_steps, start_lr, ref_lr, T_max, final_lr=0.0):
         self.optimizer, self.start_lr, self.ref_lr, self.final_lr = optimizer, start_lr, ref_lr, final_lr
@@ -102,7 +78,6 @@ class WarmupCosineSchedule:
             g["lr"] = lr
         return lr
 
-
 class CosineWDSchedule:
     def __init__(self, optimizer, ref_wd, T_max, final_wd=0.0):
         self.optimizer, self.ref_wd, self.final_wd, self.T_max, self._step = optimizer, ref_wd, final_wd, T_max, 0.0
@@ -116,10 +91,7 @@ class CosineWDSchedule:
                 g["weight_decay"] = wd
         return wd
 
-
 def load_encoder(ckpt_path, weights):
-    """Build the encoder from the run's saved config and load `state_dict` (student) or the EMA
-    weights (`state_dict_ema`, the donor's checkpoint convention, encoder.* keys)."""
     ck = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     hp = ck["hyper_parameters"]
     m = hp["model"]
@@ -131,7 +103,6 @@ def load_encoder(ckpt_path, weights):
     missing, unexpected = enc.load_state_dict(enc_sd, strict=False)
     assert not unexpected and all(k == "pos_embed" for k in missing), (missing, unexpected)
     return enc, hp
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -146,11 +117,6 @@ def main():
     ap.add_argument("--final-wd", type=float, default=1e-6)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--limit", type=int, default=0, help="smoke: images per split")
-    # --tokens (2026-09-11, Berker): the key/value set the attentive head reads. "all" is the
-    # V-JEPA protocol (CLS + patches). "cls"/"patches" are DIAGNOSTIC: our patch tokens carry
-    # ~95% within-image variance and sit near-orthogonal to the CLS (E27 patch diagnostic), so
-    # restricting the head says whether the image-level signal lives in the CLS alone. CLS is
-    # index 0 of the encoder output (module.py: torch.cat((cls_token, x), dim=1)).
     ap.add_argument("--tokens", default="all", choices=["all", "cls", "patches"])
     args = ap.parse_args()
     ddp = "RANK" in os.environ
@@ -210,8 +176,6 @@ def main():
             if training:
                 lr_s.step(); wd_s.step()
             tokens = encode(imgs)
-            # validation under DDP must not build a graph: DDP expects a backward for every forward that records
-            # one, and the next training step then fails with "expected to have finished reduction" (peek, 09-04).
             with torch.autocast("cuda", dtype=torch.bfloat16), (contextlib.nullcontext() if training else torch.no_grad()):
                 logits = clf(tokens)
             loss = F.cross_entropy(logits.float(), labels)
@@ -236,7 +200,6 @@ def main():
         print(f"[attn-probe] final val_top1={rows[-1]['val_top1']:.2f} best={max(r['val_top1'] for r in rows):.2f} -> {args.out}", flush=True)
     if ddp:
         dist.destroy_process_group()
-
 
 if __name__ == "__main__":
     main()

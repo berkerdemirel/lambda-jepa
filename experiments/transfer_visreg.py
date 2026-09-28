@@ -1,37 +1,4 @@
-"""VISReg Table-5 transfer linear probe (their downstream suite) on a project checkpoint.
-
-Faithful port of HaiyuWu/visreg@47b1cf4 downstream/linear_prob/run_evaluation.py +
-downstream/dataset_utils.py (read 2026-08-26; donor read-only in third_party/visreg):
-frozen encoder in eval mode; feature = concat of the last-4 blocks' CLS with the final
-norm applied (forward_intermediates indices [-4..-1], norm=True) -> 4*D; heads = one
-[BatchNorm(affine=True) + Linear] per LR, weights N(0,.01)/bias 0; 13 base LRs
-[1e-4 .. 0.5] scaled by total_bs/256; SGD(momentum=.9, wd=0); cosine T_max=epochs,
-eta_min=0, stepped per epoch; bf16 autocast on every module forward; train aug
-RandomResizedCrop(224,(0.08,1.0),bicubic)+HFlip+IN-norm, test Resize(256,bicubic)+
-CenterCrop(224); bs 32, train drop_last; seed 42 re-applied per dataset; test features
-cached once; reported = best head ON TEST (their operative train_online_and_eval — the
-val-split variant in their file is dead code in main()). Transfer epochs = 10 per the
-paper's Table-5 caption (their --epochs default 100 belongs to the Inet1K column only).
-
-Datasets = their DEFAULT_EVAL_DATASETS (dtd aircraft cars cifar10 cifar100 flowers food
-pets), split-parity with their loaders: dtd fold-1 train1/test1 (tv partition=1),
-aircraft trainval/test, flowers trnid/tstid (tv train/test), cifar tv, food tv
-train/test (= their HF train/validation), pets tv trainval/test (= their HF train/test),
-cars = the E25 tanganke HF mirror (canonical 8144/8041 asserted). Every split size is
-asserted against the canonical count before extraction.
-
-Declared deviations (E25/E27-bench pattern): (1) torchvision / HF-mirror data plumbing
-in place of their HF+original-file loaders — identical canonical splits; label-index
-permutations cannot move accuracy; (2) single GPU: their per-GPU bs 32 kept, the LR
-scaling rule self-adjusts, and plain BatchNorm1d == SyncBatchNorm at world size 1;
-(3) encoder assembled by our adapters (native / visreg) or timm pretrained
-(timm:<name>, their create_backbone construction incl. drop_path .1 — inert in eval).
-
-  python experiments/transfer_visreg.py <adapter>:<src> <tag> [epochs=10] [ds1,ds2,...]
-    <adapter>:<src> = native:outputs/x.pt | visreg:~/....pt | timm:vit_base_patch16_224.dino
-CSV appended per dataset (wall-safe, dataset-granular resume — done rows are skipped):
-results/transfer/<tag>.visreg_lp.csv
-"""
+"""Transfer linear probes under the VISReg protocol (concatenated CLS of the last four blocks, 13 learning rates, 10 epochs, eight datasets)."""
 import os
 import random
 import sys
@@ -60,7 +27,6 @@ BASE_LRS = [1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 0.1, 0.2, 0.3,
 BS = 32
 SEED = 42
 
-# name -> (train kwargs, test kwargs, n_train, n_test, n_classes); README column order
 BENCH = {
     "dtd":      (dict(split="train", partition=1), dict(split="test", partition=1), 1880, 1880, 47),
     "aircraft": (dict(split="trainval"), dict(split="test"), 6667, 3333, 100),
@@ -75,10 +41,7 @@ TVSETS = {"cifar10": tvd.CIFAR10, "cifar100": tvd.CIFAR100, "dtd": tvd.DTD,
           "aircraft": tvd.FGVCAircraft, "flowers": tvd.Flowers102,
           "food": tvd.Food101, "pets": tvd.OxfordIIITPet}
 
-
 class HFCars(torch.utils.data.Dataset):
-    """StanfordCars via the tanganke/stanford_cars HF mirror (E25 deviation 3;
-    torchvision's upstream is dead). Canonical split asserted."""
 
     def __init__(self, split, tf):
         from datasets import load_dataset
@@ -92,16 +55,13 @@ class HFCars(torch.utils.data.Dataset):
         r = self.ds[i]
         return self.tf(r["image"].convert("RGB")), r["label"]
 
-
 def build_split(name, spec, train):
     tf = TRAIN_TF if train else TEST_TF
     if name == "cars":
         return HFCars("train" if train else "test", tf)
     return TVSETS[name](root=DATA, download=True, transform=tf, **spec)
 
-
 class ConcatCLS(nn.Module):
-    """Their ViTEncoder.forward: last-4 blocks' CLS tokens, final norm on, concat."""
 
     def __init__(self, trunk):
         super().__init__()
@@ -112,7 +72,6 @@ class ConcatCLS(nn.Module):
         _, inter = self.trunk.forward_intermediates(
             x, indices=[-4, -3, -2, -1], return_prefix_tokens=True, norm=True)
         return torch.cat([p[:, 0, :] for _, p in inter], dim=-1)
-
 
 class MultiLR(nn.Module):
     def __init__(self, in_dim, n_cls, n_heads):
@@ -126,7 +85,6 @@ class MultiLR(nn.Module):
 
     def forward(self, x):
         return [h(x) for h in self.heads]
-
 
 def build_encoder(src):
     kind, _, ref = src.partition(":")
@@ -142,7 +100,6 @@ def build_encoder(src):
         p.requires_grad_(False)
     return enc
 
-
 @torch.no_grad()
 def extract_test(enc, ds):
     feats, ys = [], []
@@ -153,7 +110,6 @@ def extract_test(enc, ds):
             feats.append(enc(x.cuda(non_blocking=True)))
         ys.append(torch.as_tensor(y))
     return torch.cat(feats), torch.cat(ys).cuda()
-
 
 def run_dataset(enc, name, epochs, fh, tag):
     torch.manual_seed(SEED)
@@ -212,7 +168,6 @@ def run_dataset(enc, name, epochs, fh, tag):
     fh.flush()
     return accs[best]
 
-
 def main():
     src, tag = sys.argv[1], sys.argv[2]
     epochs = int(sys.argv[3]) if len(sys.argv) > 3 else 10
@@ -244,7 +199,6 @@ def main():
     vals = [v for v in row if v is not None]
     if vals:
         print(f"[tvlp] avg={100 * sum(vals) / len(vals):.1f} over {len(vals)} sets", flush=True)
-
 
 if __name__ == "__main__":
     main()

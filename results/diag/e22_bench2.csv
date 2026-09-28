@@ -1,6 +1,0 @@
-part,cpus,node,decode_full_ms,decode_256_ms,aug4_full_ms,aug4_256_ms,mean_kb_full,mean_kb_256,workers,bs,batches_per_s,imgs_per_s
-env,32,eta343,,,,,,,,,,
-preresize,,,1.86,0.54,19.15,14.64,123.0,22.8,,,,
-loader,,,,,,,,,24,128,4.197,537.3
-loader,,,,,,,,,28,128,5.304,678.9
-loader,,,,,,,,,32,128,5.052,646.6

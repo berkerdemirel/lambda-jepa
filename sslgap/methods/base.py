@@ -1,28 +1,19 @@
-"""The faithful-vs-comparable contract (PROTOCOL §2), in code.
-
-Frame owns what must be IDENTICAL across methods within a rung: backbone topology, dataset, epoch
-budget, seed, checkpoint cadence, online-probe monitor, logging schema, precision, resume. The
-generic loop in experiments/train.py implements the frame once.
-
-Recipe (everything method-specific) lives in the SSLMethod subclass: augs/views, optimizer groups,
-schedules, heads, loss terms. Every deviation from the paper/donor recipe is documented in the
-subclass docstring and the method dossier (PORT_NOTES)."""
+"""Frame (what is identical across methods within a comparison) and the SSLMethod recipe interface."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import torch.nn as nn
 
-
 @dataclass
 class Frame:
-    name: str                 # e.g. "toy" — run_id prefix
-    model_name: str           # timm trunk
+    name: str
+    model_name: str
     img_size: int
-    dataset: str              # imagenette | imagenet
+    dataset: str
     data_root: str | None
     epochs: int
     seed: int
-    grad_clip: float | None   # frame default 1.0; a recipe may override ONLY with a DECISIONS row
+    grad_clip: float | None
     num_workers: int
     device: str = "cuda"
 
@@ -30,7 +21,6 @@ class Frame:
         """Quarter-point checkpoint epochs (1-indexed), always including the last epoch."""
         qs = sorted({max(1, round(self.epochs * q / 4)) for q in (1, 2, 3, 4)})
         return qs
-
 
 class SSLMethod(ABC):
     """One SSL method's recipe. The trainer calls these hooks; the method never owns the loop."""
@@ -41,7 +31,6 @@ class SSLMethod(ABC):
         self.cfg = cfg
         self.frame = frame
 
-    # --- construction -------------------------------------------------------------------------
     @abstractmethod
     def build_modules(self) -> nn.ModuleDict:
         """Roles -> modules (canonical role names: backbone, embed, projector, predictor, decoder,
@@ -56,7 +45,6 @@ class SSLMethod(ABC):
         """Role -> {"class": dotted callable, "kwargs": {...}} — rebuilds each module without the
         trainer (ckpt schema v1)."""
 
-    # --- optimization -------------------------------------------------------------------------
     @abstractmethod
     def param_groups(self, modules) -> list:
         """Optimizer param groups for the method's modules (probe group is added by the trainer)."""
@@ -65,14 +53,12 @@ class SSLMethod(ABC):
     def build_scheduler(self, optimizer, steps_per_epoch, total_steps):
         ...
 
-    # --- the step -----------------------------------------------------------------------------
     @abstractmethod
     def training_step(self, modules, batch_x, device, y=None) -> tuple[dict, "torch.Tensor", int]:
         """batch_x = the dataset item's x part (tensor or nested tuple of tensors, on device) ->
         ({term: tensor incl. "loss"}, probe_feats [N*k, D] DETACHED, k = label repeats).
         probe_feats MUST be image-major (img0 x k, img1 x k, ...): the trainer aligns labels via
-        y.repeat_interleave(k). View-major output silently trains the probe on wrong labels —
-        the toy.dino.s0 incident (HISTORY 2026-07-02)."""
+        y.repeat_interleave(k). View-major output silently trains the probe on wrong labels."""
 
     @abstractmethod
     def eval_features(self, modules, x, device):

@@ -1,17 +1,4 @@
-"""Build a frame-per-row Lance store for Kinetics-style short clips (the K710-20% set of E34).
-
-Same convention as build_lance_walking_tours.py (15 fps stored rate by a per-video stride off the
-native fps, short edge 384, JPEG quality 90, schema (episode_idx, step_idx, frame, h, w, label)),
-with ONE EPISODE PER VIDEO: a 10 s Kinetics clip becomes ~150 stored frames; clips shorter than
-`--min-frames` stored frames (16-frame clips at stride 2 need 32) are dropped and counted. `label`
-is the class index of the video's parent directory in the GLOBAL label space of the draw CSV (sorted
-unique labels, identical across the per-set stores; written to <out>.classes.txt).
-Videos are processed in sorted order and one at a time per task, so episode_idx is monotone in
-the store, which LanceDataset._load_episode_index requires. Decoding = decord (their choice).
-
-Usage:
-  python scripts/build_lance_kinetics.py --videos <dir with {class}/{clip}.mp4> --out <store.lance>
-"""
+"""Build the K710-20 % training store from the subset list."""
 import argparse
 import io
 import os
@@ -23,16 +10,13 @@ from pathlib import Path
 SHORT_EDGE = 384
 JPEG_Q = 90
 TARGET_FPS = 15.0
-MAX_FRAMES = 192          # ~12.8 s at 15 fps; Kinetics clips are <= 10 s
+MAX_FRAMES = 192
 DECODE_CHUNK = 32
-
 
 def stride_for(fps):
     return max(1, round(fps / TARGET_FPS))
 
-
 def encode_video(task):
-    """Decode + JPEG-encode one whole clip at the stored rate. Returns (idx, [(step, bytes, h, w)])."""
     from PIL import Image
     from decord import VideoReader, cpu
 
@@ -60,10 +44,9 @@ def encode_video(task):
                 img.save(buf, format="JPEG", quality=JPEG_Q)
                 out.append((base + j, buf.getvalue(), img.size[1], img.size[0]))
         return idx, out
-    except Exception as exc:  # noqa: BLE001 - one bad clip must not kill the build
+    except Exception as exc:
         print(f"  clip {path} failed: {exc}", flush=True)
         return idx, None
-
 
 def main():
     import lance
@@ -75,7 +58,7 @@ def main():
     ap.add_argument("--workers", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", 16)))
     ap.add_argument("--min-frames", type=int, default=32)
     ap.add_argument("--limit", type=int, default=0, help="smoke: only the first N videos")
-    ap.add_argument("--classes", default="/mnt/beegfs/locatgrp/shared/datasets/kinetics/k710_20pct.csv",
+    ap.add_argument("--classes", default="/path/to/kinetics/k710_20pct.csv",
                     help="the draw CSV: its sorted unique labels are the label index space, shared by every per-set store")
     args = ap.parse_args()
     out_path = Path(args.out)
@@ -140,7 +123,6 @@ def main():
     print(f"verify: {ds.count_rows()} rows in store", flush=True)
     assert ds.count_rows() == written["rows"], "row count mismatch"
     print("LANCE_BUILD_DONE", flush=True)
-
 
 if __name__ == "__main__":
     sys.exit(main())

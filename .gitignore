@@ -1,48 +1,32 @@
-# artifacts (large / regenerable)
+# local artifacts (large / regenerable)
 outputs/
 features/
-features
 features_nfs/
 wandb/
+results/
+multirun/
+.hydra/
 *.pt
 *.pth
 *.npy
 *.ckpt
 
-# env
+# environments
 .venv/
 __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
-
-# donors are reference clones, not vendored code
-third_party/solo-learn/
-third_party/latentis/
-
-# hydra run dirs
-multirun/
-.hydra/
-
-# assistant/session files — local only, not part of the public project (D-001 amendment)
-CLAUDE.md
-HANDOVER.md
-SESSION_OPENER.md
-scratch/
-third_party/dino/
-third_party/ijepa/
-third_party/mae/
-third_party/visreg/
-third_party/lightly/
-third_party/levjepa/
 video/levjepa/.venv/
 video/levjepa/outputs/
 video/levjepa/uv_sync.log
 video/levjepa/data/*
 !video/levjepa/data/*.py
-results/figures/*.png
-results/figures/*/*.png
+
+# local session files, not part of the project
+.claude/
+CLAUDE.md
+HANDOVER.md
+scratch/
+third_party/
 slurm-*.out
 texput.log
-SESSION_OPENER_SLIDES.md
-supplement/dist/
-docs/paper/*.pdf

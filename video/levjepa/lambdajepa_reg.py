@@ -1,22 +1,4 @@
-"""The lambda-JEPA recipe inside LeVJEPA (ssl_project video side project, 2026-09-02).
-
-Against the donor (MLO-lab/LeVJEPA @3ea0dda) exactly the lambda-JEPA recipe is transplanted, the one
-running at ImageNet-1k (E27 cells e27v6s/e27v6b/e27v6L): V = 6 global views of the clip (the
-lejepa view stack, no local crops), invariance = view-to-mean MSE at the projector output on the
-all-pairs scale (no EMA twin: LeVJEPA has none, Berker 2026-09-02), the two-sided spectral conditioner on the PER-CLIP VIEW
-CENTERS at the projector output (Z) and at the CLS token of the encoder output (H), each with a
-detached ring of the last q steps' centers, doses (w_inv, w_z, w_h) taken from the ImageNet-1k
-chains as they are. Token dropping, block-causal attention, projector, optimizer and schedule are
-the donor's. Everything here is ported in math from ssl_project (sslgap/methods/_common.py,
-sslgap/methods/lambdajepa.py, experiments/train_ddp.py, sslgap/metrics/orbit_energy.py); the code
-is written for the donor's Lightning module.
-
-DDP convention (house, train_ddp._all_gather): the per-clip centers are all-gathered with an
-autograd-aware gather, every rank computes the conditioner on the GLOBAL batch, the backward
-reduce-scatter returns each rank the gradient of its own rows, and DDP's parameter-gradient
-averaging reconstructs the exact global-batch gradient. The random slice is drawn from a
-step-seeded generator so all ranks share one basis.
-"""
+"""lambda-JEPA pieces for the LeVJEPA trainer: SACReg on the all-gathered per-clip view centers, ring buffers, the share logger, the online K710 probe, named checkpoints."""
 import math
 import time
 
@@ -27,25 +9,15 @@ import torch.distributed as dist
 import torch.distributed.nn.functional as dist_nn
 import torch.nn as nn
 
-
 def _distributed():
     return dist.is_available() and dist.is_initialized() and dist.get_world_size() > 1
 
-
 def all_gather_rows(t):
-    """Autograd-aware all-gather along dim 0 (equal shapes: drop_last and a batch that divides
-    the world size)."""
     if not _distributed():
         return t
     return torch.cat(dist_nn.all_gather(t.contiguous()), 0)
 
-
 class SACReg(nn.Module):
-    """KL(N(mu, S) || N(0, I_d')) / d' on a fresh random d'-dim orthonormal slice per step.
-    Two-sided: variance above 1 is taxed like variance below it; the log-det is the
-    anti-degeneracy barrier; a pure function of the batch mean and covariance. fp32 with
-    autocast off (Cholesky). `trace_last` = whitened trace/d' of the slice, the stream-health
-    read (a starved center stream shows trace/d' far below 1 at the fixed point)."""
 
     def __init__(self, d_slice=128, eps=1e-4):
         super().__init__()
@@ -65,12 +37,7 @@ class SACReg(nn.Module):
             logdet = 2 * torch.linalg.cholesky(cov).diagonal().log().sum()
             return 0.5 * (cov.diagonal().sum() + mu.square().sum() - self.d_slice - logdet) / self.d_slice
 
-
 class Ring:
-    """Detached ring of the last q steps' conditioner inputs (D-064): widens the moment estimate
-    from n = N_global to (q+1) N_global so the slice keeps its d'. Gradient flows only through
-    the current rows; the ring re-warms over q steps after every resume (declared). One ring per
-    tap ("z", "h"); snapshot/restore bracket the share measurement."""
 
     def __init__(self):
         self.bufs = {}
@@ -89,11 +56,7 @@ class Ring:
     def restore(self, snap):
         self.bufs = snap
 
-
-
 def term_pulls(terms, params):
-    """The pull instrument: g_k = ||d term_k / d theta_encoder||; realized share of term k at
-    weights w = w_k g_k / sum_j w_j g_j."""
     names = list(terms)
     out = {}
     for i, k in enumerate(names):
@@ -101,10 +64,7 @@ def term_pulls(terms, params):
         out[k] = torch.cat([t.reshape(-1).float() for t in grad if t is not None]).norm().item()
     return out
 
-
 def orbit_energies(views):
-    """views: list of V arrays (N, D), same clip order. W = E_i E_{u<v} ||s_iu - s_iv||^2,
-    B = E_{i!=j} ||m_i - m_j||^2 - W/V (debiased), thickness Theta = W/B (logged as omega)."""
     V = len(views)
     X = [v.astype(np.float64) for v in views]
     N = X[0].shape[0]
@@ -118,20 +78,11 @@ def orbit_energies(views):
     B = 2.0 * (mc ** 2).sum(1).mean() * N / (N - 1) - W / V
     return {"W": W, "B": B, "omega": W / B}
 
-
 def transmission(eh, ez):
     a2, b2 = ez["W"] / eh["W"], ez["B"] / eh["B"]
     return {"a": math.sqrt(a2), "b": math.sqrt(b2), "lam": math.sqrt(b2 / a2)}
 
-
-
 class ShareLogger(pl.Callback):
-    """The house share/dose logger, rank 0, every `every` epochs at epoch start: on a FIXED batch
-    (drawn once from the training set with a seeded loader, no workers) the per-term encoder
-    gradient norms g_k, the realized shares w_k g_k / sum, the moment-KL values, each stream's
-    whitened trace/d', and the cloud energies at H and Z over the V views (omega_h, omega_z, lam).
-    Single-process measurement (no gather), rings and BatchNorm buffers snapshotted and restored,
-    RNG forked. Prints the `[share] epN ...` line the fleet watcher reads."""
 
     def __init__(self, terms_fn, weights, dataset, collate_fn, bs=128, every=1, seed=0):
         self.terms_fn, self.weights, self.every, self.seed = terms_fn, weights, every, seed
@@ -140,9 +91,6 @@ class ShareLogger(pl.Callback):
     def on_train_start(self, trainer, pl_module):
         if not trainer.is_global_zero:
             return
-        # the fixed batch is decoded with workers: on video, bs clips x V views x T frames of augmentation
-        # (12k frame-augs at bs 128) take many minutes single-threaded, and every other rank waits at the
-        # first collective meanwhile (DDP timeout risk). Same seed -> same batch on every restart.
         import multiprocessing as mp
         loader = torch.utils.data.DataLoader(
             self.dataset, batch_size=self.bs, shuffle=True, num_workers=8, collate_fn=self.collate_fn,
@@ -193,16 +141,7 @@ class ShareLogger(pl.Callback):
                      "orbit/lam": tr["lam"], "share/trace_z": pl_module.cond_z.trace_last,
                      "share/trace_h": pl_module.cond_h.trace_last}, step=trainer.global_step)
 
-
 class K710Probe(pl.Callback):
-    """Online linear probe on the K710 labels (the video analog of train_ddp's per-epoch `probe_acc`; Berker
-    2026-09-04: "some sort of a positive curve as we train"). A linear head on the DETACHED view-mean CLS (h) is
-    trained on rank 0's own micro-batches with their labels (its own Adam; nothing flows back into the encoder);
-    at every epoch END (2026-09-06: moved from the next epoch's start — the same head state — so CheckpointKeeper can
-    save `best.ckpt` on it) it is scored on a FIXED held-out batch of pretraining clips drawn once with a seeded loader
-    (the labels were never used by the SSL loss). Prints `[probe] epN k710_top1=..` (N = epochs completed) on rank 0,
-    logs `probe/k710_top1`, keeps the value in `last_acc`. Attach with `+probe_k710=<held-out clips>` (see main.py);
-    a resumed segment starts the head fresh (declared: its first epochs read low)."""
 
     def __init__(self, dataset, collate_fn, num_classes, n_eval=1024, lr=1e-3, seed=0):
         self.dataset, self.collate_fn, self.C, self.n_eval, self.lr, self.seed = dataset, collate_fn, num_classes, n_eval, lr, seed
@@ -212,8 +151,6 @@ class K710Probe(pl.Callback):
         if not trainer.is_global_zero:
             return
         import multiprocessing as mp
-        # drawn in chunks of 64 clips and reduced to ONE view each on arrival: a single 1,024-clip batch materializes all
-        # six views in one worker (~15 GB + the collate copy) and OOM-killed rank 0 of the 8 x 1 launch (job 64475095)
         loader = torch.utils.data.DataLoader(self.dataset, batch_size=64, shuffle=True, num_workers=8, collate_fn=self.collate_fn,
                                              multiprocessing_context=mp.get_context("spawn"), generator=torch.Generator().manual_seed(self.seed + 1))
         t0 = time.time(); views, labels = [], []
@@ -247,13 +184,7 @@ class K710Probe(pl.Callback):
         if exp is not None and hasattr(exp, "log"):
             exp.log({"probe/k710_top1": acc}, step=trainer.global_step)
 
-
 class CheckpointKeeper(pl.Callback):
-    """Named checkpoints beside ModelCheckpoint's rolling `last.ckpt` (Berker 2026-09-06: "instead of keeping every checkpoint
-    we should specifically keep 239, last, best"): `epoch-{e:04d}.ckpt` at the end of every epoch e in keep_epochs (0-based:
-    239 = the 240-epoch state) and `best.ckpt` (+ `best.json`) for the epoch whose online K710 probe read highest. The probe
-    value lives on rank 0 and is broadcast so every rank takes the same decision (save_checkpoint is collective); the best
-    value is part of the checkpoint (callback state), so a resumed segment continues the comparison."""
 
     def __init__(self, probe=None, keep_epochs=()):
         self.probe, self.keep_epochs, self.best, self.best_epoch = probe, {int(e) for e in keep_epochs}, -1.0, -1
@@ -279,9 +210,7 @@ class CheckpointKeeper(pl.Callback):
                     json.dump({"epoch": e, "epochs_completed": e + 1, "k710_top1": float(acc)}, open(os.path.join(d, "best.json"), "w"))
                     print(f"[keep] best.ckpt <- epoch {e + 1} (k710_top1 {acc:.2f})", flush=True)
 
-
 def rearrange_views(v):
-    """(b, 1, t, c, h, w) uint8 -> normalized (b, c, t, h, w) for the encoder (main.to_float_normalized semantics)."""
     x = v[:, 0].float().div_(255.0)
     mean = torch.tensor((0.485, 0.456, 0.406), device=x.device).view(1, 1, 3, 1, 1); std = torch.tensor((0.229, 0.224, 0.225), device=x.device).view(1, 1, 3, 1, 1)
     return ((x - mean) / std).permute(0, 2, 1, 3, 4)

@@ -1,6 +1,6 @@
-# The house v6 recipe on LeVJEPA's ViT-B/16 (ssl_project video side project, 2026-09-02):
-# everything from config.yaml except the loss and the view set. Doses = the e27v6b400 chain
-# (22.81 / 222.26 / 4.054), rings z-q3 / h-q7, slices 128 / 256, six global views @224.
+# lambda-JEPA on LeVJEPA's ViT-B/16: everything from config.yaml except the loss and the view set.
+# Loss weights 22.81 / 222.26 / 4.054 (invariance / projector term / backbone term), rings z-q3 / h-q7,
+# slices 128 / 256, six global views @224.
 # Launch: python main.py --config-name lambdajepa_vitb data=<store> ...
 defaults:
   - config

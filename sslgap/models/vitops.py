@@ -1,10 +1,6 @@
-"""Manual forward paths through a timm VisionTransformer + EMA update. Ported verbatim from
-ssl_explore/sslx/vitops.py (see its docstring): I-JEPA needs context-only forwards, iBOT-style
-mask-token substitution, DINO locals are below the training resolution. vitops_self_test asserts
-exact equality against forward_features so a timm upgrade fails loudly at trainer start."""
+"""Manual forward paths through a timm VisionTransformer and the EMA update."""
 import torch
 from timm.layers import resample_abs_pos_embed
-
 
 def vit_tokens(bb, x, keep=None, replace=None, mask_token=None):
     """x: [B,C,H,H] -> normed tokens [B,1+K,D] (cls first).
@@ -20,7 +16,6 @@ def vit_tokens(bb, x, keep=None, replace=None, mask_token=None):
         z = torch.cat([cls_tok, p], 1)
     return bb.norm(bb.blocks(bb.norm_pre(bb.patch_drop(z))))
 
-
 def vit_tokens_lowres(bb, x):
     """Forward crops smaller than the training resolution (DINO 64px locals)."""
     z = bb.patch_embed.proj(x).flatten(2).transpose(1, 2)
@@ -30,14 +25,12 @@ def vit_tokens_lowres(bb, x):
     z = torch.cat([bb.cls_token.expand(z.shape[0], -1, -1), z], 1) + pos
     return bb.norm(bb.blocks(bb.norm_pre(bb.patch_drop(bb.pos_drop(z)))))
 
-
 @torch.no_grad()
 def ema_update(teacher, student, m):
     for pt, ps in zip(teacher.parameters(), student.parameters()):
         pt.lerp_(ps, 1.0 - m)
     for bt, bs in zip(teacher.buffers(), student.buffers()):
         bt.copy_(bs)
-
 
 @torch.no_grad()
 def vitops_self_test(bb, device="cpu", img_size=128, local_size=64):

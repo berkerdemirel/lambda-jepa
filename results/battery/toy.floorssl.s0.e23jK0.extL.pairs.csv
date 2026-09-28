@@ -1,7 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-toy.floorssl.s0.e23jK0.extL,imagenette.train.v1@audit_v1,student.h.cls,alignment,pairs,1.7894285308076407,1.7837160958011646,1.7946938158284027,9469,384,cheap
-toy.floorssl.s0.e23jK0.extL,imagenette.train.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.10528573459605846,0.10239033546524957,0.10822100982663181,9469,384,cheap
-toy.floorssl.s0.e23jK0.extL,imagenette.train.v1@audit_v1,student.h.gap,alignment,pairs,0.9704452607920583,0.9610364280043443,0.979609466179704,9469,384,cheap
-toy.floorssl.s0.e23jK0.extL,imagenette.train.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.5147773696038838,0.5102002223754327,0.5196078891429838,9469,384,cheap
-toy.floorssl.s0.e23jK0.extL,imagenette.train.v1@audit_v1,student.z.proj.out,alignment,pairs,1.9685104149435946,1.9653124595369789,1.9722111671420801,9469,256,cheap
-toy.floorssl.s0.e23jK0.extL,imagenette.train.v1@audit_v1,student.z.proj.out,cos_invariance,pairs,0.015744792527973873,0.013872547361886063,0.017713452228929064,9469,256,cheap

@@ -62,7 +62,7 @@ augmentation:
   color_jitter_hue: 0.1
   # The lejepa stack's photometric ops (jitter, grayscale, blur, solarize, flip) per (clip, view) on the GPU
   # (data/gpu_views.py: same distributions, float math without the uint8 rounding between ops); the workers then
-  # ship RandomResizedCrops only. Needs loader.normalize_on_gpu. E34 second launch (2026-09-03): true.
+  # ship RandomResizedCrops only. Needs loader.normalize_on_gpu.
   photometrics_on_gpu: false
 
 model:

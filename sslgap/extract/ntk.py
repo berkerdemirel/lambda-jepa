@@ -1,22 +1,10 @@
-"""Empirical NTK of the trunk at h.cls (E33 rich-vs-lazy diagnostic).
-
-K[i,j] = (1/P) Σ_k ⟨∇_θ v_kᵀh(x_i), ∇_θ v_kᵀh(x_j)⟩ over TRUNK parameters only (the g_enc
-trunk-module-only convention), h = forward_features CLS. Unit-norm random output projections
-v_k (Hutchinson-style) instead of the exact D-output NTK: E[v vᵀ] = I/D makes E[K] the trace
-NTK up to the constant 1/D, invisible to alignment. The v_k are FIXED by probe_seed across
-checkpoints and cells, so alignment trajectories share their estimator noise (common random
-numbers). fp32 forward/backward, no autocast; per-sample grads held bf16 on-GPU
-([N, n_params] — ~44 GB for ViT-B at N=256, an A100-80 job), Gram accumulated through fp32
-row chunks, K returned fp64 on CPU.
-"""
+"""Empirical NTK of the trunk at the CLS token (random output projections, trunk parameters only)."""
 import torch
-
 
 def probe_vectors(dim, n_probes, seed):
     g = torch.Generator().manual_seed(seed)
     v = torch.randn(n_probes, dim, generator=g)
     return v / v.norm(dim=1, keepdim=True)
-
 
 def empirical_ntk(trunk, images, n_probes=8, probe_seed=1009, device="cuda"):
     trunk = trunk.to(device).eval()

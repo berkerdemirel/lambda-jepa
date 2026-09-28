@@ -196,8 +196,8 @@ def lambdajepa_forward(self, batch, stage):
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
-    # checkpoints under the hydra run dir (BeeGFS): stable_pretraining otherwise redirects every ModelCheckpoint to
-    # ~/.cache/stable-pretraining/runs/... (the first E34 cell, 64312322, put 361 MB per epoch on home that way)
+    # checkpoints under the hydra run dir (the shared file system): stable_pretraining otherwise redirects every ModelCheckpoint to
+    # ~/.cache/stable-pretraining/runs/... (hundreds of MB per epoch on the home directory)
     spt.set(cache_dir=os.path.join(HydraConfig.get().runtime.output_dir, "spt_cache"))
     train_loader = build_video_loader(
         cfg,
@@ -260,7 +260,7 @@ def main(cfg: DictConfig):
         logger = WandbLogger(**OmegaConf.to_container(cfg.wandb.config, resolve=True))
         # No logger access here: wandb.init fires at the first `.experiment` access, and the Manager injects the
         # resumed run id (from the working directory's wandb_resume.json) only inside its __call__ — the donor's
-        # log_hyperparams at this point opened a fresh wandb run on every resume (E34 third launch, 2026-09-04).
+        # log_hyperparams at this point opened a fresh wandb run on every resume.
         # The config reaches wandb through the Manager (module.hparams) at fit start.
 
     callbacks = []

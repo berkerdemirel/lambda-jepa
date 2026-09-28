@@ -1,5 +1,5 @@
-# K710-20% as one JPEG-frames file per clip (E34 fix B, 2026-09-03; scripts/lance_to_clipfiles.py from the
-# Lance stores — same frames, one contiguous read per clip). LEVJEPA_CLIPFILE_ROOT overrides the base.
+# K710-20% as one JPEG-frames file per clip (scripts/lance_to_clipfiles.py from the Lance stores:
+# same frames, one contiguous read per clip). LEVJEPA_CLIPFILE_ROOT overrides the base.
 # @package data
-train: {clipfile_base: /mnt/beegfs/locatgrp/shared/datasets/kinetics, classes_file: /mnt/beegfs/locatgrp/shared/datasets/kinetics/k710_20pct_k400.lance.classes.txt, clips_per_video: 1}
-val: {clipfile_base: /mnt/beegfs/locatgrp/shared/datasets/kinetics, classes_file: /mnt/beegfs/locatgrp/shared/datasets/kinetics/k710_20pct_k400.lance.classes.txt, clips_per_video: 1}
+train: {clipfile_base: /path/to/kinetics, classes_file: /path/to/kinetics/k710_20pct_k400.lance.classes.txt, clips_per_video: 1}
+val: {clipfile_base: /path/to/kinetics, classes_file: /path/to/kinetics/k710_20pct_k400.lance.classes.txt, clips_per_video: 1}

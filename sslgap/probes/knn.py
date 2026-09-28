@@ -1,9 +1,6 @@
-"""Weighted-cosine kNN — VERBATIM port of ssl_explore/sslx/knn.py (the Lightly/DINO leaderboard
-metric: L2-normalize, cosine to a frozen train bank, top-k, exp(sim/t) vote weights; k=200 t=0.1).
-The self-test is part of the M0 exit criteria."""
+"""Weighted-cosine kNN classifier."""
 import torch
 import torch.nn.functional as F
-
 
 def knn_predict(feature, feature_bank, feature_labels, num_classes=10, knn_k=200, knn_t=0.1):
     """feature [B, D] L2-normed; feature_bank [D, N] L2-normed; feature_labels [N] long."""
@@ -16,13 +13,12 @@ def knn_predict(feature, feature_bank, feature_labels, num_classes=10, knn_k=200
     scores = (one_hot.view(feature.shape[0], -1, num_classes) * sim_weight.unsqueeze(-1)).sum(1)
     return scores.argsort(dim=-1, descending=True)
 
-
 @torch.no_grad()
 def knn_topk_acc(train_feats, train_y, val_feats, val_y, num_classes=10,
                  knn_k=200, knn_t=0.1, bs=256, device="cpu", return_pred=False):
     """`return_pred` is additive and defaults off, so the ported metric is untouched: it exists
     because a kNN gap of 1.5 points on 5k queries is 75 images and needs a PAIRED test, which
-    needs the per-query predictions (E36)."""
+    needs the per-query predictions."""
     train_feats = torch.as_tensor(train_feats).to(device)
     val_feats = torch.as_tensor(val_feats).to(device)
     train_y = torch.as_tensor(train_y).to(device)
@@ -40,7 +36,6 @@ def knn_topk_acc(train_feats, train_y, val_feats, val_y, num_classes=10,
     if return_pred:
         return correct / n, torch.cat(preds).numpy()
     return correct / n
-
 
 def knn_self_test():
     """Two separable clusters -> kNN must be perfect (port of sslx module_self_test)."""

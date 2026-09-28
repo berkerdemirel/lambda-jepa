@@ -1,8 +1,0 @@
-method,space,between/total (100cls),mean eta2 top-10,max eta2 top-10,mean |kurt| top-10
-simclr,student.h.gap,0.273,0.275,0.482,0.39
-byol,student.h.gap,0.259,0.289,0.455,0.52
-vicreg,student.h.gap,0.246,0.272,0.424,0.63
-dino,teacher.h.cls,0.237,0.367,0.663,0.37
-mae,student.h.gap,0.207,0.228,0.333,0.69
-ijepa,teacher.h.gap,0.177,0.242,0.422,0.53
-lejepa,student.z.embed,0.512,0.547,0.731,0.66

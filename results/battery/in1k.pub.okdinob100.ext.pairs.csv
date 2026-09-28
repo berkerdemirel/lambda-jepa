@@ -1,5 +1,0 @@
-run_id,manifest,space,metric,variant,value,ci_lo,ci_hi,n,d,boot
-in1k.pub.okdinob100.ext,in1k.pairs100.v1@audit_v1,student.h.cls,alignment,pairs,0.9147883936131136,0.9131379155195989,0.9168345893665353,100000,768,cheap
-in1k.pub.okdinob100.ext,in1k.pairs100.v1@audit_v1,student.h.cls,cos_invariance,pairs,0.5426058031934172,0.541389887657732,0.5437113692815259,100000,768,cheap
-in1k.pub.okdinob100.ext,in1k.pairs100.v1@audit_v1,student.h.gap,alignment,pairs,0.42147087954680307,0.4200369688643872,0.42312913743505753,100000,768,cheap
-in1k.pub.okdinob100.ext,in1k.pairs100.v1@audit_v1,student.h.gap,cos_invariance,pairs,0.789264560226567,0.7884909227086225,0.7899470797460121,100000,768,cheap

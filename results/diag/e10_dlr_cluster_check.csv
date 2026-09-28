@@ -1,5 +1,0 @@
-run,between/total_var,eig_top16_var_frac,n_negkurt_top16,mean_eta2_top16,"corr(eta2,|kurt|)",kmeans10_NMI,kmeans10_ARI
-Dlr,0.1876,0.949,10,0.142,0.434,0.246,0.164
-A,0.3498,0.944,2,0.274,0.583,0.568,0.481
-D0,0.0108,0.999,2,0.013,-0.11,0.013,0.006
-randinit,0.1055,0.958,5,0.051,0.03,0.079,0.041

@@ -1,40 +1,4 @@
-"""VISReg (arXiv 2606.02572) — house port for the IN-100 treatment zoo (Berker 2026-08-25:
-"it is a combination of lejepa and vicreg i agree. we should not go out of the house with
-augmentation etc. we follow in100 in house way. just updating the loss as visreg").
-
-Anatomy, frame, aug = the house lejepa lane (trunk -> 512-d embed -> projector, V=4 house
-aug family, house lr 1e-3/warmup 10/eta_min 1e-5 hygiene) registered in the CANONICAL roles
-(backbone/embed/projector per SSLMethod.build_modules) — NOT lejepa's "encoder" monolith:
-that monolith exists only for lejepa's seed-faithful port (construction-order parity with
-the official init stream), which visreg has no donor to match, and the canonical split is
-what the trainer instruments (share/Ω logger) and the ckpt assembly consume. 2026-08-25
-incident: the first build reused the monolith and crash-looped every launch at the share
-logger's `modules["backbone"]` lookup (e-visreg 63677740-42 + pilot 63677743). ONLY the
-loss follows the donor: loss = w_reg * VISReg(z) + w_inv * inv, the donor's lamb=.9 convex
-mix carried as EXPLICIT weights (w_reg=.9, w_inv=.1; numerically identical, PULL_W-clean —
-no derived (1-lamb) weight), inv = view-to-mean MSE at proj.out (their global-mean anchor;
-the house V=4 views are all global).
-
-PORT_NOTES (donor ~/visreg_repro @ the D-102-arc pin, visreg/losses/visreg.py + train.py):
-- reg ported verbatim: center = mean(mu^2) over dims + scale = (per-dim std - 1)^2 mean
-  + shape = sorted projections over 256 unit slices vs erfinv Gaussian quantile targets
-  (cached per batch size); std DETACHED in the shape normalizer, exactly as the donor.
-- their trainer composes reg*lamb + inv*(1-lamb) with lamb=.9 (configs/default.yaml) and
-  anchors inv to the mean over GLOBAL views (train.py:230); at house V=4 all-global views
-  the all-view mean IS that anchor.
-- deviations (declared): house aug/frame/anatomy instead of their torchvision stack +
-  ViT-B (the "in house way" ruling); proj_dim = 128 (the house z-slice width) instead of
-  their embed_dim//3 rule, which gives the nonstandard 170 at our 512-d embedding; house
-  lr/warmup/eta_min hygiene instead of their 9e-4 @ bs 16x8.
-- h_reg="sacreg" hook mirrors the zoo floor at the declared h (the 512-d embedding,
-  lejepa-family D-036 convention; conditioner input pools the views, n = bs*V), weight
-  h_lamb — the E20-style treated arm.
-- h_reg="visreg" (E37, Berker 2026-09-17 "launch a run where we do visreg too"): VISReg's OWN
-  regularizer applied at the same declared h (a second VISRegLoss instance on the per-view
-  embedding [V, B, 512], the donor's exact form incl. its fresh random projections and
-  cached quantile target), weight h_lamb, term key h_visreg — the E17 hpull pattern (the
-  method's own term at h, z-loss byte-untouched) that E17 never ran for VISReg.
-"""
+"""VISReg as released, with the optional SACReg term at the 512-d embedding (h_reg=sacreg)."""
 import math
 
 import torch
@@ -47,9 +11,7 @@ from sslgap.methods.base import SSLMethod
 from sslgap.methods.lejepa import lejepa_projector
 from sslgap.models.backbones import build_vit_trunk
 
-
 class VISRegLoss(nn.Module):
-    """Donor visreg/losses/visreg.py verbatim (input [V, B, D])."""
 
     def __init__(self, num_projections=256, scale_weight=1.0, shape_weight=1.0,
                  center_weight=1.0):
@@ -83,7 +45,6 @@ class VISRegLoss(nn.Module):
         return (self.scale_weight * scale_loss + self.shape_weight * shape_loss
                 + self.center_weight * center_loss)
 
-
 class VISReg(SSLMethod):
     name = "visreg"
     PULL_W = {"visreg": "w_reg", "inv": "w_inv", "h_moment_kl": "h_lamb",
@@ -92,9 +53,9 @@ class VISReg(SSLMethod):
     def __init__(self, cfg, frame):
         super().__init__(cfg, frame)
         self.reg = VISRegLoss(num_projections=cfg.get("num_projections", 256))
-        if self.cfg.get("h_reg") == "sacreg":     # zoo floor hook (no RNG at construction)
+        if self.cfg.get("h_reg") == "sacreg":
             self.floor = SACReg()
-        elif self.cfg.get("h_reg") == "visreg":   # E37: the method's own term at h
+        elif self.cfg.get("h_reg") == "visreg":
             self.h_reg = VISRegLoss(num_projections=cfg.get("num_projections", 256))
 
     def build_modules(self):
@@ -124,18 +85,18 @@ class VISReg(SSLMethod):
         cls = modules["backbone"].forward_features(views.flatten(0, 1))[:, 0]
         emb = modules["embed"](cls)
         z = modules["projector"](emb).reshape(N, V, -1)
-        z_vbd = z.transpose(0, 1)                              # [V, B, D], donor convention
+        z_vbd = z.transpose(0, 1)
         inv = (z_vbd - z_vbd.mean(dim=0, keepdim=True)).square().mean()
         reg = self.reg(z_vbd)
         loss = self.cfg.w_reg * reg + self.cfg.w_inv * inv
         terms = {"visreg": reg, "inv": inv}
-        if self.cfg.get("h_reg") == "sacreg":                  # the E20-style treated arm
+        if self.cfg.get("h_reg") == "sacreg":
             emb_v = emb.reshape(N, V, -1).transpose(0, 1)
             h_loss = self.floor(emb_v)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_moment_kl"] = h_loss
-        elif self.cfg.get("h_reg") == "visreg":                # E37: own term at h
-            emb_v = emb.reshape(N, V, -1).transpose(0, 1)      # [V, B, 512], donor form
+        elif self.cfg.get("h_reg") == "visreg":
+            emb_v = emb.reshape(N, V, -1).transpose(0, 1)
             h_loss = self.h_reg(emb_v)
             loss = loss + self.cfg.h_lamb * h_loss
             terms["h_visreg"] = h_loss
