@@ -23,34 +23,47 @@ Datasets are expected at `~/data/imagenet`, `~/data/imagenet100` (the CMC split;
 `~/data/ssltransfer` (downloaded on first use). For video, `LEVJEPA_DATA_ROOT`, `SSV2_CLIPFILES` and
 `K400_CLIPFILES` point at the clip stores built by the scripts in `video/levjepa/scripts/`.
 
-## Running
+Every step below is a plain command; we ran them as cluster jobs. Multi-GPU steps expect the usual `torchrun` or
+`srun` environment.
 
-Every step is a plain command; we ran them as cluster jobs. Multi-GPU steps expect the usual `torchrun` or `srun`
-environment.
+## ImageNet-1k
 
-**ImageNet-1k.** `bash scripts/in1k.sh vits|vitb 100|400` trains λ-JEPA with the paper's settings on two GPUs and
-resumes from the last checkpoint if interrupted. Evaluate a checkpoint with `python experiments/bench_probe.py
-<ckpt> <run>` (linear probe and kNN) and `python experiments/transfer_visreg.py native:<ckpt> <tag>` (transfer).
+```bash
+bash scripts/in1k.sh vits|vitb 100|400
+```
 
-**ImageNet-100.** `bash scripts/in100_cells.sh list` prints the fourteen cells: each baseline with and without
-SACReg, and λ-JEPA with and without its backbone term. `train <cell> [seed]` trains one cell on one GPU and
-`land <run_id>` runs the probes and the representation statistics. The paper averages seeds 0, 1 and 2.
-`experiments/twospace.py` computes the class-separability and view-sensitivity statistics, and
-`experiments/feature_drift.py` the feature and kernel drift.
+Trains λ-JEPA with the paper's settings on two GPUs and resumes from the last checkpoint if interrupted.
+Evaluate a checkpoint with `python experiments/bench_probe.py <ckpt> <run>` (linear probe and kNN) and
+`python experiments/transfer_visreg.py native:<ckpt> <tag>` (transfer).
 
-**Video.** From `video/levjepa/`, `scripts/train_k710_vits.sh` and `scripts/train_k710_vitb.sh` train on the
-Kinetics-710 subset on eight GPUs. `scripts/attentive_probe_in1k.sh`, `scripts/video_probe.sh` and
-`scripts/k400_feature_cache.sh` followed by `python experiments/k400_features_read.py` are the evaluations.
+## ImageNet-100
 
-**Loss weights.** `experiments/pull.py` measures each loss term's backbone gradient norm at a checkpoint, and
-`experiments/loss_weights.py` turns the norms into the weights with the rule of the appendix.
+```bash
+bash scripts/in100_cells.sh list                  # the fourteen cells
+bash scripts/in100_cells.sh train <cell> [seed]   # one cell, one GPU
+bash scripts/in100_cells.sh land <run_id>         # probes and representation statistics
+```
 
-**LeJEPA with SIGReg at the encoder output** (appendix). `python experiments/train.py method=lejepa
-frame=in100_vits16 bs=128 num_classes=100 +method.h_reg=sigreg +method.h_lamb=0.003763 tag=sigreg_h`, then
-`land` as above.
+The cells are each baseline with and without SACReg, and λ-JEPA with and without its backbone term; the paper
+averages seeds 0, 1 and 2. `experiments/twospace.py` computes the class-separability and view-sensitivity
+statistics, and `experiments/feature_drift.py` the feature and kernel drift.
 
-**Theory.** `theory/two_layer_linear/test_reg_encoder.py` and the drivers in `theory/two_layer_relu/` run on a CPU
-and need no data.
+## Video
+
+From `video/levjepa/`:
+
+```bash
+bash scripts/train_k710_vits.sh                                  # ViT-S/16, eight GPUs
+MAX_EPOCHS=515 bash scripts/train_k710_vitb.sh                   # ViT-B/16; MAX_EPOCHS=1085 resumes the same run
+bash scripts/attentive_probe_in1k.sh <ckpt> <out csv>
+bash scripts/video_probe.sh ssv2|k400 attentive|linear_mean <ckpt> <out csv>
+bash scripts/k400_feature_cache.sh <cache dir> name=<ckpt>       # then python experiments/k400_features_read.py --cache <cache dir>
+```
+
+## Theory
+
+`theory/two_layer_linear/test_reg_encoder.py` and the drivers in `theory/two_layer_relu/` run on a CPU and need
+no data.
 
 ## Third-party code
 
