@@ -75,3 +75,17 @@ modified copy of a few files of the [LeVJEPA](https://github.com/MLO-lab/LeVJEPA
 commit `3ea0dda`) with our loss and loaders added; for the rest of the trainer see the upstream repository.
 
 Checkpoints and result files are not included.
+
+## Citation
+
+```bibtex
+@misc{demirel2026lambdajepa,
+      title={$\lambda$-JEPA: Spectral Anti-Collapse Regularization for Self-Supervised Learning},
+      author={Berker Demirel and Clémentine Dominé and Valentino Maiorca and Marco Fumero and Marco Mondelli and Francesco Locatello},
+      year={2026},
+      eprint={2609.35288},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2609.35288},
+}
+```
