@@ -5,6 +5,10 @@ code for λ-JEPA and for the baselines of the paper (SimCLR, BYOL, VICReg, DINO,
 option of adding SACReg at the backbone, the evaluation protocols, the video trainer, and the two-layer experiments
 of the theory appendix.
 
+<p align="center">
+  <img src="assets/lambda_jepa_schematic.png" alt="λ-JEPA schematic: SACReg applied at the backbone representation h, alongside the SSL objective at the projector output z" width="800">
+</p>
+
 The regularizer is `SACReg` in `sslgap/methods/_common.py`; λ-JEPA is `sslgap/methods/lambdajepa.py`. Adding
 SACReg to another method's backbone is `+method.h_reg=sacreg +method.h_lamb=<weight>`. In the code the paper's
 β_z and β_h are `w_floor` and `h_lamb`, and the logged terms are `moment_kl` and `h_moment_kl`.
