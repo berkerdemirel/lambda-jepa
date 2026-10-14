@@ -1,6 +1,7 @@
 # local artifacts (large / regenerable)
 outputs/
 features/
+features
 features_nfs/
 wandb/
 results/
@@ -30,3 +31,7 @@ scratch/
 third_party/
 slurm-*.out
 texput.log
+
+# session files of the follow-up line, not part of the project
+handover.md
+session_opener.md
